@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class NavbarBackButton extends StatelessWidget {
   final VoidCallback? onPressed;
@@ -16,12 +17,9 @@ class NavbarBackButton extends StatelessWidget {
           size: 22,
           color: Colors.black,
         ),
-        onPressed: onPressed ??
-                () {
-              if (Navigator.of(context).canPop()) {
-                Navigator.of(context).pop();
-              }
-            },
+        onPressed: onPressed ?? () {
+          Get.back();
+        },
       ),
     );
   }

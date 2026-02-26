@@ -161,8 +161,8 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
   }
 
   Widget _teacherDashboard(bool isMobile) {
-    final cardWidth = isMobile ? 170.0 : 330.0;
-    final cardHeight = isMobile ? 190.0 : 400.0;
+    final cardWidth = isMobile ? 170.0 : 260.0;
+    final cardHeight = isMobile ? 190.0 : 330.0;
 
     final items = [
       ..._activeClasses.map((c) => _NotebookCard(
@@ -187,7 +187,12 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
           );
         },
       )),
-      _AddClassCard(width: cardWidth, height: cardHeight, userId: widget.userId, role: widget.role),
+      _AddClassCard(
+        width: cardWidth,
+        height: cardHeight,
+        userId: widget.userId,
+        role: widget.role,
+      ),
     ];
 
     if (isMobile) {
@@ -197,29 +202,18 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
       );
     }
 
-    final desktopCount = items.length.clamp(1, 4);
-    const cardW = 340.0;
-    const gap = 6.0;
-
-    final gridWidth =
-        (desktopCount * cardW) + ((desktopCount - 1) * gap);
+    const gap = 24.0;
+    final totalWidth =
+        (items.length * cardWidth) + ((items.length - 1) * gap);
 
     return SingleChildScrollView(
       child: Center(
         child: SizedBox(
-          width: gridWidth,
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            itemCount: items.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              crossAxisSpacing: 6,
-              mainAxisSpacing: 8,
-              childAspectRatio: 330 / 400,
-            ),
-            itemBuilder: (_, i) => items[i],
+          width: totalWidth,
+          child: Wrap(
+            spacing: gap,
+            runSpacing: gap,
+            children: items,
           ),
         ),
       ),
@@ -246,26 +240,47 @@ class _AddClassCard extends StatelessWidget {
   final int userId;
   final String role;
 
-  const _AddClassCard({required this.width, required this.height, required this.userId, required this.role});
+  const _AddClassCard({
+    required this.width,
+    required this.height,
+    required this.userId,
+    required this.role,
+  });
+
+  static const double _spineOffset = 18; // MUST MATCH NOTEBOOK OVERLAP
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: width,
       height: height,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TeacherNewDataSourcePage(role: role, userId: userId))),
-        child: Container(
-          decoration: BoxDecoration(
+      child: Padding(
+        padding: const EdgeInsets.only(left: _spineOffset),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(22),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  TeacherNewDataSourcePage(role: role, userId: userId),
+            ),
+          ),
+          child: Container(
+            decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.black12)),
-          child: const Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(Icons.add_circle_outline, size: 40, color: Colors.black26),
-            SizedBox(height: 12),
-            Text('New Class', style: TextStyle(fontWeight: FontWeight.bold)),
-          ]),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: Colors.black12),
+            ),
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add_circle_outline, size: 40, color: Colors.black26),
+                SizedBox(height: 12),
+                Text('New Class',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -288,6 +303,9 @@ class _NotebookCard extends StatelessWidget {
     required this.onOpen,
   });
 
+  static const double _radius = 22;
+  static const double _spineWidth = 26;
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -296,70 +314,75 @@ class _NotebookCard extends StatelessWidget {
       child: Stack(
         children: [
 
+          /// SPINE (now INSIDE width, no negative offsets)
           Positioned(
-            left: 0,
-            top: 0,
-            bottom: 0,
-            child: Container(
-              width: 28,
-              decoration: const BoxDecoration(
-                color: Color(0xFF1E1E1E),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(14),
-                  bottomLeft: Radius.circular(14),
+            left: 6,
+            top: 18,
+            bottom: 18,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(_radius),
+                bottomLeft: Radius.circular(_radius),
+              ),
+              child: Container(
+                width: _spineWidth,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF1E1E1E),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 10,
+                      offset: Offset(3, 0),
+                      color: Colors.black26,
+                    )
+                  ],
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    blurRadius: 8,
-                    offset: Offset(3, 0),
-                    color: Colors.black26,
-                  )
-                ],
               ),
             ),
           ),
 
-
-          Card(
-            color: color,
-            elevation: 8,
-            margin: const EdgeInsets.only(left: 22),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(22),
-            ),
-            child: InkWell(
-              onTap: onOpen,
-              borderRadius: BorderRadius.circular(22),
-              child: Padding(
-                padding: const EdgeInsets.all(26),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      schoolYear,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black54,
+          /// COVER (shifted RIGHT by spine width)
+          Positioned.fill(
+            left: _spineWidth - 8, // overlap nicely but keep width honest
+            child: Card(
+              color: color,
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(_radius),
+              ),
+              child: InkWell(
+                onTap: onOpen,
+                borderRadius: BorderRadius.circular(_radius),
+                child: Padding(
+                  padding: const EdgeInsets.all(26),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        schoolYear,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black54,
+                        ),
                       ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      grade,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
+                      const Spacer(),
+                      Text(
+                        grade,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      section,
-                      style: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
+                      const SizedBox(height: 8),
+                      Text(
+                        section,
+                        style: const TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

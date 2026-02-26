@@ -94,6 +94,17 @@ class DatabaseService {
         FOREIGN KEY (assessment_id) REFERENCES assessment_header(assessment_id)
       )
     ''');
+
+    await db.execute('''
+    CREATE TABLE data_source_files (
+      file_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      class_id INTEGER,
+      file_name TEXT,
+      date_imported TEXT,
+      status TEXT,
+      FOREIGN KEY (class_id) REFERENCES class_table(class_id)
+)
+''');
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -240,6 +251,30 @@ class DatabaseService {
     return db.insert(learnerTable, data);
   }
 
+  // ================== ADMIN DATA SOURCES ==================
+
+  Future<List<Map<String, dynamic>>> getAllDataSourcesByStatus(String status) async {
+    final db = await getDatabase();
+    return db.query(
+      classTable,
+      where: 'status = ?',
+      whereArgs: [status],
+      orderBy: 'class_id DESC',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getAllActiveDataSources() async {
+    return getAllDataSourcesByStatus(statusActive);
+  }
+
+  Future<List<Map<String, dynamic>>> getAllDeactivatedDataSources() async {
+    return getAllDataSourcesByStatus(statusDeactivated);
+  }
+
+  Future<List<Map<String, dynamic>>> getAllArchivedDataSources() async {
+    return getAllDataSourcesByStatus(statusArchived);
+  }
+
   // ================== AUTH LOOKUPS ==================
   Future<Map<String, dynamic>?> findTeacherByEmail(String email) async {
     final db = await getDatabase();
@@ -316,6 +351,31 @@ class DatabaseService {
       {'status': status},
       where: 'class_id = ?',
       whereArgs: [classId],
+    );
+  }
+
+  Future<int> insertDataSourceFile(Map<String, dynamic> data) async {
+    final db = await getDatabase();
+    return db.insert('data_source_files', data);
+  }
+
+  Future<List<Map<String, dynamic>>> getFilesByClass(int classId) async {
+    final db = await getDatabase();
+    return db.query(
+      'data_source_files',
+      where: 'class_id = ?',
+      whereArgs: [classId],
+      orderBy: 'file_id DESC',
+    );
+  }
+
+  Future<void> setFileStatus(int fileId, String status) async {
+    final db = await getDatabase();
+    await db.update(
+      'data_source_files',
+      {'status': status},
+      where: 'file_id = ?',
+      whereArgs: [fileId],
     );
   }
 

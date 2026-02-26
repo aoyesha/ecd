@@ -220,7 +220,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
           const SizedBox(height: 16),
 
-          // ACTIONS (FULLY RESTORED)
           Card(
             child: Column(
               children: [

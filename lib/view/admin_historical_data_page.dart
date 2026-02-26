@@ -1,27 +1,31 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+
 import '../services/database_service.dart';
 import '../services/pdf_service.dart';
 import '../util/navbar.dart';
 import '../util/navbar_back_button.dart';
 
-class HistoricalDataPage extends StatefulWidget {
+class AdminHistoricalPage extends StatefulWidget {
   final String role;
   final int userId;
 
-  const HistoricalDataPage({
+  const AdminHistoricalPage({
     Key? key,
     required this.role,
     required this.userId,
   }) : super(key: key);
 
   @override
-  State<HistoricalDataPage> createState() => _HistoricalDataPageState();
+  State<AdminHistoricalPage> createState() => _AdminHistoricalPageState();
 }
 
-class _HistoricalDataPageState extends State<HistoricalDataPage> {
+class _AdminHistoricalPageState extends State<AdminHistoricalPage> {
   bool _loading = true;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
+
+  File? importedFile;
 
   final List<String> _domainsTable = const [
     "GROSS MOTOR",
@@ -78,8 +82,7 @@ class _HistoricalDataPageState extends State<HistoricalDataPage> {
       INNER JOIN assessment_header a ON e.assessment_id = a.assessment_id
       INNER JOIN learner_information_table l ON a.learner_id = l.learner_id
       INNER JOIN class_table c ON l.class_id = c.class_id
-      WHERE c.teacher_id = ?
-    ''', [widget.userId]);
+    ''');
 
     Map<String, Map<String, Map<String, int>>> data = {};
 
@@ -118,9 +121,18 @@ class _HistoricalDataPageState extends State<HistoricalDataPage> {
 
   Future<void> _exportSummary() async {
     final file =
-    await PdfService.generateReport("Historical Data", {});
+    await PdfService.generateReport("Admin Historical Data", {});
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text("PDF saved: ${file.path}")));
+  }
+
+  Future<void> _importFile() async {
+    final result = await FilePicker.platform.pickFiles();
+    if (result != null && result.files.single.path != null) {
+      setState(() => importedFile = File(result.files.single.path!));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("File imported")));
+    }
   }
 
   @override
@@ -156,8 +168,7 @@ class _HistoricalDataPageState extends State<HistoricalDataPage> {
                       _topBar(isMobile),
                       Expanded(
                         child: _loading
-                            ? const Center(
-                            child: CircularProgressIndicator())
+                            ? const Center(child: CircularProgressIndicator())
                             : _content(),
                       ),
                     ],
@@ -177,21 +188,19 @@ class _HistoricalDataPageState extends State<HistoricalDataPage> {
     );
   }
 
+  /// SAME UI BELOW — ONLY BUTTON ROW CHANGED
   Widget _topBar(bool isMobile) {
     if (!isMobile) {
       return Container(
         padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
         decoration: const BoxDecoration(
           color: Colors.white,
-          border:
-          Border(bottom: BorderSide(color: Colors.black12)),
+          border: Border(bottom: BorderSide(color: Colors.black12)),
         ),
         child: const Column(
           children: [
             Text("Historical Data",
-                style: TextStyle(
-                    fontSize: 42,
-                    fontWeight: FontWeight.w900)),
+                style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900)),
             SizedBox(height: 14),
           ],
         ),
@@ -202,8 +211,7 @@ class _HistoricalDataPageState extends State<HistoricalDataPage> {
       height: 60,
       decoration: const BoxDecoration(
         color: Colors.white,
-        border:
-        Border(bottom: BorderSide(color: Colors.black12)),
+        border: Border(bottom: BorderSide(color: Colors.black12)),
       ),
       child: Stack(
         children: [
@@ -212,9 +220,7 @@ class _HistoricalDataPageState extends State<HistoricalDataPage> {
             right: 64,
             child: Center(
               child: Text("Historical Data",
-                  style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900)),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
             ),
           ),
           Positioned(
@@ -223,8 +229,7 @@ class _HistoricalDataPageState extends State<HistoricalDataPage> {
             bottom: 6,
             child: IconButton(
               icon: const Icon(Icons.menu),
-              onPressed: () =>
-                  _scaffoldKey.currentState!.openDrawer(),
+              onPressed: () => _scaffoldKey.currentState!.openDrawer(),
             ),
           ),
         ],
@@ -239,21 +244,24 @@ class _HistoricalDataPageState extends State<HistoricalDataPage> {
         children: [
           _tableSummaryCard(),
           const SizedBox(height: 24),
+
+          /// 🔴 ADMIN BUTTON ROW
           Row(
             children: [
-              const Spacer(),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                    const Color(0xFFA02A2A)),
+                    backgroundColor: Colors.grey.shade700),
+                onPressed: _importFile,
+                child: const Text("Import Data",
+                    style: TextStyle(color: Colors.white, fontSize: 18)),
+              ),
+              const SizedBox(width: 16),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFA02A2A)),
                 onPressed: _exportSummary,
-                child:
-                const Text("Export Summary",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                ),
-                ),
+                child: const Text("Export Summary",
+                    style: TextStyle(color: Colors.white, fontSize: 18)),
               ),
             ],
           ),
@@ -262,6 +270,7 @@ class _HistoricalDataPageState extends State<HistoricalDataPage> {
     );
   }
 
+  // ---------- TABLE (UNCHANGED) ----------
   Widget _tableSummaryCard() {
     return Container(
       decoration: BoxDecoration(
@@ -293,8 +302,7 @@ class _HistoricalDataPageState extends State<HistoricalDataPage> {
   Widget _tableTopHeader() {
     return Row(children: [
       _headerCell("LEVEL", width: 260),
-      for (var d in _domainsTable)
-        _headerCell(d, width: 160),
+      for (var d in _domainsTable) _headerCell(d, width: 160),
       _headerCell("GRAND TOTAL", width: 160),
     ]);
   }
@@ -312,75 +320,50 @@ class _HistoricalDataPageState extends State<HistoricalDataPage> {
   }
 
   Widget _tableRow(String level) {
-    final desc =
-        _levelDescriptions[level] ?? level;
-
+    final desc = _levelDescriptions[level] ?? level;
     return Row(children: [
       _cell(desc, width: 260),
       for (var d in _domainsTable) ...[
-        _cell("${_tableData[level]?[d]?['M'] ?? 0}",
-            width: 80),
-        _cell("${_tableData[level]?[d]?['F'] ?? 0}",
-            width: 80),
+        _cell("${_tableData[level]?[d]?['M'] ?? 0}", width: 80),
+        _cell("${_tableData[level]?[d]?['F'] ?? 0}", width: 80),
       ],
-      _cell(
-          "${_tableData[level]?['GRAND_TOTAL']?['M'] ?? 0}",
-          width: 80),
-      _cell(
-          "${_tableData[level]?['GRAND_TOTAL']?['F'] ?? 0}",
-          width: 80),
+      _cell("${_tableData[level]?['GRAND_TOTAL']?['M'] ?? 0}", width: 80),
+      _cell("${_tableData[level]?['GRAND_TOTAL']?['F'] ?? 0}", width: 80),
     ]);
   }
 
-  Widget _headerCell(String text,
-      {double width = 100}) {
-    return Container(
-      width: width,
-      height: 60,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        border: Border.all(
-            color: Colors.grey.shade400),
-      ),
-      child: Text(text,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-              fontWeight: FontWeight.bold)),
-    );
-  }
+  Widget _headerCell(String text, {double width = 100}) => Container(
+    width: width,
+    height: 60,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: Colors.grey.shade200,
+      border: Border.all(color: Colors.grey.shade400),
+    ),
+    child: Text(text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontWeight: FontWeight.bold)),
+  );
 
-  Widget _subHeaderCell(String text,
-      {double width = 60}) {
-    return Container(
-      width: width,
-      height: 42,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        border: Border.all(
-            color: Colors.grey.shade300),
-      ),
-      child: Text(text,
-          style: const TextStyle(
-              fontWeight: FontWeight.bold)),
-    );
-  }
+  Widget _subHeaderCell(String text, {double width = 60}) => Container(
+    width: width,
+    height: 42,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: Colors.grey.shade100,
+      border: Border.all(color: Colors.grey.shade300),
+    ),
+    child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
+  );
 
-  Widget _cell(String text,
-      {double width = 60}) {
-    return Container(
-      width: width,
-      height: 46,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        border: Border.all(
-            color: Colors.grey.shade300),
-        color: Colors.white,
-      ),
-      child: Text(text,
-          style:
-          const TextStyle(fontSize: 15)),
-    );
-  }
+  Widget _cell(String text, {double width = 60}) => Container(
+    width: width,
+    height: 46,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      border: Border.all(color: Colors.grey.shade300),
+      color: Colors.white,
+    ),
+    child: Text(text, style: const TextStyle(fontSize: 15)),
+  );
 }

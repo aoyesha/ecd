@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/database_service.dart';
+import '../view/admin_archive_page.dart';
+import '../view/admin_historical_data_page.dart';
+import '../view/admin_landing_page.dart';
 import '../view/landing_page.dart';
 import '../view/archive_page.dart';
 import '../view/historical_data_page.dart';
@@ -90,26 +93,35 @@ class _NavbarState extends State<Navbar> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isTeacher = widget.role == "Teacher";
+
     final items = <NavItem>[
       NavItem(
         icon: Icons.home,
         label: 'Dashboard',
-        builder: () => LandingPage(userId: widget.userId, role: widget.role),
+        builder: () => isTeacher
+            ? LandingPage(userId: widget.userId, role: widget.role)
+            : AdminLandingPage(userId: widget.userId, role: widget.role),
       ),
       NavItem(
         icon: Icons.archive,
-        label: 'My Archive',
-        builder: () => ArchivePage(userId: widget.userId, role: widget.role),
+        label: isTeacher ? 'My Archive' : 'Data Archive',
+        builder: () => isTeacher
+            ? ArchivePage(userId: widget.userId, role: widget.role)
+            : AdminArchivePage(userId: widget.userId, role: widget.role),
       ),
       NavItem(
         icon: Icons.analytics,
         label: 'Historical Data Analysis',
-        builder: () => HistoricalDataPage(userId: widget.userId, role: widget.role),
+        builder: () => isTeacher
+            ? HistoricalDataPage(userId: widget.userId, role: widget.role)
+            : AdminHistoricalPage(userId: widget.userId, role: widget.role),
       ),
       NavItem(
         icon: Icons.settings,
         label: 'Account Settings',
-        builder: () => SettingsPage(userId: widget.userId, role: widget.role),
+        builder: () =>
+            SettingsPage(userId: widget.userId, role: widget.role),
       ),
     ];
 
