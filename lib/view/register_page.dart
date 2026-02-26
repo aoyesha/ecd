@@ -5,13 +5,33 @@ import '../services/database_service.dart';
 import 'login_page.dart';
 
 const Map<String, Map<String, List<String>>> regionHierarchy = {
-  "NCR": {
-    "Quezon City": ["District 1", "District 2", "District 3", "District 4"],
-    "Manila": ["District I", "District II", "District III", "District IV"],
-  },
-  "Region IV-A": {
-    "Laguna": ["Calamba", "Los Baños", "Biñan"],
-    "Cavite": ["Imus", "Dasmariñas", "Bacoor"],
+  "MIMAROPA": {
+    "Occidental Mindoro": [
+      "Abra de Ilog", "Calintaan", "Looc", "Lubang", "Magsaysay",
+      "Mamburao", "Paluan", "Rizal", "Sablayan", "San Jose", "Santa Cruz"
+    ],
+    "Oriental Mindoro": [
+      "Baco", "Bansud", "Bongabong", "Bulalacao", "Gloria",
+      "Mansalay", "Naujan", "Pinamalayan", "Pola", "Puerto Galera",
+      "Roxas", "San Teodoro", "Socorro", "Victoria"
+    ],
+    "Calapan City": ["Calapan City North", "Calapan City South"],
+    "Marinduque": [
+      "Boac North", "Boac South", "Buenavista", "Gasan",
+      "Mogpog", "Santa Cruz North", "Santa Cruz South", "Torrijos"
+    ],
+    "Romblon": [
+      "Alcantara", "Banton", "Cajidiocan", "Calatrava", "Concepcion",
+      "Corcuera", "Ferrol", "Looc", "Magdiwang", "Odiongan",
+      "Romblon", "San Agustin", "San Andres", "San Fernando", "Santa Fe"
+    ],
+    "Palawan": [
+      "Aborlan", "Agutaya", "Araceli", "Balabac", "Bataraza",
+      "Brooke's Point", "Busuanga", "Cagayancillo", "Coron", "Culion",
+      "Cuyo", "Dumaran", "El Nido", "Linapacan", "Magsaysay",
+      "Narra", "Quezon", "Rizal", "Roxas", "San Vicente", "Sofronio Española", "Taytay"
+    ],
+    "Puerto Princesa City": ["Puerto Princesa North", "Puerto Princesa South"],
   },
 };
 
@@ -44,6 +64,13 @@ class _RegisterPageState extends State<RegisterPage> {
   final List<String> accountRole = ['Teacher', 'Admin'];
 
   @override
+  void initState() {
+    super.initState();
+
+    selectedRegion = "MIMAROPA";
+  }
+
+  @override
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
@@ -56,6 +83,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+
+    if (selectedRegion != null && !regionHierarchy.containsKey(selectedRegion)) {
+      selectedRegion = regionHierarchy.keys.first;
+    }
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -357,7 +389,6 @@ class _RegisterPageState extends State<RegisterPage> {
               final recovery2 = recoveryAnswer2Controller.text.trim();
               final passwordErrors = [];
 
-              // Required fields
               if (name.isEmpty ||
                   email.isEmpty ||
                   password.isEmpty ||
@@ -367,32 +398,26 @@ class _RegisterPageState extends State<RegisterPage> {
                 return;
               }
 
-              // Email validation
               if (!email.endsWith("@deped.gov.ph")) {
                 passwordErrors.add("Email must end with \"@deped.gov.ph\"");
               }
 
-              // Password length
               if (password.length < 8) {
                 passwordErrors.add("Password must be at least 8 characters");
               }
 
-              // At least 1 uppercase
               if (!RegExp(r'[A-Z]').hasMatch(password)) {
                 passwordErrors.add("Password must contain at least 1 uppercase letter");
               }
 
-              // At least 1 number
               if (!RegExp(r'[0-9]').hasMatch(password)) {
                 passwordErrors.add("Password must contain at least 1 numerical digit");
               }
 
-              // At least 1 special character
               if (!RegExp(r'[!@#\$%\^&\*\(\)_]').hasMatch(password)) {
                 passwordErrors.add("Password must contain at least 1 special symbol (!, @, #, \$, %, ^, &, *, _,)");
               }
 
-              // Shows all password errors in bullet format
               if(passwordErrors.isNotEmpty){
                 final String bulletList = passwordErrors
                     .map((msg) => '• $msg')
@@ -504,7 +529,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _showSnackBar(String message, {bool isError = true}) {
     final snackBar = SnackBar(
-      behavior: SnackBarBehavior.floating, // allows rounded corners
+      behavior: SnackBarBehavior.floating,
       margin: const EdgeInsets.all(16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),

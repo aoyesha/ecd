@@ -1,88 +1,79 @@
 import 'package:flutter/material.dart';
-
 import '../services/database_service.dart';
 import '../util/navbar.dart';
+import '../util/navbar_back_button.dart';
 import 'teacher_new_data_source.dart';
 import 'teacher_class_list.dart';
 import 'my_summary_page.dart';
 
+class AppColors {
+  static const Color bg = Color(0xFFF7F4F6);
+}
+
 class LandingPage extends StatefulWidget {
   final int userId;
-  final String role; // "Teacher" | "Admin"
+  final String role;
 
-  const LandingPage({Key? key, required this.userId, required this.role})
-    : super(key: key);
+  const LandingPage({Key? key, required this.userId, required this.role}) : super(key: key);
 
   @override
   State<LandingPage> createState() => _LandingPageState();
 }
 
-class _LandingPageState extends State<LandingPage>
-    with SingleTickerProviderStateMixin {
+class _LandingPageState extends State<LandingPage> with SingleTickerProviderStateMixin {
   late final TabController _tab;
-
   List<Map<String, dynamic>> _activeClasses = [];
+  bool _isLoading = true;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     _tab = TabController(length: 2, vsync: this);
-    _loadClasses();
+    _loadData();
   }
 
-  @override
-  void dispose() {
-    _tab.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadClasses() async {
-    if (widget.role != 'Teacher') {
-      setState(() => _activeClasses = []);
-      return;
+  Future<void> _loadData() async {
+    if (widget.role == 'Teacher') {
+      final rows = await DatabaseService.instance.getActiveClassesByTeacher(widget.userId);
+      if (mounted) setState(() => _activeClasses = rows);
     }
-
-    final rows = await DatabaseService.instance.getActiveClassesByTeacher(
-      widget.userId,
-    );
-    if (!mounted) return;
-    setState(() => _activeClasses = rows);
-  }
-
-  Future<void> _deactivateClass(int classId) async {
-    await DatabaseService.instance.setClassStatus(
-      classId,
-      DatabaseService.statusDeactivated,
-    );
-    await _loadClasses();
+    if (mounted) setState(() => _isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 700;
+
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: AppColors.bg,
-      body: Row(
+      drawer: isMobile
+          ? Navbar(selectedIndex: 0, onItemSelected: (_) {}, userId: widget.userId, role: widget.role)
+          : null,
+      body: Stack(
         children: [
-          Navbar(
-            selectedIndex: 0,
-            onItemSelected: (_) {},
-            userId: widget.userId,
-            role: widget.role,
-          ),
-          Expanded(
-            child: Column(
+          SafeArea(
+            child: Row(
               children: [
-                _topBar(context),
+                if (!isMobile)
+                  Navbar(selectedIndex: 0, onItemSelected: (_) {}, userId: widget.userId, role: widget.role),
+
                 Expanded(
-                  child: TabBarView(
-                    controller: _tab,
+                  child: Column(
                     children: [
-                      _myClassesTab(),
-                      // IMPORTANT: summary is embedded here (no extra navbar)
-                      MySummaryPage(
-                        userId: widget.userId,
-                        role: widget.role,
-                        embedded: true,
+                      _topBar(isMobile),
+                      _toggleSection(isMobile),
+                      Expanded(
+                        child: _isLoading
+                            ? const Center(child: CircularProgressIndicator())
+                            : TabBarView(
+                          controller: _tab,
+                          children: [
+                            _teacherDashboard(isMobile),
+                            MySummaryPage(userId: widget.userId, role: widget.role, embedded: true),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -90,178 +81,191 @@ class _LandingPageState extends State<LandingPage>
               ],
             ),
           ),
+          if (!isMobile)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 10,
+              left: 285,
+              child: const NavbarBackButton(),
+            ),
         ],
       ),
     );
   }
 
-  Widget _topBar(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
-
-    // Responsive headline size to avoid overflow on smaller widths
-    final double titleSize = w < 900 ? 28 : 34;
+  Widget _topBar(bool isMobile) {
+    if (!isMobile) {
+      return Container(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(bottom: BorderSide(color: Colors.black12)),
+        ),
+        child: const Column(children: [
+          Text('Early Childhood Development Checklist',
+              style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900)),
+          SizedBox(height: 14),
+        ]),
+      );
+    }
 
     return Container(
-      // Bring it down: taller bar + bottom aligned
-      height: 120,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      alignment: Alignment.bottomLeft,
-      decoration: const BoxDecoration(color: AppColors.bg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.end,
+      height: 60,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Colors.black12)),
+      ),
+      child: Stack(
         children: [
-          const SizedBox(height: 8),
-          Text(
-            'Early Childhood Development Checklist',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: titleSize, fontWeight: FontWeight.w700),
+          const Positioned.fill(
+            left: 64,
+            right: 64,
+            child: Center(
+              child: Text('Early Childhood Development Checklist',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+            ),
           ),
-          const SizedBox(height: 10),
-          TabBar(
-            controller: _tab,
-            labelColor: Colors.black,
-            unselectedLabelColor: Colors.black54,
-            indicatorColor: AppColors.maroon,
-            tabs: const [
-              Tab(text: 'My Classes'),
-              Tab(text: 'My Summary'),
-            ],
+          Positioned(
+            left: 12,
+            top: 6,
+            bottom: 6,
+            child: IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () => _scaffoldKey.currentState!.openDrawer()),
           ),
-          const SizedBox(height: 10),
         ],
       ),
     );
   }
 
-  Widget _myClassesTab() {
-    final cards = <Widget>[
-      for (final c in _activeClasses)
-        _NotebookCard(
-          color: _pastelForClassId(c['class_id'] as int),
-          schoolYear: '${c['start_school_year']}-${c['end_school_year']}',
-          grade: '${c['class_level']}',
-          section: '${c['class_section']}',
-          onOpen: () async {
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => ClassListPage(
-                  userId: widget.userId,
-                  role: widget.role,
-                  classId: c['class_id'] as int,
-                  gradeLevel: (c['class_level'] ?? '').toString(),
-                  section: (c['class_section'] ?? '').toString(),
-                ),
-              ),
-            );
-            _loadClasses();
-          },
-          onDeactivate: () async {
-            final classId = c['class_id'] as int;
+  Widget _toggleSection(bool isMobile) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: isMobile ? 8 : 12),
+      child: ToggleButtons(
+        constraints: BoxConstraints(minHeight: isMobile ? 36 : 48, minWidth: isMobile ? 110 : 160),
+        borderRadius: BorderRadius.circular(8),
+        borderWidth: 1.5,
+        selectedBorderColor: Colors.black,
+        borderColor: Colors.black26,
+        selectedColor: Colors.white,
+        fillColor: Colors.black,
+        color: Colors.black87,
+        isSelected: [_tab.index == 0, _tab.index == 1],
+        onPressed: (i) => setState(() => _tab.animateTo(i)),
+        children: const [
+          Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text("My Classes")),
+          Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text("My Summary")),
+        ],
+      ),
+    );
+  }
 
-            final confirmed = await showDialog<bool>(
-              context: context,
-              builder: (_) => AlertDialog(
-                title: const Text('Deactivate class?'),
-                content: const Text(
-                  'This will move the class to Archive. You can reactivate it later.',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: const Text('Cancel'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: const Text('Deactivate'),
-                  ),
-                ],
-              ),
-            );
+  Widget _teacherDashboard(bool isMobile) {
+    final cardWidth = isMobile ? 170.0 : 330.0;
+    final cardHeight = isMobile ? 190.0 : 400.0;
 
-            if (confirmed == true) {
-              await _deactivateClass(classId);
-            }
-          },
-        ),
-
-      _AddClassCard(
-        onTap: () async {
-          await Navigator.of(context).push(
+    final items = [
+      ..._activeClasses.map((c) => _NotebookCard(
+        width: cardWidth,
+        height: cardHeight,
+        color: _pastelForClassId(c['class_id']),
+        schoolYear: '${c['start_school_year']}-${c['end_school_year']}',
+        grade: '${c['class_level']}',
+        section: '${c['class_section']}',
+        onOpen: () {
+          Navigator.push(
+            context,
             MaterialPageRoute(
-              builder: (_) => TeacherNewDataSourcePage(
+              builder: (_) => ClassListPage(
                 userId: widget.userId,
                 role: widget.role,
+                classId: c['class_id'],
+                gradeLevel: c['class_level'],
+                section: c['class_section'],
               ),
             ),
           );
-          _loadClasses();
         },
-      ),
+      )),
+      _AddClassCard(width: cardWidth, height: cardHeight, userId: widget.userId, role: widget.role),
     ];
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Align(
-        alignment: Alignment.topLeft,
-        child: Wrap(spacing: 18, runSpacing: 18, children: cards),
+    if (isMobile) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Wrap(spacing: 16, runSpacing: 16, children: items),
+      );
+    }
+
+    final desktopCount = items.length.clamp(1, 4);
+    const cardW = 340.0;
+    const gap = 6.0;
+
+    final gridWidth =
+        (desktopCount * cardW) + ((desktopCount - 1) * gap);
+
+    return SingleChildScrollView(
+      child: Center(
+        child: SizedBox(
+          width: gridWidth,
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            itemCount: items.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 8,
+              childAspectRatio: 330 / 400,
+            ),
+            itemBuilder: (_, i) => items[i],
+          ),
+        ),
       ),
     );
   }
 
-  /// Pastel colors that look random but stay consistent per classId.
   Color _pastelForClassId(int classId) {
-    const palette = <Color>[
-      Color(0xFFE3F2FD), // light blue
-      Color(0xFFE8F5E9), // light green
-      Color(0xFFFFF3E0), // light orange
-      Color(0xFFF3E5F5), // light purple
-      Color(0xFFFFEBEE), // light red/pink
-      Color(0xFFE0F2F1), // teal tint
-      Color(0xFFFFFDE7), // light yellow
-      Color(0xFFEDE7F6), // lavender tint
+    const palette = [
+      Color(0xFFE3F2FD),
+      Color(0xFFE8F5E9),
+      Color(0xFFFFF3E0),
+      Color(0xFFF3E5F5),
+      Color(0xFFFFEBEE),
+      Color(0xFFE0F2F1),
+      Color(0xFFFCE4EC),
+      Color(0xFFF1F8E9),
     ];
     return palette[classId.abs() % palette.length];
   }
 }
 
 class _AddClassCard extends StatelessWidget {
-  final VoidCallback onTap;
+  final double width, height;
+  final int userId;
+  final String role;
 
-  const _AddClassCard({required this.onTap});
+  const _AddClassCard({required this.width, required this.height, required this.userId, required this.role});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 220,
-      height: 260,
+      width: width,
+      height: height,
       child: InkWell(
-        onTap: onTap,
-        child: Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: const Padding(
-            padding: EdgeInsets.all(18),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.note_add, size: 44),
-                SizedBox(height: 10),
-                Text(
-                  'Add Class',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Create a new class\nfor the school year',
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TeacherNewDataSourcePage(role: role, userId: userId))),
+        child: Container(
+          decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.black12)),
+          child: const Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(Icons.add_circle_outline, size: 40, color: Colors.black26),
+            SizedBox(height: 12),
+            Text('New Class', style: TextStyle(fontWeight: FontWeight.bold)),
+          ]),
         ),
       ),
     );
@@ -269,129 +273,98 @@ class _AddClassCard extends StatelessWidget {
 }
 
 class _NotebookCard extends StatelessWidget {
+  final double width, height;
   final Color color;
-  final String schoolYear;
-  final String grade;
-  final String section;
+  final String schoolYear, grade, section;
   final VoidCallback onOpen;
-  final VoidCallback onDeactivate;
 
   const _NotebookCard({
+    required this.width,
+    required this.height,
     required this.color,
     required this.schoolYear,
     required this.grade,
     required this.section,
     required this.onOpen,
-    required this.onDeactivate,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 220,
-      height: 260,
-      child: InkWell(
-        onTap: onOpen,
-        child: Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Stack(
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  width: 18,
-                  height: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(14),
-                      bottomLeft: Radius.circular(14),
-                    ),
-                  ),
-                ),
-              ),
+      width: width,
+      height: height,
+      child: Stack(
+        children: [
 
-              Container(
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(14),
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            child: Container(
+              width: 28,
+              decoration: const BoxDecoration(
+                color: Color(0xFF1E1E1E),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(14),
+                  bottomLeft: Radius.circular(14),
                 ),
-                margin: const EdgeInsets.only(left: 18),
-                padding: const EdgeInsets.all(14),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 8,
+                    offset: Offset(3, 0),
+                    color: Colors.black26,
+                  )
+                ],
+              ),
+            ),
+          ),
+
+
+          Card(
+            color: color,
+            elevation: 8,
+            margin: const EdgeInsets.only(left: 22),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(22),
+            ),
+            child: InkWell(
+              onTap: onOpen,
+              borderRadius: BorderRadius.circular(22),
+              child: Padding(
+                padding: const EdgeInsets.all(26),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert),
-                        onSelected: (v) {
-                          if (v == 'open') onOpen();
-                          if (v == 'deactivate') onDeactivate();
-                        },
-                        itemBuilder: (_) => const [
-                          PopupMenuItem(value: 'open', child: Text('Open')),
-                          PopupMenuItem(
-                            value: 'deactivate',
-                            child: Text('Deactivate'),
-                          ),
-                        ],
+                    Text(
+                      schoolYear,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black54,
                       ),
                     ),
-
-                    // This area expands/shrinks safely
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 8),
-
-                          Text(
-                            schoolYear,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                          const SizedBox(height: 10),
-
-                          Text(
-                            grade,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-
-                          // Allow section to take remaining space but never overflow
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.topLeft,
-                              child: Text(
-                                section,
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                    const Spacer(),
+                    Text(
+                      grade,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      section,
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

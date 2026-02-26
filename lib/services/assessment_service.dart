@@ -1,8 +1,12 @@
+import 'package:sqflite/sqflite.dart';
 import 'database_service.dart';
 import 'assessment_scoring.dart';
 
 class AssessmentService {
-  // ================= SAVE / UPDATE ASSESSMENT =================
+
+  // ============================================================
+  // SAVE OR UPDATE ASSESSMENT (FINAL MERGED VERSION)
+  // ============================================================
   static Future<void> saveAssessment({
     required int learnerId,
     required int classId,
@@ -13,7 +17,8 @@ class AssessmentService {
     final db = await DatabaseService.instance.getDatabase();
 
     await db.transaction((txn) async {
-      // learner birthday
+
+      // ---------------- GET LEARNER AGE ----------------
       final learner = await txn.query(
         DatabaseService.learnerTable,
         where: 'learner_id = ?',
@@ -23,17 +28,17 @@ class AssessmentService {
       if (learner.isEmpty) throw Exception("Learner not found.");
 
       final dobStr = learner.first['birthday'] as String?;
-      if (dobStr == null || dobStr.isEmpty)
+      if (dobStr == null || dobStr.isEmpty) {
         throw Exception("Learner birthday missing.");
-      final dob = DateTime.parse(dobStr);
+      }
 
-      // age in years
+      final dob = DateTime.parse(dobStr);
       final days = date.difference(dob).inDays;
       final years = days ~/ 365;
       final months = (days % 365) / 30;
       final ageAsOfAssessment = years + months / 12;
 
-      // check existing assessment (latest for same type)
+      // ---------------- CHECK EXISTING ASSESSMENT ----------------
       final existing = await txn.query(
         DatabaseService.assessmentHeaderTable,
         where: 'learner_id = ? AND class_id = ? AND assessment_type = ?',
@@ -47,7 +52,6 @@ class AssessmentService {
       if (existing.isNotEmpty) {
         assessmentId = existing.first['assessment_id'] as int;
 
-        // update header
         await txn.update(
           DatabaseService.assessmentHeaderTable,
           {
@@ -58,7 +62,6 @@ class AssessmentService {
           whereArgs: [assessmentId],
         );
 
-        // clear old results + old computed summary
         await txn.delete(
           DatabaseService.assessmentResultsTable,
           where: 'assessment_id = ?',
@@ -70,16 +73,19 @@ class AssessmentService {
           whereArgs: [assessmentId],
         );
       } else {
-        assessmentId = await txn.insert(DatabaseService.assessmentHeaderTable, {
-          'learner_id': learnerId,
-          'class_id': classId,
-          'assessment_type': assessmentType,
-          'date_taken': date.toIso8601String(),
-          'age_as_of_assessment': ageAsOfAssessment,
-        });
+        assessmentId = await txn.insert(
+          DatabaseService.assessmentHeaderTable,
+          {
+            'learner_id': learnerId,
+            'class_id': classId,
+            'assessment_type': assessmentType,
+            'date_taken': date.toIso8601String(),
+            'age_as_of_assessment': ageAsOfAssessment,
+          },
+        );
       }
 
-      // insert results + compute raw totals by domain code
+      // ---------------- INSERT RESULTS ----------------
       final Map<String, int> domainTotals = {
         'gmd': 0,
         'fms': 0,
@@ -91,41 +97,36 @@ class AssessmentService {
       };
 
       for (final entry in yesValues.entries) {
-        final key = entry.key; // "Gross Motor-0"
-        final value = entry.value;
-
-        final parts = key.split('-');
+        final parts = entry.key.split('-');
         final domainLabel = parts.first;
         final qIndex = int.tryParse(parts.last) ?? 0;
-
-        final answer = value ? 1 : 0;
+        final answer = entry.value ? 1 : 0;
 
         await txn.insert(DatabaseService.assessmentResultsTable, {
           'assessment_id': assessmentId,
           'domain': domainLabel,
-          'question_index': qIndex + 1, // DB is 1-based
+          'question_index': qIndex + 1,
           'answer': answer,
         });
 
         final code = _domainCode(domainLabel);
         if (code != null && answer == 1) {
-          domainTotals[code] = (domainTotals[code] ?? 0) + 1;
+          domainTotals[code] = domainTotals[code]! + 1;
         }
       }
 
-      // compute scaled scores + interpretations using your existing logic
+      // ---------------- COMPUTE SCORES ----------------
       final scoring = AssessmentScoring.calculate(
         ageInYears: ageAsOfAssessment,
-        gmdRaw: domainTotals['gmd'] ?? 0,
-        fmsRaw: domainTotals['fms'] ?? 0,
-        shdRaw: domainTotals['shd'] ?? 0,
-        rlRaw: domainTotals['rl'] ?? 0,
-        elRaw: domainTotals['el'] ?? 0,
-        cdRaw: domainTotals['cd'] ?? 0,
-        sedRaw: domainTotals['sed'] ?? 0,
+        gmdRaw: domainTotals['gmd']!,
+        fmsRaw: domainTotals['fms']!,
+        shdRaw: domainTotals['shd']!,
+        rlRaw: domainTotals['rl']!,
+        elRaw: domainTotals['el']!,
+        cdRaw: domainTotals['cd']!,
+        sedRaw: domainTotals['sed']!,
       );
 
-      // save computed summary
       await txn.insert(DatabaseService.learnerEcdTable, {
         'assessment_id': assessmentId,
         ...scoring,
@@ -133,31 +134,27 @@ class AssessmentService {
     });
   }
 
+  // ============================================================
+  // DOMAIN NAME → CODE MAPPER (MERGED)
+  // ============================================================
   static String? _domainCode(String domainLabel) {
     final d = domainLabel.toLowerCase().trim();
+
     if (d.contains('gross')) return 'gmd';
     if (d.contains('fine')) return 'fms';
-    if (d.contains('self')) return 'shd';
+    if (d.contains('self') || d.contains('dress') || d.contains('toilet')) return 'shd';
     if (d.contains('receptive')) return 'rl';
     if (d.contains('expressive')) return 'el';
     if (d.contains('cognitive')) return 'cd';
-    if (d.contains('socio') || d.contains('social') || d.contains('emotional'))
-      return 'sed';
+    if (d.contains('socio') || d.contains('social') || d.contains('emotional')) return 'sed';
 
-    // allow already-coded domains (if any)
-    if (d == 'gmd' ||
-        d == 'fms' ||
-        d == 'shd' ||
-        d == 'rl' ||
-        d == 'el' ||
-        d == 'cd' ||
-        d == 'sed') {
-      return d;
-    }
+    if (['gmd','fms','shd','rl','el','cd','sed'].contains(d)) return d;
     return null;
   }
 
-  // ================= GET ASSESSMENT (LATEST BY TYPE) =================
+  // ============================================================
+  // GET LATEST ASSESSMENT + RESULTS
+  // ============================================================
   static Future<List<Map<String, dynamic>>> getAssessment({
     required int learnerId,
     required int classId,
@@ -185,7 +182,6 @@ class AssessmentService {
       orderBy: 'domain ASC, question_index ASC',
     );
 
-    // ✅ Make mutable copies instead of mutating QueryRow
     return results.map((row) {
       final m = Map<String, dynamic>.from(row);
       m['date_taken'] = dateTaken;
@@ -193,9 +189,11 @@ class AssessmentService {
       return m;
     }).toList();
   }
-  // ================= EXTRA HELPERS (needed by class list + summary) =================
 
-  // Used for the green/red dot: "Passed" if Post-Test exists.
+  // ============================================================
+  // HELPERS USED BY SUMMARY / CLASS LIST
+  // ============================================================
+
   static Future<bool> hasPostTest({
     required int learnerId,
     required int classId,
@@ -210,7 +208,6 @@ class AssessmentService {
     return rows.isNotEmpty;
   }
 
-  // Gets latest assessment_id for a given learner/class/type.
   static Future<int?> getLatestAssessmentId({
     required int learnerId,
     required int classId,
@@ -228,7 +225,6 @@ class AssessmentService {
     return rows.first['assessment_id'] as int;
   }
 
-  // Reads computed ECCD summary row for an assessment_id.
   static Future<Map<String, dynamic>?> getEcdSummary({
     required int assessmentId,
   }) async {
@@ -243,11 +239,9 @@ class AssessmentService {
     return rows.first;
   }
 
-  // ================= FETCH RAW RESULTS FOR AN ASSESSMENT =================
-  /// Used by class / teacher summaries to compute most/least mastered skills.
   static Future<List<Map<String, dynamic>>> getAssessmentResultsByAssessmentId(
-    int assessmentId,
-  ) async {
+      int assessmentId,
+      ) async {
     final db = await DatabaseService.instance.getDatabase();
     return db.query(
       DatabaseService.assessmentResultsTable,
@@ -255,5 +249,22 @@ class AssessmentService {
       whereArgs: [assessmentId],
       orderBy: 'domain ASC, question_index ASC',
     );
+  }
+
+  // ============================================================
+  // LEGACY SUPPORT (OLD SUMMARY PAGE STILL USES THIS)
+  // ============================================================
+  static Future<List<Map<String, dynamic>>> fetchEcdDataForTeacher(int teacherId) async {
+    final db = await DatabaseService.instance.getDatabase();
+
+    return db.rawQuery('''
+      SELECT l.sex,
+             e.gmd_ss, e.fms_ss, e.shd_ss, e.rl_ss, e.el_ss, e.cd_ss, e.sed_ss
+      FROM learner_ecd_table e
+      JOIN assessment_header a ON a.assessment_id = e.assessment_id
+      JOIN learner_information_table l ON l.learner_id = a.learner_id
+      JOIN class_table c ON c.class_id = a.class_id
+      WHERE c.teacher_id = ?
+    ''', [teacherId]);
   }
 }

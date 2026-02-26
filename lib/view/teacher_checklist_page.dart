@@ -5,11 +5,11 @@ import '../services/assessment_service.dart';
 import '../services/pdf_service.dart';
 import '../util/domain.dart';
 import '../util/navbar.dart';
+import '../util/navbar_back_button.dart';
 
 class TeacherChecklistPage extends StatefulWidget {
   final String role;
   final int userId;
-
   final int classId;
   final int learnerId;
   final String learnerName;
@@ -24,22 +24,22 @@ class TeacherChecklistPage extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<TeacherChecklistPage> createState() => _TeacherChecklistPageState();
+  State<TeacherChecklistPage> createState() =>
+      _TeacherChecklistPageState();
 }
 
-class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
+class _TeacherChecklistPageState
+    extends State<TeacherChecklistPage> {
   String selectedLanguage = "English";
-
-  // ✅ 3 assessments
   String selectedAssessment = "Pre-Test";
 
   String? selectedDomain;
   DateTime? selectedDate;
 
-  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _dateController =
+  TextEditingController();
 
   final List<String> domains = EccdQuestions.domains;
-
   final Map<String, bool> yesValues = {};
 
   @override
@@ -57,7 +57,8 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
   Future<void> _loadSavedAssessment() async {
     selectedDate = null;
 
-    final results = await AssessmentService.getAssessment(
+    final results =
+    await AssessmentService.getAssessment(
       learnerId: widget.learnerId,
       classId: widget.classId,
       assessmentType: selectedAssessment,
@@ -66,20 +67,24 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
     yesValues.clear();
 
     for (final row in results) {
-      final dbIndex = int.tryParse(row['question_index'].toString()) ?? 1;
+      final dbIndex =
+          int.tryParse(row['question_index'].toString()) ??
+              1;
       final key = "${row['domain']}-${dbIndex - 1}";
       final isYes = row['answer'].toString() == '1';
       yesValues[key] = isYes;
 
       final dateStr = row['date_taken']?.toString();
-      if (selectedDate == null && dateStr != null && dateStr.isNotEmpty) {
+      if (selectedDate == null &&
+          dateStr != null &&
+          dateStr.isNotEmpty) {
         selectedDate = DateTime.tryParse(dateStr);
       }
     }
 
     if (selectedDate != null) {
       _dateController.text =
-          "${selectedDate!.month}/${selectedDate!.day}/${selectedDate!.year}";
+      "${selectedDate!.month}/${selectedDate!.day}/${selectedDate!.year}";
     } else {
       _dateController.clear();
     }
@@ -95,58 +100,107 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 700;
+    final isMobile =
+        MediaQuery.of(context).size.width < 700;
 
     return Scaffold(
       drawer: isMobile
           ? Navbar(
-              selectedIndex: 0,
-              onItemSelected: (_) {},
-              role: widget.role,
-              userId: widget.userId,
-            )
+        selectedIndex: 0,
+        onItemSelected: (_) {},
+        role: widget.role,
+        userId: widget.userId,
+      )
           : null,
-      appBar: AppBar(
+      appBar: isMobile
+          ? AppBar(
         title: const Text("Checklist"),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context), // ✅ correct back behavior
-        ),
-        backgroundColor: const Color(0xFFA02A2A),
+        backgroundColor:
+        const Color(0xFFA02A2A),
         foregroundColor: Colors.white,
-      ),
-      body: SafeArea(
-        child: Row(
-          children: [
-            if (!isMobile)
-              Navbar(
-                selectedIndex: 0,
-                onItemSelected: (_) {},
-                role: widget.role,
-                userId: widget.userId,
-              ),
-            Expanded(
-              child: Stack(
-                children: [
-                  SingleChildScrollView(child: _content(isMobile)),
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: _stickyBottomBar(isMobile),
+      )
+          : null,
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Row(
+              children: [
+                if (!isMobile)
+                  Navbar(
+                    selectedIndex: 0,
+                    onItemSelected: (_) {},
+                    role: widget.role,
+                    userId: widget.userId,
                   ),
-                ],
-              ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      if (!isMobile)
+                        _desktopHeader(),
+                      Expanded(
+                        child: Stack(
+                          children: [
+                            SingleChildScrollView(
+                              child: _content(isMobile),
+                            ),
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              child:
+                              _stickyBottomBar(
+                                  isMobile),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          if (!isMobile)
+            Positioned(
+              top: MediaQuery.of(context)
+                  .padding
+                  .top +
+                  10,
+              left: 285,
+              child:
+              const NavbarBackButton(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _desktopHeader() {
+    return Container(
+      color: const Color(0xFFF7F4F6),
+      padding:
+      const EdgeInsets.fromLTRB(80, 14, 16, 10),
+      child: const Row(
+        children: [
+          Text(
+            "Checklist",
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              color: Colors.black87,
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _content(bool isMobile) {
-    final lang = EccdQuestions.fromLabel(selectedLanguage);
-    final visibleDomains = selectedDomain == null ? domains : [selectedDomain!];
+    final lang =
+    EccdQuestions.fromLabel(selectedLanguage);
+    final visibleDomains = selectedDomain == null
+        ? domains
+        : [selectedDomain!];
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -156,79 +210,108 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
         140,
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
         children: [
           _topRow(isMobile),
           const SizedBox(height: 10),
 
           Text(
-            "${widget.learnerName}",
+            widget.learnerName,
             style: TextStyle(
               fontSize: isMobile ? 22 : 42,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 8),
+
           LinearProgressIndicator(
             value: _overallProgress(),
-            color: _progressColor(_overallProgress()),
-            minHeight: 5,
+            color: _progressColor(
+                _overallProgress()),
+            minHeight: isMobile ? 4 : 5,
           ),
           const SizedBox(height: 14),
 
           DomainDropdown(
             domains: ["All Domains", ...domains],
-            onChanged: (v) =>
-                setState(() => selectedDomain = v == "All Domains" ? null : v),
+            onChanged: (v) => setState(() =>
+            selectedDomain =
+            v == "All Domains" ? null : v),
           ),
           const SizedBox(height: 18),
 
           ...visibleDomains.map((domain) {
-            final questions = EccdQuestions.get(domain, lang);
+            final questions =
+            EccdQuestions.get(domain, lang);
 
             return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
               children: [
                 Text(
                   domain,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                  style: TextStyle(
+                    fontSize:
+                    isMobile ? 18 : 24,
+                    fontWeight:
+                    FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 6),
                 LinearProgressIndicator(
-                  value: _domainProgress(domain, questions.length),
+                  value: _domainProgress(
+                      domain,
+                      questions.length),
                   color: _progressColor(
-                    _domainProgress(domain, questions.length),
+                    _domainProgress(domain,
+                        questions.length),
                   ),
-                  minHeight: 5,
+                  minHeight:
+                  isMobile ? 4 : 5,
                 ),
                 const SizedBox(height: 14),
 
-                ...List.generate(questions.length, (i) {
+                ...List.generate(
+                    questions.length, (i) {
                   final key = "$domain-$i";
-                  yesValues.putIfAbsent(key, () => false);
+                  yesValues.putIfAbsent(
+                      key, () => false);
 
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: EdgeInsets.symmetric(
+                        vertical:
+                        isMobile ? 6 : 10),
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment:
+                      CrossAxisAlignment
+                          .start,
                       children: [
                         GestureDetector(
-                          onTap: () => setState(
-                            () => yesValues[key] = !(yesValues[key] ?? false),
-                          ),
+                          onTap: () => setState(() =>
+                          yesValues[key] =
+                          !(yesValues[
+                          key] ??
+                              false)),
                           child: Container(
-                            width: isMobile ? 18 : 24,
-                            height: isMobile ? 18 : 24,
-                            margin: const EdgeInsets.only(right: 14, top: 2),
-                            decoration: BoxDecoration(
+                            width:
+                            isMobile ? 16 : 24,
+                            height:
+                            isMobile ? 16 : 24,
+                            margin:
+                            const EdgeInsets
+                                .only(
+                                right: 12,
+                                top: 2),
+                            decoration:
+                            BoxDecoration(
                               border: Border.all(
-                                color: Colors.black,
-                                width: 1.5,
-                              ),
-                              color: (yesValues[key] ?? false)
+                                  color:
+                                  Colors.black,
+                                  width: 1.5),
+                              color: (yesValues[
+                              key] ??
+                                  false)
                                   ? Colors.black
                                   : Colors.white,
                             ),
@@ -237,14 +320,19 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
                         Expanded(
                           child: Text(
                             "${i + 1}. ${questions[i]}",
-                            style: const TextStyle(fontSize: 16, height: 1.5),
+                            style: TextStyle(
+                              fontSize:
+                              isMobile
+                                  ? 14
+                                  : 16,
+                              height: 1.5,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   );
                 }),
-
                 const SizedBox(height: 22),
               ],
             );
@@ -255,48 +343,119 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
   }
 
   Widget _topRow(bool isMobile) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: isMobile ? 180 : 320,
-          child: DropdownButtonFormField<String>(
+    if (isMobile) {
+      return Column(
+        children: [
+          DropdownButtonFormField<String>(
             value: selectedAssessment,
             items: const [
-              DropdownMenuItem(value: "Pre-Test", child: Text("Pre-Test")),
-              DropdownMenuItem(value: "Post-Test", child: Text("Post-Test")),
               DropdownMenuItem(
-                value: "Conditional Test",
-                child: Text("Conditional Test"),
-              ),
+                  value: "Pre-Test",
+                  child: Text("Pre-Test")),
+              DropdownMenuItem(
+                  value: "Post-Test",
+                  child: Text("Post-Test")),
+              DropdownMenuItem(
+                  value: "Conditional Test",
+                  child: Text(
+                      "Conditional Test")),
             ],
             onChanged: (v) async {
-              setState(() => selectedAssessment = v!);
+              setState(() =>
+              selectedAssessment = v!);
               await _loadSavedAssessment();
             },
-            decoration: const InputDecoration(labelText: "Assessment"),
+            decoration: const InputDecoration(
+                labelText: "Assessment"),
+          ),
+          const SizedBox(height: 10),
+          DropdownButtonFormField<String>(
+            value: selectedLanguage,
+            items: const [
+              DropdownMenuItem(
+                  value: "English",
+                  child: Text("English")),
+              DropdownMenuItem(
+                  value: "Tagalog",
+                  child: Text("Tagalog")),
+            ],
+            onChanged: (v) =>
+                setState(() =>
+                selectedLanguage = v!),
+            decoration: const InputDecoration(
+                labelText: "Language"),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _dateController,
+            readOnly: true,
+            decoration: const InputDecoration(
+                labelText: "Date"),
+            onTap: _pickDate,
+          ),
+        ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment:
+      CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 320,
+          child:
+          DropdownButtonFormField<String>(
+            value: selectedAssessment,
+            items: const [
+              DropdownMenuItem(
+                  value: "Pre-Test",
+                  child: Text("Pre-Test")),
+              DropdownMenuItem(
+                  value: "Post-Test",
+                  child: Text("Post-Test")),
+              DropdownMenuItem(
+                  value: "Conditional Test",
+                  child: Text(
+                      "Conditional Test")),
+            ],
+            onChanged: (v) async {
+              setState(() =>
+              selectedAssessment = v!);
+              await _loadSavedAssessment();
+            },
+            decoration: const InputDecoration(
+                labelText: "Assessment"),
           ),
         ),
         const Spacer(),
         SizedBox(
-          width: isMobile ? 140 : 190,
-          child: DropdownButtonFormField<String>(
+          width: 190,
+          child:
+          DropdownButtonFormField<String>(
             value: selectedLanguage,
             items: const [
-              DropdownMenuItem(value: "English", child: Text("English")),
-              DropdownMenuItem(value: "Tagalog", child: Text("Tagalog")),
+              DropdownMenuItem(
+                  value: "English",
+                  child: Text("English")),
+              DropdownMenuItem(
+                  value: "Tagalog",
+                  child: Text("Tagalog")),
             ],
-            onChanged: (v) => setState(() => selectedLanguage = v!),
-            decoration: const InputDecoration(labelText: "Language"),
+            onChanged: (v) =>
+                setState(() =>
+                selectedLanguage = v!),
+            decoration: const InputDecoration(
+                labelText: "Language"),
           ),
         ),
         const SizedBox(width: 10),
         SizedBox(
-          width: isMobile ? 150 : 220,
+          width: 220,
           child: TextField(
             controller: _dateController,
             readOnly: true,
-            decoration: const InputDecoration(labelText: "Date"),
+            decoration: const InputDecoration(
+                labelText: "Date"),
             onTap: _pickDate,
           ),
         ),
@@ -306,34 +465,46 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
 
   Widget _stickyBottomBar(bool isMobile) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.symmetric(
+          horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade300)),
+        border: Border(
+          top: BorderSide(
+              color: Colors.grey.shade300),
+        ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisAlignment:
+        MainAxisAlignment.end,
         children: [
           SizedBox(
             height: isMobile ? 36 : 42,
             child: ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+              style:
+              ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+              ),
               onPressed: _saveAssessment,
-              child: const Text("Save", style: TextStyle(color: Colors.white)),
+              child: const Text("Save",
+                  style: TextStyle(
+                      color: Colors.white)),
             ),
           ),
           const SizedBox(width: 12),
           SizedBox(
             height: isMobile ? 36 : 42,
             child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFA02A2A),
+              style:
+              ElevatedButton.styleFrom(
+                backgroundColor:
+                const Color(0xFFA02A2A),
               ),
               onPressed: _exportSummary,
               child: const Text(
-                "Export Summary",
-                style: TextStyle(color: Colors.white),
-              ),
+                  "Export Summary",
+                  style: TextStyle(
+                      color: Colors.white)),
             ),
           ),
         ],
@@ -341,30 +512,36 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
     );
   }
 
+
+
   void _pickDate() async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate ?? DateTime.now(),
+      initialDate:
+      selectedDate ?? DateTime.now(),
       firstDate: DateTime(2015),
       lastDate: DateTime.now(),
     );
     if (picked != null) {
       setState(() {
         selectedDate = picked;
-        _dateController.text = "${picked.month}/${picked.day}/${picked.year}";
+        _dateController.text =
+        "${picked.month}/${picked.day}/${picked.year}";
       });
     }
   }
 
   Future<void> _saveAssessment() async {
     if (selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select a date before saving")),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(
+          content: Text(
+              "Please select a date before saving")));
       return;
     }
 
-    final Map<String, bool> fullAnswerMap = Map<String, bool>.from(yesValues);
+    final fullAnswerMap =
+    Map<String, bool>.from(yesValues);
 
     try {
       await AssessmentService.saveAssessment(
@@ -375,20 +552,20 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
         yesValues: fullAnswerMap,
       );
 
-      // ✅ Reload the exact same assessment type from DB so UI matches persisted values
       await _loadSavedAssessment();
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Assessment saved (persisted in database)."),
-        ),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(
+        content: Text(
+            "Assessment saved (persisted in database)."),
+      ));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Error saving assessment: $e")));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(
+          content:
+          Text("Error saving assessment: $e")));
     }
   }
 
@@ -397,9 +574,10 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
       widget.learnerName,
       _computeProgress(),
     );
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text("PDF saved: ${file.path}")));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(
+        content:
+        Text("PDF saved: ${file.path}")));
   }
 
   Map<String, double> _computeProgress() {
@@ -410,23 +588,30 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
       map[d]!.add(v);
     });
 
-    return map.map(
-      (k, v) =>
-          MapEntry(k, v.isEmpty ? 0 : v.where((e) => e).length / v.length),
-    );
+    return map.map((k, v) => MapEntry(
+        k,
+        v.isEmpty
+            ? 0
+            : v.where((e) => e).length /
+            v.length));
   }
 
-  double _domainProgress(String domain, int questionCount) {
+  double _domainProgress(
+      String domain, int questionCount) {
     if (questionCount == 0) return 0;
     int yes = 0;
     for (int i = 0; i < questionCount; i++) {
-      if (yesValues["$domain-$i"] == true) yes++;
+      if (yesValues["$domain-$i"] == true)
+        yes++;
     }
     return yes / questionCount;
   }
 
   double _overallProgress() {
     if (yesValues.isEmpty) return 0;
-    return yesValues.values.where((v) => v).length / yesValues.length;
+    return yesValues.values
+        .where((v) => v)
+        .length /
+        yesValues.length;
   }
 }

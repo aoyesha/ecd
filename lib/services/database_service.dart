@@ -16,10 +16,10 @@ class DatabaseService {
   static const assessmentResultsTable = "assessment_results";
   static const learnerEcdTable = "learner_ecd_table";
 
-  // Status values (stored in TEXT status columns)
+  // Status values
   static const statusActive = "active";
-  static const statusDeactivated = "deactivated"; // dropped/cancelled
-  static const statusArchived = "archived"; // completed but old
+  static const statusDeactivated = "deactivated";
+  static const statusArchived = "archived";
 
   Future<Database> getDatabase() async {
     if (_database != null) return _database!;
@@ -37,79 +37,69 @@ class DatabaseService {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // Non-destructive: ensure required tables exist for older DB files.
+    // Migration: Add recovery columns to Teacher and Admin tables if moving from v1 to v2
+    if (oldVersion < 2) {
+      // SQLite requires separate ALTER TABLE statements for each new column
+      final List<String> columnsToAdd = [
+        "recovery_q1",
+        "recovery_a1",
+        "recovery_q2",
+        "recovery_a2"
+      ];
+
+      for (var column in columnsToAdd) {
+        await db.execute("ALTER TABLE $teacherTable ADD COLUMN $column TEXT;");
+        await db.execute("ALTER TABLE $adminTable ADD COLUMN $column TEXT;");
+      }
+    }
+
+    // Non-destructive: ensure assessment tables exist
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS assessment_header (
+        assessment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        learner_id INTEGER NOT NULL,
+        class_id INTEGER NOT NULL,
+        assessment_type TEXT NOT NULL,
+        date_taken TEXT NOT NULL,
+        age_as_of_assessment REAL,
+        FOREIGN KEY (learner_id) REFERENCES learner_information_table(learner_id),
+        FOREIGN KEY (class_id) REFERENCES class_table(class_id)
+      )
+    ''');
 
     await db.execute('''
-    CREATE TABLE IF NOT EXISTS assessment_header (
-      assessment_id INTEGER PRIMARY KEY AUTOINCREMENT,
-      learner_id INTEGER NOT NULL,
-      class_id INTEGER NOT NULL,
-      assessment_type TEXT NOT NULL,
-      date_taken TEXT NOT NULL,
-      age_as_of_assessment REAL,
-      FOREIGN KEY (learner_id) REFERENCES learner_information_table(learner_id),
-      FOREIGN KEY (class_id) REFERENCES class_table(class_id)
-    )
-  ''');
+      CREATE TABLE IF NOT EXISTS assessment_results (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        assessment_id INTEGER NOT NULL,
+        domain TEXT NOT NULL,
+        question_index INTEGER NOT NULL,
+        answer INTEGER NOT NULL,
+        FOREIGN KEY (assessment_id) REFERENCES assessment_header(assessment_id)
+      )
+    ''');
 
     await db.execute('''
-    CREATE TABLE IF NOT EXISTS assessment_results (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      assessment_id INTEGER NOT NULL,
-      domain TEXT NOT NULL,
-      question_index INTEGER NOT NULL,
-      answer INTEGER NOT NULL,
-      FOREIGN KEY (assessment_id) REFERENCES assessment_header(assessment_id)
-    )
-  ''');
-
-    await db.execute('''
-    CREATE TABLE IF NOT EXISTS learner_ecd_table (
-      learner_ecd_id INTEGER PRIMARY KEY AUTOINCREMENT,
-      assessment_id INTEGER,
-
-      gmd_total INTEGER,
-      gmd_ss INTEGER,
-      gmd_interpretation TEXT,
-
-      fms_total INTEGER,
-      fms_ss INTEGER,
-      fms_interpretation TEXT,
-
-      shd_total INTEGER,
-      shd_ss INTEGER,
-      shd_interpretation TEXT,
-
-      rl_total INTEGER,
-      rl_ss INTEGER,
-      rl_interpretation TEXT,
-
-      el_total INTEGER,
-      el_ss INTEGER,
-      el_interpretation TEXT,
-
-      cd_total INTEGER,
-      cd_ss INTEGER,
-      cd_interpretation TEXT,
-
-      sed_total INTEGER,
-      sed_ss INTEGER,
-      sed_interpretation TEXT,
-
-      raw_score INTEGER,
-      summary_scaled_score INTEGER,
-      standard_score INTEGER,
-      interpretation TEXT,
-
-      FOREIGN KEY (assessment_id) REFERENCES assessment_header(assessment_id)
-    )
-  ''');
+      CREATE TABLE IF NOT EXISTS learner_ecd_table (
+        learner_ecd_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        assessment_id INTEGER,
+        gmd_total INTEGER, gmd_ss INTEGER, gmd_interpretation TEXT,
+        fms_total INTEGER, fms_ss INTEGER, fms_interpretation TEXT,
+        shd_total INTEGER, shd_ss INTEGER, shd_interpretation TEXT,
+        rl_total INTEGER, rl_ss INTEGER, rl_interpretation TEXT,
+        el_total INTEGER, el_ss INTEGER, el_interpretation TEXT,
+        cd_total INTEGER, cd_ss INTEGER, cd_interpretation TEXT,
+        sed_total INTEGER, sed_ss INTEGER, sed_interpretation TEXT,
+        raw_score INTEGER, summary_scaled_score INTEGER,
+        standard_score INTEGER, interpretation TEXT,
+        FOREIGN KEY (assessment_id) REFERENCES assessment_header(assessment_id)
+      )
+    ''');
   }
 
   Future<void> _onCreate(Database db, int version) async {
     // ------------------ TEACHER ------------------
     await db.execute('''
-      CREATE TABLE teacher_table (
+      CREATE TABLE $teacherTable (
         teacher_id INTEGER PRIMARY KEY AUTOINCREMENT,
         teacher_name TEXT,
         class_id INTEGER,
@@ -129,7 +119,7 @@ class DatabaseService {
 
     // ------------------ ADMIN ------------------
     await db.execute('''
-      CREATE TABLE admin_table (
+      CREATE TABLE $adminTable (
         admin_id INTEGER PRIMARY KEY AUTOINCREMENT,
         admin_name TEXT,
         email TEXT,
@@ -148,7 +138,7 @@ class DatabaseService {
 
     // ------------------ CLASS ------------------
     await db.execute('''
-      CREATE TABLE class_table (
+      CREATE TABLE $classTable (
         class_id INTEGER PRIMARY KEY AUTOINCREMENT,
         class_level TEXT,
         class_section TEXT,
@@ -161,7 +151,7 @@ class DatabaseService {
 
     // ------------------ LEARNER ------------------
     await db.execute('''
-      CREATE TABLE learner_information_table (
+      CREATE TABLE $learnerTable (
         learner_id INTEGER PRIMARY KEY AUTOINCREMENT,
         class_id INTEGER,
         surname TEXT,
@@ -215,40 +205,15 @@ class DatabaseService {
       CREATE TABLE learner_ecd_table (
         learner_ecd_id INTEGER PRIMARY KEY AUTOINCREMENT,
         assessment_id INTEGER,
-
-        gmd_total INTEGER,
-        gmd_ss INTEGER,
-        gmd_interpretation TEXT,
-
-        fms_total INTEGER,
-        fms_ss INTEGER,
-        fms_interpretation TEXT,
-
-        shd_total INTEGER,
-        shd_ss INTEGER,
-        shd_interpretation TEXT,
-
-        rl_total INTEGER,
-        rl_ss INTEGER,
-        rl_interpretation TEXT,
-
-        el_total INTEGER,
-        el_ss INTEGER,
-        el_interpretation TEXT,
-
-        cd_total INTEGER,
-        cd_ss INTEGER,
-        cd_interpretation TEXT,
-
-        sed_total INTEGER,
-        sed_ss INTEGER,
-        sed_interpretation TEXT,
-
-        raw_score INTEGER,
-        summary_scaled_score INTEGER,
-        standard_score INTEGER,
-        interpretation TEXT,
-
+        gmd_total INTEGER, gmd_ss INTEGER, gmd_interpretation TEXT,
+        fms_total INTEGER, fms_ss INTEGER, fms_interpretation TEXT,
+        shd_total INTEGER, shd_ss INTEGER, shd_interpretation TEXT,
+        rl_total INTEGER, rl_ss INTEGER, rl_interpretation TEXT,
+        el_total INTEGER, el_ss INTEGER, el_interpretation TEXT,
+        cd_total INTEGER, cd_ss INTEGER, cd_interpretation TEXT,
+        sed_total INTEGER, sed_ss INTEGER, sed_interpretation TEXT,
+        raw_score INTEGER, summary_scaled_score INTEGER,
+        standard_score INTEGER, interpretation TEXT,
         FOREIGN KEY (assessment_id) REFERENCES assessment_header(assessment_id)
       )
     ''');
@@ -310,9 +275,9 @@ class DatabaseService {
 
   // ================== CLASSES ==================
   Future<List<Map<String, dynamic>>> getClassesByTeacherAndStatus(
-    int teacherId,
-    String status,
-  ) async {
+      int teacherId,
+      String status,
+      ) async {
     final db = await getDatabase();
     return db.query(
       classTable,
@@ -322,21 +287,15 @@ class DatabaseService {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getActiveClassesByTeacher(
-    int teacherId,
-  ) async {
+  Future<List<Map<String, dynamic>>> getActiveClassesByTeacher(int teacherId) async {
     return getClassesByTeacherAndStatus(teacherId, statusActive);
   }
 
-  Future<List<Map<String, dynamic>>> getDeactivatedClassesByTeacher(
-    int teacherId,
-  ) async {
+  Future<List<Map<String, dynamic>>> getDeactivatedClassesByTeacher(int teacherId) async {
     return getClassesByTeacherAndStatus(teacherId, statusDeactivated);
   }
 
-  Future<List<Map<String, dynamic>>> getArchivedClassesByTeacher(
-    int teacherId,
-  ) async {
+  Future<List<Map<String, dynamic>>> getArchivedClassesByTeacher(int teacherId) async {
     return getClassesByTeacherAndStatus(teacherId, statusArchived);
   }
 
@@ -350,7 +309,6 @@ class DatabaseService {
     );
   }
 
-  /// When a class is deactivated/archived, you usually want learners to follow.
   Future<void> setAllLearnersStatusForClass(int classId, String status) async {
     final db = await getDatabase();
     await db.update(
@@ -373,9 +331,9 @@ class DatabaseService {
   }
 
   Future<List<Map<String, dynamic>>> getLearnersByClassAndStatus(
-    int classId,
-    String status,
-  ) async {
+      int classId,
+      String status,
+      ) async {
     final db = await getDatabase();
     return db.query(
       learnerTable,
@@ -385,21 +343,15 @@ class DatabaseService {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getActiveLearnersByClass(
-    int classId,
-  ) async {
+  Future<List<Map<String, dynamic>>> getActiveLearnersByClass(int classId) async {
     return getLearnersByClassAndStatus(classId, statusActive);
   }
 
-  Future<List<Map<String, dynamic>>> getDeactivatedLearnersByClass(
-    int classId,
-  ) async {
+  Future<List<Map<String, dynamic>>> getDeactivatedLearnersByClass(int classId) async {
     return getLearnersByClassAndStatus(classId, statusDeactivated);
   }
 
-  Future<List<Map<String, dynamic>>> getArchivedLearnersByClass(
-    int classId,
-  ) async {
+  Future<List<Map<String, dynamic>>> getArchivedLearnersByClass(int classId) async {
     return getLearnersByClassAndStatus(classId, statusArchived);
   }
 

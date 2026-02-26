@@ -1,16 +1,16 @@
 import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../services/csv_import_service.dart';
 import '../services/database_service.dart';
 import '../util/navbar.dart';
+import '../util/navbar_back_button.dart';
 import 'landing_page.dart';
 
 class TeacherNewDataSourcePage extends StatefulWidget {
   final String role;
-  final int userId; // teacher_id
+  final int userId;
 
   const TeacherNewDataSourcePage({
     Key? key,
@@ -44,39 +44,46 @@ class _TeacherNewDataSourcePageState extends State<TeacherNewDataSourcePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 700;
+
     return Scaffold(
-      drawer: MediaQuery.of(context).size.width < 700
+      drawer: isMobile
           ? Navbar(
-              selectedIndex: 1,
-              onItemSelected: (_) {},
-              role: widget.role,
-              userId: widget.userId,
-            )
+        selectedIndex: 1,
+        onItemSelected: (_) {},
+        role: widget.role,
+        userId: widget.userId,
+      )
           : null,
-      appBar: AppBar(
+
+
+      appBar: isMobile
+          ? AppBar(
         title: const Text("Create New Class"),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
         backgroundColor: const Color(0xFFE64843),
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return constraints.maxWidth > 700
-              ? _desktopLayout()
-              : _mobileLayout();
-        },
+      )
+          : null,
+
+
+      body: Stack(
+        children: [
+          SafeArea(
+            child: isMobile ? _mobileLayout() : _desktopLayout(),
+          ),
+
+
+          if (!isMobile)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 10,
+              left: 285,
+              child: const NavbarBackButton(),
+            ),
+        ],
       ),
     );
   }
 
-  Widget _mobileLayout() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: _form(),
-    );
-  }
+  // ---------------- DESKTOP LAYOUT ----------------
 
   Widget _desktopLayout() {
     return Row(
@@ -88,16 +95,53 @@ class _TeacherNewDataSourcePageState extends State<TeacherNewDataSourcePage> {
           userId: widget.userId,
         ),
         Expanded(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(32),
-              child: SizedBox(width: 520, child: _form()),
-            ),
+          child: Column(
+            children: [
+              _desktopHeader(),
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(32),
+                    child: SizedBox(width: 520, child: _form()),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
     );
   }
+
+  Widget _desktopHeader() {
+    return Container(
+      color: const Color(0xFFF7F4F6),
+      padding: const EdgeInsets.fromLTRB(80, 14, 16, 10),
+      child: const Row(
+        children: [
+          Text(
+            "Create New Class",
+            style: TextStyle(
+              color: Colors.black87,
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------- MOBILE LAYOUT ----------------
+
+  Widget _mobileLayout() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: _form(),
+    );
+  }
+
+  // ---------------- FORM ----------------
 
   Widget _form() {
     return Form(
@@ -112,12 +156,9 @@ class _TeacherNewDataSourcePageState extends State<TeacherNewDataSourcePage> {
             ),
           ),
           const SizedBox(height: 32),
-
           _field("Grade *", gradeController),
           _field("Section *", sectionController),
-
           const SizedBox(height: 12),
-
           Row(
             children: [
               Expanded(child: _yearField("Start Year", startYearController)),
@@ -125,11 +166,9 @@ class _TeacherNewDataSourcePageState extends State<TeacherNewDataSourcePage> {
               Expanded(child: _yearField("End Year", endYearController)),
             ],
           ),
-
           const SizedBox(height: 20),
           _csvPicker(),
           const SizedBox(height: 28),
-
           SizedBox(
             width: double.infinity,
             height: 48,
@@ -150,10 +189,8 @@ class _TeacherNewDataSourcePageState extends State<TeacherNewDataSourcePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "Import Learners (CSV only)",
-          style: TextStyle(fontWeight: FontWeight.w500),
-        ),
+        const Text("Import Learners (CSV only)",
+            style: TextStyle(fontWeight: FontWeight.w500)),
         const SizedBox(height: 6),
         InkWell(
           onTap: _pickCsv,
@@ -172,9 +209,8 @@ class _TeacherNewDataSourcePageState extends State<TeacherNewDataSourcePage> {
                     selectedCsvFile?.path.split(Platform.pathSeparator).last ??
                         "Select .csv file",
                     style: TextStyle(
-                      color: selectedCsvFile == null
-                          ? Colors.grey
-                          : Colors.black,
+                      color:
+                      selectedCsvFile == null ? Colors.grey : Colors.black,
                     ),
                   ),
                 ),
@@ -193,9 +229,7 @@ class _TeacherNewDataSourcePageState extends State<TeacherNewDataSourcePage> {
       allowedExtensions: ['csv'],
     );
     if (result != null && result.files.single.path != null) {
-      setState(() {
-        selectedCsvFile = File(result.files.single.path!);
-      });
+      setState(() => selectedCsvFile = File(result.files.single.path!));
     }
   }
 
@@ -258,7 +292,7 @@ class _TeacherNewDataSourcePageState extends State<TeacherNewDataSourcePage> {
       controller: c,
       keyboardType: TextInputType.number,
       validator: (v) =>
-          v == null || !RegExp(r'^\d{4}$').hasMatch(v) ? "YYYY" : null,
+      v == null || !RegExp(r'^\d{4}$').hasMatch(v) ? "YYYY" : null,
       decoration: _decoration(label),
     );
   }
@@ -273,8 +307,7 @@ class _TeacherNewDataSourcePageState extends State<TeacherNewDataSourcePage> {
   }
 
   void _snack(String msg) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.black));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.black));
   }
 }

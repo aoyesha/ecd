@@ -11,7 +11,6 @@ import 'view/login_page.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Desktop SQLite
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
@@ -22,6 +21,28 @@ Future<void> main() async {
   runApp(const ECCDApp());
 }
 
+// This is the "Softest" transition logic: A Pure Fade with a Sine Curve
+class SoftFadeTransition extends CustomTransition {
+  @override
+  Widget buildTransition(
+      BuildContext context,
+      Curve? curve,
+      Alignment? alignment,
+      Animation<double> animation,
+      Animation<double> secondaryAnimation,
+      Widget child,
+      ) {
+    return FadeTransition(
+      opacity: CurvedAnimation(
+        parent: animation,
+        // Curves.easeInOutSine is the smoothest mathematical fade
+        curve: Curves.easeInOutSine,
+      ),
+      child: child,
+    );
+  }
+}
+
 class ECCDApp extends StatelessWidget {
   const ECCDApp({super.key});
 
@@ -30,7 +51,28 @@ class ECCDApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'ECCD Checklist',
-      theme: ThemeData(textTheme: GoogleFonts.workSansTextTheme()),
+
+      // --- THE FIX ---
+      // We use our custom class to force a soft "melt" effect
+      customTransition: SoftFadeTransition(),
+
+      // 600ms-800ms is the sweet spot for "Soft"
+      transitionDuration: const Duration(milliseconds: 600),
+      // ----------------
+
+      theme: ThemeData(
+        // Keeping background consistent prevents "flickering" during the fade
+        scaffoldBackgroundColor: Colors.white,
+        textTheme: GoogleFonts.workSansTextTheme(),
+
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+          },
+        ),
+      ),
       home: const LoginPage(),
     );
   }

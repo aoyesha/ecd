@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../services/database_service.dart';
 import '../view/landing_page.dart';
 import '../view/archive_page.dart';
 import '../view/historical_data_page.dart';
@@ -26,19 +26,11 @@ class NavItem {
   });
 }
 
-class Navbar extends StatelessWidget {
+class Navbar extends StatefulWidget {
   final int selectedIndex;
   final Function(int) onItemSelected;
-
-  /// unified identifier (teacher_id or admin_id)
   final int userId;
-
-  /// "Teacher" | "Admin"
   final String role;
-
-  /// Back-compat flag for older call-sites.
-  /// The navbar currently always navigates via pushReplacement.
-  final bool useNavigator;
 
   const Navbar({
     Key? key,
@@ -46,10 +38,55 @@ class Navbar extends StatelessWidget {
     required this.onItemSelected,
     required this.userId,
     required this.role,
-    this.useNavigator = false,
   }) : super(key: key);
 
-  double get _width => 280;
+  @override
+  State<Navbar> createState() => _NavbarState();
+}
+
+class _NavbarState extends State<Navbar> {
+  String? divisionName;
+  String? userName;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    final db = DatabaseService.instance;
+    Map<String, dynamic>? data;
+
+    if (widget.role == 'Teacher') {
+      data = await db.getTeacherById(widget.userId);
+    } else {
+      data = await db.getAdminById(widget.userId);
+    }
+
+    if (mounted && data != null) {
+      setState(() {
+        divisionName = data!['division'];
+        userName = widget.role == 'Teacher'
+            ? data['teacher_name']
+            : data['admin_name'];
+        isLoading = false;
+      });
+    }
+  }
+
+  String _getDivisionLogo(String? division) {
+    switch (division) {
+      case "Occidental Mindoro": return 'assets/occidental_min_logo.png';
+      case "Oriental Mindoro": return 'assets/oriental_min_logo.gif';
+      case "Calapan City": return 'assets/calapan_logo.jpeg';
+      case "Marinduque": return 'assets/marinduque_logo.jpg';
+      case "Romblon": return 'assets/romblon_logo.png';
+      case "Palawan": return 'assets/palawan_logo.png';
+      default: return '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,42 +94,64 @@ class Navbar extends StatelessWidget {
       NavItem(
         icon: Icons.home,
         label: 'Dashboard',
-        builder: () => LandingPage(userId: userId, role: role),
+        builder: () => LandingPage(userId: widget.userId, role: widget.role),
       ),
       NavItem(
         icon: Icons.archive,
         label: 'My Archive',
-        builder: () => ArchivePage(userId: userId, role: role),
+        builder: () => ArchivePage(userId: widget.userId, role: widget.role),
       ),
       NavItem(
         icon: Icons.analytics,
         label: 'Historical Data Analysis',
-        builder: () => HistoricalDataPage(userId: userId, role: role),
+        builder: () => HistoricalDataPage(userId: widget.userId, role: widget.role),
       ),
       NavItem(
         icon: Icons.settings,
         label: 'Account Settings',
-        builder: () => SettingsPage(userId: userId, role: role),
+        builder: () => SettingsPage(userId: widget.userId, role: widget.role),
       ),
     ];
 
+    final logoPath = _getDivisionLogo(divisionName);
+
     return Container(
-      width: _width,
+      width: 280,
       color: AppColors.maroon,
       child: SafeArea(
         child: Column(
           children: [
             const SizedBox(height: 24),
+
+            // Logo
             Container(
-              width: 88,
-              height: 88,
+              width: 120,
+              height: 120,
               decoration: const BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.person, size: 44, color: Colors.blue),
+              child: ClipOval(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: logoPath.isNotEmpty
+                      ? Image.asset(logoPath, fit: BoxFit.contain)
+                      : const Icon(Icons.account_balance, size: 40, color: AppColors.maroon),
+                ),
+              ),
             ),
-            const SizedBox(height: 16),
+
+            const SizedBox(height: 12),
+
+            if (!isLoading) ...[
+              Text(userName ?? "User",
+                  style: const TextStyle(color: Colors.white,fontWeight: FontWeight.bold,fontSize: 26)),
+              Text(divisionName ?? "MIMAROPA",
+                  style: TextStyle(color: Colors.white.withOpacity(0.8),fontSize: 18)),
+            ],
+
+            const SizedBox(height: 20),
+            const Divider(color: Colors.white24, indent: 20, endIndent: 20),
 
             Expanded(
               child: ListView.separated(
@@ -100,14 +159,13 @@ class Navbar extends StatelessWidget {
                 itemCount: items.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, i) {
-                  final isSelected = i == selectedIndex;
+                  final isSelected = i == widget.selectedIndex;
                   return _NavTile(
                     icon: items[i].icon,
                     label: items[i].label,
                     selected: isSelected,
                     onTap: () {
-                      onItemSelected(i);
-
+                      widget.onItemSelected(i);
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (_) => items[i].builder()),
                       );
@@ -127,12 +185,11 @@ class Navbar extends StatelessWidget {
                     backgroundColor: AppColors.white,
                     foregroundColor: Colors.black,
                     shape: const StadiumBorder(),
-                    elevation: 0,
                   ),
                   onPressed: () {
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(builder: (_) => const LoginPage()),
-                      (_) => false,
+                          (_) => false,
                     );
                   },
                   icon: const Icon(Icons.logout),
@@ -175,9 +232,7 @@ class _NavTile extends StatelessWidget {
           children: [
             Icon(icon, color: Colors.white),
             const SizedBox(width: 12),
-            Expanded(
-              child: Text(label, style: const TextStyle(color: Colors.white)),
-            ),
+            Expanded(child: Text(label, style: const TextStyle(color: Colors.white))),
           ],
         ),
       ),

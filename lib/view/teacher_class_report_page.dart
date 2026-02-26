@@ -341,7 +341,6 @@ class _TeacherClassReportPageState extends State<TeacherClassReportPage> {
             onItemSelected: (_) {},
             userId: widget.userId,
             role: widget.role,
-            useNavigator: true,
           ),
           Expanded(
             child: Column(
