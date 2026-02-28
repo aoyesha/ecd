@@ -47,6 +47,8 @@ dependencies:
   pdf: ^3.11.0
   path_provider: ^2.1.4
 
+  printing: ^5.14.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -73,6 +75,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:

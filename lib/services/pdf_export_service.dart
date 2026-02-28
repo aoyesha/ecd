@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 import '../core/constants.dart';
 import '../data/eccd_questions.dart';
@@ -24,6 +25,8 @@ class PdfExportService {
     required String assessmentType, // pre|post
     required EccdLanguage language,
   }) async {
+
+
     final db = AppDb.instance.db;
 
     final learner = (await db.query(
@@ -93,6 +96,8 @@ class PdfExportService {
     }
 
     final doc = pw.Document();
+    // allows for checkmarks and whatnot
+    final font = await PdfGoogleFonts.notoSansSymbols2Regular();
 
     doc.addPage(
       pw.MultiPage(
@@ -124,6 +129,7 @@ class PdfExportService {
           _perDomainChecklistBlock(
             language: language,
             answersByDomain: answersByDomain,
+            notoSymbols: font
           ),
         ],
       ),
@@ -250,7 +256,7 @@ class PdfExportService {
         ),
         pw.SizedBox(height: 6),
         pw.Text(
-          'RS – Raw Score   SC – Scaled Score',
+          'RS - Raw Score   SC - Scaled Score',
           style: const pw.TextStyle(fontSize: 9),
         ),
       ],
@@ -274,23 +280,23 @@ class PdfExportService {
           ),
           pw.SizedBox(height: 6),
           pw.Text(
-            '130 and above  — Suggest Highly Advanced Development (S.H.A.D.)',
+            '130 and above  - Suggest Highly Advanced Development (S.H.A.D.)',
             style: const pw.TextStyle(fontSize: 9),
           ),
           pw.Text(
-            '120 - 129       — Suggest Slightly Advanced Development (S.S.A.D.)',
+            '120 - 129          - Suggest Slightly Advanced Development (S.S.A.D.)',
             style: const pw.TextStyle(fontSize: 9),
           ),
           pw.Text(
-            '80  - 119       — Average Overall Development (A.D.)',
+            '80  - 119           - Average Overall Development (A.D.)',
             style: const pw.TextStyle(fontSize: 9),
           ),
           pw.Text(
-            '70  - 79        — Suggest Slight Delay in Overall Development (S.S.D.O.D.)',
+            '70  - 79             - Suggest Slight Delay in Overall Development (S.S.D.O.D.)',
             style: const pw.TextStyle(fontSize: 9),
           ),
           pw.Text(
-            '69 and below    — Suggest Significant Delay in Overall Development (S.S.O.O.D.)',
+            '69 and below    - Suggest Significant Delay in Overall Development (S.S.O.O.D.)',
             style: const pw.TextStyle(fontSize: 9),
           ),
         ],
@@ -301,6 +307,7 @@ class PdfExportService {
   pw.Widget _perDomainChecklistBlock({
     required EccdLanguage language,
     required Map<String, Map<int, int>> answersByDomain,
+    required pw.Font notoSymbols,
   }) {
     final blocks = <pw.Widget>[];
     for (final domain in _domains) {
@@ -337,7 +344,7 @@ class PdfExportService {
                     children: [
                       _cell('No.', bold: true),
                       _cell('Item', bold: true),
-                      _cell('âœ“', bold: true),
+                      _cell('✓', bold: true, symbols: notoSymbols),
                     ],
                   ),
                   for (int i = 0; i < core.length; i++)
@@ -345,7 +352,7 @@ class PdfExportService {
                       children: [
                         _cell('${i + 1}'),
                         _cell(core[i]),
-                        _cell((a[i] ?? 0) == 1 ? 'âœ“' : ''),
+                        _cell((a[i] ?? 0) == 1 ? '✓' : '', symbols: notoSymbols),
                       ],
                     ),
                 ],
@@ -384,7 +391,7 @@ class PdfExportService {
                       children: [
                         _cell('No.', bold: true),
                         _cell('Item', bold: true),
-                        _cell('âœ“', bold: true),
+                        _cell('✓', bold: true, symbols: notoSymbols),
                       ],
                     ),
                     for (int i = 0; i < qs.length; i++)
@@ -392,7 +399,7 @@ class PdfExportService {
                         children: [
                           _cell('${i + 1}'),
                           _cell(qs[i]),
-                          _cell((a[offset + i] ?? 0) == 1 ? 'âœ“' : ''),
+                          _cell((a[offset + i] ?? 0) == 1 ? '✓' : '', symbols: notoSymbols),
                         ],
                       ),
                   ],
@@ -429,7 +436,7 @@ class PdfExportService {
                   children: [
                     _cell('No.', bold: true),
                     _cell('Item', bold: true),
-                    _cell('✓', bold: true),
+                    _cell('✓', bold: true, symbols: notoSymbols),
                   ],
                 ),
                 for (int i = 0; i < qs.length; i++)
@@ -437,7 +444,7 @@ class PdfExportService {
                     children: [
                       _cell('${i + 1}'),
                       _cell(qs[i]),
-                      _cell((a[i] ?? 0) == 1 ? '✓' : ''),
+                      _cell((a[i] ?? 0) == 1 ? '✓' : '', symbols: notoSymbols),
                     ],
                   ),
               ],
@@ -449,7 +456,7 @@ class PdfExportService {
     return pw.Column(children: blocks);
   }
 
-  pw.Widget _cell(String text, {bool bold = false}) {
+  pw.Widget _cell(String text, {bool bold = false, pw.Font? symbols}) {
     return pw.Padding(
       padding: const pw.EdgeInsets.all(4),
       child: pw.Text(
@@ -457,6 +464,9 @@ class PdfExportService {
         style: pw.TextStyle(
           fontSize: 8.5,
           fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+          fontFallback: [
+            if(symbols != null) symbols,
+          ]
         ),
       ),
     );
