@@ -283,67 +283,80 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
         const SizedBox(height: 8),
         Theme(
-          data: ThemeData(unselectedWidgetColor: Colors.white),
+          data: Theme.of(context).copyWith(
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            hoverColor: Colors.transparent,
+            unselectedWidgetColor: Colors.white, // important
+          ),
           child: CheckboxListTile(
             value: acceptedTos,
             onChanged: (v) => setState(() => acceptedTos = v ?? false),
-            title: RichText(
-              text: TextSpan(
-                style: const TextStyle(color: Colors.white),
-                children: [
-                  const TextSpan(text: 'I accept '),
-                  TextSpan(
-                    text: 'Terms and Conditions',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      decoration: TextDecoration.underline,
-                    ),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () => _showPolicyDialog(
-                            title: 'Terms and Conditions',
-                            content: _termsAndConditionsText,
-                          ),
-                  ),
-                ],
-              ),
-            ),
             controlAffinity: ListTileControlAffinity.leading,
             contentPadding: EdgeInsets.zero,
-            activeColor: Colors.white,
+
+            // ⭐ THIS FIXES THE BORDER COLOR
+            side: const BorderSide(color: Colors.white, width: 1.6),
+
+            fillColor: MaterialStateProperty.resolveWith((states) {
+              if (states.contains(MaterialState.selected)) {
+                return Colors.white;
+              }
+              return Colors.transparent;
+            }),
             checkColor: Colors.black,
+
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('I accept ', style: TextStyle(color: Colors.white)),
+                _whiteLink(
+                  text: 'Terms and Conditions',
+                  onTap: () => _showPolicyDialog(
+                    title: 'Terms and Conditions',
+                    content: _termsAndConditionsText,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         Theme(
-          data: ThemeData(unselectedWidgetColor: Colors.white),
+          data: Theme.of(context).copyWith(
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            hoverColor: Colors.transparent,
+            unselectedWidgetColor: Colors.white,
+          ),
           child: CheckboxListTile(
             value: acceptedPrivacy,
             onChanged: (v) => setState(() => acceptedPrivacy = v ?? false),
-            title: RichText(
-              text: TextSpan(
-                style: const TextStyle(color: Colors.white),
-                children: [
-                  const TextSpan(text: 'I accept '),
-                  TextSpan(
-                    text: 'Privacy Policy',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      decoration: TextDecoration.underline,
-                    ),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () => _showPolicyDialog(
-                            title: 'Privacy Policy',
-                            content: _privacyPolicyText,
-                          ),
-                  ),
-                ],
-              ),
-            ),
             controlAffinity: ListTileControlAffinity.leading,
             contentPadding: EdgeInsets.zero,
-            activeColor: Colors.white,
+
+            side: const BorderSide(color: Colors.white, width: 1.6),
+
+            fillColor: MaterialStateProperty.resolveWith((states) {
+              if (states.contains(MaterialState.selected)) {
+                return Colors.white;
+              }
+              return Colors.transparent;
+            }),
             checkColor: Colors.black,
+
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('I accept ', style: TextStyle(color: Colors.white)),
+                _whiteLink(
+                  text: 'Privacy Policy',
+                  onTap: () => _showPolicyDialog(
+                    title: 'Privacy Policy',
+                    content: _privacyPolicyText,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 12),
@@ -382,6 +395,25 @@ class _RegisterPageState extends State<RegisterPage> {
                 ..onTap = () => navReplaceNoTransition(context, const LoginPage()),
             ),
           ],
+        ),
+      ),
+    );
+  }
+  Widget _whiteLink({
+    required String text,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      hoverColor: Colors.transparent,
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          decoration: TextDecoration.underline,
         ),
       ),
     );
