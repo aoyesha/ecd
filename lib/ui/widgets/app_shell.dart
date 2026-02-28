@@ -33,19 +33,21 @@ class _AppShellState extends State<AppShell> {
     final role = session.role;
     final userId = session.userId;
 
+    final topInset = MediaQuery.of(context).padding.top; // ⭐ mobile fix
+
     final pages = role == UserRole.teacher
         ? [
-            TeacherDashboardPage(teacherId: userId),
-            const TeacherArchivePage(),
-            const TeacherHistoricalPage(),
-            const SettingsPage(),
-          ]
+      TeacherDashboardPage(teacherId: userId),
+      const TeacherArchivePage(),
+      const TeacherHistoricalPage(),
+      const SettingsPage(),
+    ]
         : const [
-            AdminDashboardPage(),
-            AdminArchivePage(),
-            AdminHistoricalPage(),
-            SettingsPage(),
-          ];
+      AdminDashboardPage(),
+      AdminArchivePage(),
+      AdminHistoricalPage(),
+      SettingsPage(),
+    ];
 
     final items = const [
       AppNavItem(icon: Icons.dashboard, label: 'Dashboard'),
@@ -62,20 +64,20 @@ class _AppShellState extends State<AppShell> {
       drawer: isDesktop(context)
           ? null
           : FutureBuilder<Map<String, Object?>?>(
-              future: userFuture,
-              builder: (context, snapshot) {
-                final u = snapshot.data ?? const <String, Object?>{};
-                return Drawer(
-                  child: AppNav(
-                    items: items,
-                    selectedIndex: index,
-                    onSelected: (i) => setState(() => index = i),
-                    profileName: (u['name'] ?? 'User').toString(),
-                    division: (u['division'] ?? 'MIMAROPA').toString(),
-                  ),
-                );
-              },
+        future: userFuture,
+        builder: (context, snapshot) {
+          final u = snapshot.data ?? const <String, Object?>{};
+          return Drawer(
+            child: AppNav(
+              items: items,
+              selectedIndex: index,
+              onSelected: (i) => setState(() => index = i),
+              profileName: (u['name'] ?? 'User').toString(),
+              division: (u['division'] ?? 'MIMAROPA').toString(),
             ),
+          );
+        },
+      ),
       body: Row(
         children: [
           if (isDesktop(context))
@@ -103,12 +105,16 @@ class _AppShellState extends State<AppShell> {
                   Container(
                     width: double.infinity,
                     color: AppColors.offWhite,
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    padding: EdgeInsets.fromLTRB(
+                      16,
+                      isDesktop(context) ? 16 : topInset + 16, // ⭐ mobile spacing fix
+                      16,
+                      12,
+                    ),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        final titleSize = constraints.maxWidth < 600
-                            ? 20.0
-                            : 30.0;
+                        final titleSize =
+                        constraints.maxWidth < 600 ? 20.0 : 30.0;
                         return Row(
                           children: [
                             if (!isDesktop(context))
@@ -123,13 +129,13 @@ class _AppShellState extends State<AppShell> {
                               child: Text(
                                 'Early Childhood Development Checklist',
                                 maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: titleSize,
                                   fontWeight: FontWeight.w900,
                                   color: Colors.black87,
                                   height: 1.05,
                                 ),
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
