@@ -68,7 +68,11 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
   }
 
   final _nameFormatter = FilteringTextInputFormatter.allow(
-    RegExp(r"[a-zA-Z .'-]"),
+    RegExp(r'[A-Za-z]'),
+  );
+
+  final _parentNameFormatter = FilteringTextInputFormatter.allow(
+    RegExp(r"[a-zA-Z]"),
   );
 
   String get _ageDecimal {
@@ -144,7 +148,25 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
       );
       return;
     }
+    final birthDateStr =
+        '${birthDate!.year.toString().padLeft(4, '0')}-${birthDate!.month.toString().padLeft(2, '0')}-${birthDate!.day.toString().padLeft(2, '0')}';
 
+    final exists = await _learners.learnerExists(
+      classId: widget.classId,
+      firstName: firstNameCtrl.text.trim(),
+      lastName: lastNameCtrl.text.trim(),
+      birthDate: birthDateStr,
+    );
+
+    if (exists) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This pupil already exists in this class.'),
+        ),
+      );
+      return;
+    }
     await _learners.addLearner(
       classId: widget.classId,
       firstName: firstNameCtrl.text,
@@ -385,6 +407,8 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                 motherNameCtrl,
                                 "Mother's Name",
                                 width: fieldWidth,
+                                validator: (v) => _parentNameValidator(v, "Mother's name"),
+                                inputFormatters: [_parentNameFormatter],
                               ),
                               _field(
                                 motherOccupationCtrl,
@@ -404,6 +428,8 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                 fatherNameCtrl,
                                 "Father's Name",
                                 width: fieldWidth,
+                                validator: (v) => _parentNameValidator(v, "Father's name"),
+                                inputFormatters: [_parentNameFormatter],
                               ),
                               _field(
                                 fatherOccupationCtrl,
@@ -414,6 +440,8 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                 guardianNameCtrl,
                                 "Parent/Guardian's Name",
                                 width: fieldWidth,
+                                validator: (v) => _parentNameValidator(v, "Guardian's name"),
+                                inputFormatters: [_parentNameFormatter],
                               ),
                               _field(
                                 guardianOccupationCtrl,
@@ -443,6 +471,16 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
         ),
       ),
     );
+  }
+
+  String? _parentNameValidator(String? v, String label) {
+    if (v == null || v.isEmpty) return null; // optional field
+
+    final onlyLetters = RegExp(r'^[A-Za-z]+$');
+    if (!onlyLetters.hasMatch(v)) {
+      return '$label must contain letters only (no spaces or symbols)';
+    }
+    return null;
   }
 
   Widget _sectionCard(String title, Widget child) {

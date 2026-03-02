@@ -24,9 +24,16 @@ class _SettingsPageState extends State<SettingsPage> {
   final _currentPwCtrl = TextEditingController();
   final _pwCtrl = TextEditingController();
 
+  bool _hasMinLength(String v) => v.length >= 8;
+  bool _hasUppercase(String v) => RegExp(r'[A-Z]').hasMatch(v);
+  bool _hasLowercase(String v) => RegExp(r'[a-z]').hasMatch(v);
+  bool _hasNumber(String v) => RegExp(r'[0-9]').hasMatch(v);
+  bool _hasSpecialChar(String v) => RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(v);
+
   bool _editingProfile = false;
   bool _obscureCurrentPw = true;
   bool _obscureNewPw = true;
+  bool _showPwRules = false;
 
   String? _selectedRegion;
   String? _selectedDivision;
@@ -35,9 +42,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _loaded = false;
 
   static const List<String> _regions = [
-    'MIMAROPA','NCR','Region I','Region II','Region III','Region IV-A',
-    'Region V','Region VI','Region VII','Region VIII','Region IX','Region X',
-    'Region XI','Region XII','CAR','CARAGA','BARMM',
+    'MIMAROPA',
   ];
 
   static const Map<String,List<String>> _divisionsByRegion = {
@@ -47,14 +52,106 @@ class _SettingsPageState extends State<SettingsPage> {
     ],
   };
 
-  static const Map<String,List<String>> _districtsByDivision = {
-    'Oriental Mindoro': ['District I','District II','District III'],
-    'Occidental Mindoro': ['District I','District II'],
-    'Marinduque': ['District I','District II'],
-    'Romblon': ['District I','District II'],
-    'Palawan': ['District I','District II','District III'],
-    'Puerto Princesa City': ['District I','District II'],
-    'Calapan City': ['District I','District II'],
+  static const Map<String, List<String>> _districtsByDivision = {
+
+    // Occidental Mindoro
+    'Occidental Mindoro': [
+      'Abra de Ilog',
+      'Calintaan',
+      'Looc',
+      'Lubang',
+      'Mamburao',
+      'Paluan',
+      'Rizal',
+      'Sablayan',
+      'San Jose',
+      'Santa Cruz',
+    ],
+
+    // Oriental Mindoro
+    'Oriental Mindoro': [
+      'Baco',
+      'Bansud',
+      'Bongabong',
+      'Bulalacao',
+      'Gloria',
+      'Mansalay',
+      'Naujan',
+      'Pinamalayan',
+      'Pola',
+      'Roxas',
+      'San Teodoro',
+      'Socorro',
+      'Victoria',
+    ],
+
+    // Marinduque
+    'Marinduque': [
+      'Boac',
+      'Buenavista',
+      'Gasan',
+      'Mogpog',
+      'Santa Cruz',
+      'Torrijos',
+    ],
+
+    // Romblon
+    'Romblon': [
+      'Alcantara',
+      'Banton',
+      'Cajidiocan',
+      'Calatrava',
+      'Concepcion',
+      'Corcuera',
+      'Ferrol',
+      'Looc',
+      'Magdiwang',
+      'Odiongan',
+      'Romblon',
+      'San Agustin',
+      'San Andres',
+      'San Fernando',
+      'San Jose',
+      'Santa Fe',
+    ],
+
+    // Palawan Province (excluding Puerto Princesa)
+    'Palawan': [
+      'Aborlan',
+      'Agutaya',
+      'Araceli',
+      'Balabac',
+      'Bataraza',
+      'Brooke\'s Point',
+      'Busuanga',
+      'Cagayancillo',
+      'Coron',
+      'Culion',
+      'Cuyo',
+      'Dumaran',
+      'El Nido',
+      'Kalayaan',
+      'Linapacan',
+      'Magsaysay',
+      'Narra',
+      'Quezon',
+      'Rizal',
+      'Roxas',
+      'San Vicente',
+      'Sofronio Española',
+      'Taytay',
+    ],
+
+    // Independent Cities
+    'Puerto Princesa City': [
+      'Puerto Princesa North',
+      'Puerto Princesa South',
+    ],
+
+    'Calapan City': [
+      'Calapan East',
+      'Calapan West',
+    ],
   };
 
   @override
@@ -287,19 +384,89 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   // ================= PASSWORD =================
-  Widget _passwordSection(AuthService auth, session){
+  Widget _passwordSection(AuthService auth, session) {
     return Form(
-      key:_pwKey,
-      child:Column(children:[
-        TextFormField(
-          controller:_currentPwCtrl,
-          validator:(v)=>Validators.required(v,label:'Current Password'),
-          obscureText:_obscureCurrentPw,
-          decoration:InputDecoration(
-            labelText:'Current Password',
-            border:const OutlineInputBorder(),
-            suffixIcon:IconButton(
-              icon:Icon(_obscureCurrentPw?Icons.visibility_off:Icons.visibility),
+      key: _pwKey,
+      child: Column(
+        children: [
+
+          /// CURRENT PASSWORD
+          TextFormField(
+            controller: _currentPwCtrl,
+            validator: (v) => Validators.required(v, label: 'Current Password'),
+            obscureText: _obscureCurrentPw,
+            decoration: InputDecoration(
+              labelText: 'Current Password',
+              border: const OutlineInputBorder(),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscureCurrentPw ? Icons.visibility_off : Icons.visibility,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscureCurrentPw = !_obscureCurrentPw;
+                  });
+                },
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          /// NEW PASSWORD + CHECKLIST
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _pwCtrl,
+                obscureText: _obscureNewPw,
+                onChanged: (_) => setState(() => _showPwRules = true),
+                validator: (value) {
+                  final v = value ?? '';
+
+                  if (v.isEmpty) return 'New password is required';
+
+                  if (_currentPwCtrl.text == v) {
+                    return 'New password must be different from current password';
+                  }
+
+                  if (!_hasMinLength(v) ||
+                      !_hasUppercase(v) ||
+                      !_hasLowercase(v) ||
+                      !_hasNumber(v) ||
+                      !_hasSpecialChar(v)) {
+                    return 'Password does not meet requirements';
+                  }
+
+                  return null;
+                },
+                decoration: InputDecoration(
+                  labelText: 'New Password',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureNewPw ? Icons.visibility_off : Icons.visibility,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscureNewPw = !_obscureNewPw),
+                  ),
+                ),
+              ),
+
+              if (_showPwRules) _passwordChecklist(_pwCtrl.text),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          /// UPDATE PASSWORD BUTTON  (THIS WAS MISSING)
+          Align(
+            alignment: Alignment.centerRight,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.maroon,
+                foregroundColor: Colors.white,
+              ),
               onPressed: () async {
                 if (!_pwKey.currentState!.validate()) return;
 
@@ -312,60 +479,29 @@ class _SettingsPageState extends State<SettingsPage> {
 
                   _currentPwCtrl.clear();
                   _pwCtrl.clear();
+                  _showPwRules = false;
 
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Password updated.')),
+                    const SnackBar(
+                      content: Text('Password successfully updated'),
+                    ),
                   );
                 } catch (e) {
                   if (!mounted) return;
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Current password is incorrect.'),
+                      content: Text('Current password is incorrect'),
                     ),
                   );
                 }
               },
+              child: const Text('Update Password'),
             ),
           ),
-        ),
-        const SizedBox(height:10),
-        TextFormField(
-          controller:_pwCtrl,
-          validator:Validators.password,
-          obscureText:_obscureNewPw,
-          decoration:InputDecoration(
-            labelText:'New Password',
-            border:const OutlineInputBorder(),
-            suffixIcon:IconButton(
-              icon:Icon(_obscureNewPw?Icons.visibility_off:Icons.visibility),
-              onPressed:()=>setState(()=>_obscureNewPw=!_obscureNewPw),
-            ),
-          ),
-        ),
-        const SizedBox(height:12),
-        Align(
-          alignment:Alignment.centerRight,
-          child:ElevatedButton(
-            style:ElevatedButton.styleFrom(
-                backgroundColor:AppColors.maroon,
-                foregroundColor:Colors.white),
-            onPressed:() async{
-              if(!_pwKey.currentState!.validate()) return;
-              await auth.changePassword(
-                userId:session.userId,
-                currentPassword:_currentPwCtrl.text,
-                newPassword:_pwCtrl.text,
-              );
-              _currentPwCtrl.clear(); _pwCtrl.clear();
-              ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content:Text('Password updated.')));
-            },
-            child:const Text('Update Password'),
-          ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 
@@ -519,5 +655,39 @@ class _SettingsPageState extends State<SettingsPage> {
     }
 
     return opts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList();
+  }
+
+  Widget _passwordChecklist(String value) {
+    Widget item(bool ok, String text) => Row(
+      children: [
+        Icon(
+          ok ? Icons.check_circle : Icons.radio_button_unchecked,
+          size: 18,
+          color: ok ? Colors.green : Colors.grey,
+        ),
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: TextStyle(
+            color: ok ? Colors.green : Colors.grey,
+            fontSize: 13,
+          ),
+        ),
+      ],
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, left: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          item(_hasMinLength(value), 'At least 8 characters'),
+          item(_hasUppercase(value), 'Contains uppercase letter'),
+          item(_hasLowercase(value), 'Contains lowercase letter'),
+          item(_hasNumber(value), 'Contains a number'),
+          item(_hasSpecialChar(value), 'Contains special character'),
+        ],
+      ),
+    );
   }
   }

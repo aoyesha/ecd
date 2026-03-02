@@ -40,6 +40,28 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
   final parentOccupationCtrl = TextEditingController();
   final ageMotherAtBirthCtrl = TextEditingController();
 
+
+  String? _parentNameValidator(String? v, String label) {
+    if (v == null || v.isEmpty) return null; // optional
+
+    final onlyLetters = RegExp(r'^[A-Za-z]+$');
+    if (!onlyLetters.hasMatch(v)) {
+      return '$label must contain letters only (no spaces or symbols)';
+    }
+    return null;
+  }
+  String? _pupilNameValidator(String? v, String label, {bool required = true}) {
+    if (v == null || v.isEmpty) {
+      return required ? '$label is required' : null;
+    }
+
+    final onlyLetters = RegExp(r'^[A-Za-z]+$');
+    if (!onlyLetters.hasMatch(v)) {
+      return '$label must contain letters only (no spaces, numbers or symbols)';
+    }
+
+    return null;
+  }
   String gender = 'M';
   DateTime? birthDate;
   bool dirty = false;
@@ -232,24 +254,19 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
                               _field(
                                 lastNameCtrl,
                                 'Last Name',
-                                (v) =>
-                                    Validators.required(v, label: 'Last Name'),
+                                    (v) => _pupilNameValidator(v, 'Last Name'),
                                 width: fieldWidth,
                               ),
                               _field(
                                 firstNameCtrl,
                                 'First Name',
-                                (v) =>
-                                    Validators.required(v, label: 'First Name'),
+                                    (v) => _pupilNameValidator(v, 'First Name'),
                                 width: fieldWidth,
                               ),
                               _field(
                                 middleNameCtrl,
                                 'Middle Name',
-                                (v) => Validators.required(
-                                  v,
-                                  label: 'Middle Name',
-                                ),
+                                    (v) => _pupilNameValidator(v, 'Middle Name', required: false),
                                 width: fieldWidth,
                               ),
                               SizedBox(
@@ -386,7 +403,7 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
                               _field(
                                 motherNameCtrl,
                                 "Mother's Name",
-                                null,
+                                    (v) => _parentNameValidator(v, "Mother's Name"),
                                 width: fieldWidth,
                               ),
                               _field(
@@ -408,7 +425,7 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
                               _field(
                                 fatherNameCtrl,
                                 "Father's Name",
-                                null,
+                                    (v) => _parentNameValidator(v, "Father's Name"),
                                 width: fieldWidth,
                               ),
                               _field(
@@ -424,9 +441,9 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
                                 width: fieldWidth,
                               ),
                               _field(
-                                parentOccupationCtrl,
-                                "Parent/Guardian's Occupation",
-                                null,
+                                parentNameCtrl,
+                                "Parent/Guardian's Name",
+                                    (v) => _parentNameValidator(v, "Parent/Guardian's Name"),
                                 width: fieldWidth,
                               ),
                             ],

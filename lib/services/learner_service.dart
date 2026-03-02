@@ -191,4 +191,26 @@ class LearnerService {
       whereArgs: [learnerId],
     );
   }
+  Future<bool> learnerExists({
+    required int classId,
+    required String firstName,
+    required String lastName,
+    required String birthDate,
+  }) async {
+    final db = AppDb.instance.db;
+
+    final rows = await db.query(
+      'learners',
+      where: '''
+      class_id = ? AND
+      first_name = ? AND
+      last_name = ? AND
+      birth_date = ?
+    ''',
+      whereArgs: [classId, firstName, lastName, birthDate],
+      limit: 1,
+    );
+
+    return rows.isNotEmpty;
+  }
 }

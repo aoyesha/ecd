@@ -63,6 +63,13 @@ class _RegisterPageState extends State<RegisterPage> {
   bool loading = false;
   bool acceptedTos = false;
   bool acceptedPrivacy = false;
+  bool showPasswordRules = false;
+
+  bool _hasMinLength(String v) => v.length >= 8;
+  bool _hasUppercase(String v) => RegExp(r'[A-Z]').hasMatch(v);
+  bool _hasLowercase(String v) => RegExp(r'[a-z]').hasMatch(v);
+  bool _hasNumber(String v) => RegExp(r'[0-9]').hasMatch(v);
+  bool _hasSpecialChar(String v) => RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(v);
 
   int step = 1;
   String? selectedRegion = 'MIMAROPA';
@@ -76,6 +83,41 @@ class _RegisterPageState extends State<RegisterPage> {
     passCtrl.dispose();
     schoolCtrl.dispose();
     super.dispose();
+
+  }
+
+  Widget _passwordChecklist(String value) {
+    Widget item(bool ok, String text) => Row(
+      children: [
+        Icon(
+          ok ? Icons.check_circle : Icons.radio_button_unchecked,
+          size: 18,
+          color: ok ? Colors.greenAccent : Colors.white70,
+        ),
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: TextStyle(
+            color: ok ? Colors.greenAccent : Colors.white70,
+            fontSize: 13,
+          ),
+        ),
+      ],
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, left: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          item(_hasMinLength(value), 'At least 8 characters'),
+          item(_hasUppercase(value), 'Contains uppercase letter'),
+          item(_hasLowercase(value), 'Contains lowercase letter'),
+          item(_hasNumber(value), 'Contains a number'),
+          item(_hasSpecialChar(value), 'Contains special character'),
+        ],
+      ),
+    );
   }
 
   Future<void> _register() async {
@@ -283,16 +325,34 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
         const SizedBox(height: 14),
         AuthFormParts.label('Set Password'),
-        TextFormField(
-          controller: passCtrl,
-          obscureText: obscure,
-          decoration: AuthFormParts.inputDecoration('••••••••').copyWith(
-            suffixIcon: IconButton(
-              icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
-              onPressed: () => setState(() => obscure = !obscure),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextFormField(
+              controller: passCtrl,
+              obscureText: obscure,
+              onChanged: (_) => setState(() => showPasswordRules = true),
+              decoration: AuthFormParts.inputDecoration('••••••••').copyWith(
+                suffixIcon: IconButton(
+                  icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
+                  onPressed: () => setState(() => obscure = !obscure),
+                ),
+              ),
+              validator: (value) {
+                final v = value ?? '';
+                if (!_hasMinLength(v) ||
+                    !_hasUppercase(v) ||
+                    !_hasLowercase(v) ||
+                    !_hasNumber(v) ||
+                    !_hasSpecialChar(v)) {
+                  return 'Password does not meet requirements';
+                }
+                return null;
+              },
             ),
-          ),
-          validator: Validators.password,
+
+            if (showPasswordRules) _passwordChecklist(passCtrl.text),
+          ],
         ),
         const SizedBox(height: 8),
         Theme(
