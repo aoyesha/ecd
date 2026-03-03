@@ -68,7 +68,7 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
   }
 
   final _nameFormatter = FilteringTextInputFormatter.allow(
-    RegExp(r'[A-Za-z]'),
+    RegExp(r"[A-Za-z]"),
   );
 
   final _parentNameFormatter = FilteringTextInputFormatter.allow(
