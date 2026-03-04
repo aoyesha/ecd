@@ -99,39 +99,142 @@ class PdfExportService {
     // allows for checkmarks and whatnot
     final font = await PdfGoogleFonts.notoSansSymbols2Regular();
 
+    final docTheme = pw.PageTheme(
+      pageFormat: PdfPageFormat.legal.landscape,
+      margin: const pw.EdgeInsets.all(14),
+      theme: pw.ThemeData.withFont(
+        base: pw.Font.helvetica(),
+        bold: pw.Font.helveticaBold(),
+      ),
+    );
+
+    // [grossMotor, fineMotor, fineMotor2, SelfHelp, SelfHelpDressing, SelfHelpToilet,
+    // ReceptLang, ExpressLang, ExpressLang2,  cog, SocEmo]
+    final domainBlocks = _perDomainChecklistBlock(
+        language: language,
+        answersByDomain: answersByDomain,
+        notoSymbols: font
+    );
+
     doc.addPage(
-      pw.MultiPage(
-        pageTheme: pw.PageTheme(
-          margin: const pw.EdgeInsets.all(28),
-          theme: pw.ThemeData.withFont(
-            base: pw.Font.helvetica(),
-            bold: pw.Font.helveticaBold(),
-          ),
-        ),
-        build: (_) => [
-          _headerBlock(clazz),
-          pw.SizedBox(height: 10),
-          _learnerInfoBlock(learner, clazz),
-          pw.SizedBox(height: 14),
-          _summaryTableBlock(
-            assessmentType: assessmentType,
-            domainSummaries: domainSummaries,
-            overallScaled: overall[DbSchema.cSumOverallScaled] as int,
-            standardScore: overall[DbSchema.cSumStandardScore] as int,
-            overallInterp:
-                overall[DbSchema.cSumOverallInterpretation] as String,
-            dateIso: assessRow[DbSchema.cAssessDate] as String,
-            ageAt: assessRow[DbSchema.cAssessAgeAt] as int,
-          ),
-          pw.SizedBox(height: 12),
-          _interpretationLegendBlock(),
-          pw.SizedBox(height: 14),
-          _perDomainChecklistBlock(
-            language: language,
-            answersByDomain: answersByDomain,
-            notoSymbols: font
-          ),
-        ],
+      pw.Page(
+        pageTheme: docTheme,
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children:[
+              // _headerBlock(clazz),
+
+              pw.Expanded(
+                child: pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Expanded(
+                      // == COLUMN 1 ==
+                      child: pw.Column(
+                        mainAxisSize: pw.MainAxisSize.min,
+                        children: [
+                          _summaryTableBlock(
+                            assessmentType: assessmentType,
+                            domainSummaries: domainSummaries,
+                            overallScaled: overall[DbSchema.cSumOverallScaled] as int,
+                            standardScore: overall[DbSchema.cSumStandardScore] as int,
+                            overallInterp:
+                                overall[DbSchema.cSumOverallInterpretation] as String,
+                            dateIso: assessRow[DbSchema.cAssessDate] as String,
+                            ageAt: assessRow[DbSchema.cAssessAgeAt] as int,
+                          ),
+                          pw.SizedBox(height:8),
+                          _interpretationLegendBlock(),
+                        ]
+                      ),
+                    ),
+                    pw.SizedBox(width:10),
+                    // == COLUMN 2 ==
+                    pw.Expanded(
+                      child: pw.Column(
+                        mainAxisSize: pw.MainAxisSize.min,
+                        children: [
+                          _headerBlock(clazz),
+                          pw.SizedBox(height:8),
+                          _learnerInfoBlock(learner, clazz),
+                          pw.SizedBox(height:8),
+                          domainBlocks[0],
+                          domainBlocks[1],
+                        ]
+                      ),
+                    ),
+                    pw.SizedBox(width:10),
+                    // == COLUMN 3 ==
+                    pw.Expanded(
+                      child: pw.Column(
+                        mainAxisSize: pw.MainAxisSize.min,
+                        children: [
+                          domainBlocks[2],
+                          pw.SizedBox(height:4),
+                          domainBlocks[3],
+                          pw.SizedBox(height:4),
+                          domainBlocks[4],
+                        ]
+                      ),
+                    ),
+                  ]
+                )
+              )
+            ]
+          );
+        }
+      ),
+    );
+
+    // === PAGE 2 ===
+    doc.addPage(
+      pw.Page(
+        pageTheme: docTheme,
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children:[
+              pw.Expanded(
+                child: pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Expanded(
+                      // == COLUMN 1 ==
+                      child: pw.Column(
+                        children: [
+                          domainBlocks[5],
+                          domainBlocks[6],
+                          domainBlocks[7]
+                        ]
+                      ),
+                    ),
+                    pw.SizedBox(width:10),
+                    // == COLUMN 2 ==
+                    pw.Expanded(
+                      child: pw.Column(
+                        children: [
+                          pw.SizedBox(height:17),
+                          domainBlocks[8],
+                          domainBlocks[9]
+                        ]
+                      ),
+                    ),
+                    pw.SizedBox(width:10),
+                    // == COLUMN 3 ==
+                    pw.Expanded(
+                      child: pw.Column(
+                        children: [
+                          domainBlocks[10],
+                        ]
+                      ),
+                    ),
+                  ]
+                )
+              )
+            ]
+          );
+        }
       ),
     );
 
@@ -157,7 +260,6 @@ class PdfExportService {
           'S.Y. ${clazz[DbSchema.cClassSchoolYear]}',
           style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
         ),
-        pw.Divider(),
       ],
     );
   }
@@ -167,10 +269,14 @@ class PdfExportService {
     Map<String, Object?> clazz,
   ) {
     // Matches learner fields region in template. :contentReference[oaicite:7]{index=7}
+    final infoStyle = pw.TextStyle(
+      fontSize: 10,
+    );
+
     final name =
         '${learner[DbSchema.cLearnerLastName]}, ${learner[DbSchema.cLearnerFirstName]}';
     return pw.Container(
-      padding: const pw.EdgeInsets.all(10),
+      padding: const pw.EdgeInsets.all(6),
       decoration: pw.BoxDecoration(
         border: pw.Border.all(color: PdfColors.grey600),
         borderRadius: pw.BorderRadius.circular(6),
@@ -180,14 +286,15 @@ class PdfExportService {
         children: [
           pw.Text(
             'LEARNER PROFILE',
-            style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+            style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
           ),
-          pw.SizedBox(height: 6),
-          pw.Text('Name: $name'),
-          pw.Text('Gender: ${learner[DbSchema.cLearnerGender]}'),
-          pw.Text('Age: ${learner[DbSchema.cLearnerAge]}'),
+          pw.SizedBox(height: 2),
+          pw.Text('Name: $name', style: infoStyle),
+          pw.Text('Gender: ${learner[DbSchema.cLearnerGender]}', style: infoStyle),
+          pw.Text('Age: ${learner[DbSchema.cLearnerAge]}', style: infoStyle),
           pw.Text(
             'Section: ${clazz[DbSchema.cClassSection]}   Grade: ${clazz[DbSchema.cClassGrade]}',
+              style: infoStyle
           ),
         ],
       ),
@@ -292,11 +399,11 @@ class PdfExportService {
             style: const pw.TextStyle(fontSize: 9),
           ),
           pw.Text(
-            '70  - 79             - Suggest Slight Delay in Overall Development (S.S.D.O.D.)',
+            '70  - 79             - Suggest Slight Delay in Overall Development                    .                          (S.S.D.O.D.)',
             style: const pw.TextStyle(fontSize: 9),
           ),
           pw.Text(
-            '69 and below    - Suggest Significant Delay in Overall Development (S.S.O.O.D.)',
+            '69 and below    - Suggest Significant Delay in Overall Development            .                          (S.S.O.O.D.)',
             style: const pw.TextStyle(fontSize: 9),
           ),
         ],
@@ -304,7 +411,7 @@ class PdfExportService {
     );
   }
 
-  pw.Widget _perDomainChecklistBlock({
+  List<pw.Widget> _perDomainChecklistBlock({
     required EccdLanguage language,
     required Map<String, Map<int, int>> answersByDomain,
     required pw.Font notoSymbols,
@@ -320,7 +427,7 @@ class PdfExportService {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.SizedBox(height: 10),
+              pw.SizedBox(height: 6),
               pw.Text(
                 'SELF HELP DOMAIN',
                 style: pw.TextStyle(
@@ -367,7 +474,7 @@ class PdfExportService {
             pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.SizedBox(height: 10),
+                pw.SizedBox(height: 6),
                 pw.Text(
                   'SELF HELP - ${entry.key.toUpperCase()}',
                   style: pw.TextStyle(
@@ -413,11 +520,158 @@ class PdfExportService {
       }
 
       final qs = EccdQuestions.get(domain, language);
+
+      // FINE MOTOR
+      // splits Fine Motor into 1-4 and 5-11
+      if(domain == 'Fine Motor'){
+        blocks.add(
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.SizedBox(height: 6),
+              pw.Text(
+                '$domain DOMAIN',
+                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+              ),
+              pw.SizedBox(height: 4),
+              pw.Table(
+                border: pw.TableBorder.all(color: PdfColors.grey600),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(0.7),
+                  1: const pw.FlexColumnWidth(5),
+                  2: const pw.FlexColumnWidth(0.9),
+                },
+                children: [
+                  pw.TableRow(
+                    decoration: const pw.BoxDecoration(color: PdfColors.grey300),
+                    children: [
+                      _cell('No.', bold: true),
+                      _cell('Item', bold: true),
+                      _cell('✓', bold: true, symbols: notoSymbols),
+                    ],
+                  ),
+                  for (int i = 0; i < 5; i++)
+                    pw.TableRow(
+                      children: [
+                        _cell('${i + 1}'),
+                        _cell(qs[i]),
+                        _cell((a[i] ?? 0) == 1 ? '✓' : '', symbols: notoSymbols),
+                      ],
+                    ),
+                ],
+              ),
+            ],
+          )
+        );
+
+        blocks.add(
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.SizedBox(height: 6),
+              pw.Table(
+                border: pw.TableBorder.all(color: PdfColors.grey600),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(0.7),
+                  1: const pw.FlexColumnWidth(5),
+                  2: const pw.FlexColumnWidth(0.9),
+                },
+                children: [
+                  for (int i = 5; i < qs.length; i++)
+                    pw.TableRow(
+                      children: [
+                        _cell('${i + 1}'),
+                        _cell(qs[i]),
+                        _cell((a[i] ?? 0) == 1 ? '✓' : '', symbols: notoSymbols),
+                      ],
+                    ),
+                ],
+              ),
+            ],
+          )
+        );
+
+        continue;
+      }
+
+      // EXPRESSIVE LANGUAGE
+      // Splits into 1-4 and 5-8
+      if(domain == 'Expressive Language'){
+        blocks.add(
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.SizedBox(height: 6),
+              pw.Text(
+                '$domain DOMAIN',
+                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+              ),
+              pw.SizedBox(height: 4),
+              pw.Table(
+                border: pw.TableBorder.all(color: PdfColors.grey600),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(0.7),
+                  1: const pw.FlexColumnWidth(5),
+                  2: const pw.FlexColumnWidth(0.9),
+                },
+                children: [
+                  pw.TableRow(
+                    decoration: const pw.BoxDecoration(color: PdfColors.grey300),
+                    children: [
+                      _cell('No.', bold: true),
+                      _cell('Item', bold: true),
+                      _cell('✓', bold: true, symbols: notoSymbols),
+                    ],
+                  ),
+                  for (int i = 0; i < 5; i++)
+                    pw.TableRow(
+                      children: [
+                        _cell('${i + 1}'),
+                        _cell(qs[i]),
+                        _cell((a[i] ?? 0) == 1 ? '✓' : '', symbols: notoSymbols),
+                      ],
+                    ),
+                ],
+              ),
+            ],
+          )
+        );
+
+        blocks.add(
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.SizedBox(height: 6),
+              pw.Table(
+                border: pw.TableBorder.all(color: PdfColors.grey600),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(0.7),
+                  1: const pw.FlexColumnWidth(5),
+                  2: const pw.FlexColumnWidth(0.9),
+                },
+                children: [
+                  for (int i = 5; i < qs.length; i++)
+                    pw.TableRow(
+                      children: [
+                        _cell('${i + 1}'),
+                        _cell(qs[i]),
+                        _cell((a[i] ?? 0) == 1 ? '✓' : '', symbols: notoSymbols),
+                      ],
+                    ),
+                ],
+              ),
+            ],
+          )
+        );
+
+        continue;
+      }
+
       blocks.add(
         pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.SizedBox(height: 10),
+            pw.SizedBox(height: 6),
             pw.Text(
               '$domain DOMAIN',
               style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
@@ -453,7 +707,7 @@ class PdfExportService {
         ),
       );
     }
-    return pw.Column(children: blocks);
+    return blocks;
   }
 
   pw.Widget _cell(String text, {bool bold = false, pw.Font? symbols}) {
