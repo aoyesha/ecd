@@ -5,6 +5,7 @@ import '../../../core/constants.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/csv_service.dart';
 import '../../../services/file_export_service.dart';
+import '../../../services/xlsx_service.dart';
 import '../../../services/scoring_service.dart';
 import '../../widgets/section_title.dart';
 import 'admin_data_sources_page.dart';
@@ -18,10 +19,19 @@ class AdminDashboardPage extends StatefulWidget {
 
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
   int tab = 0;
+  int _summaryRefreshKey = 0;
 
   @override
   Widget build(BuildContext context) {
-    final tabs = [const AdminDataSourcesPage(), const _AdminSummaryTab()];
+    final tabs = [
+      AdminDataSourcesPage(onSourceImported: () {
+        setState(() {
+          tab = 1;
+          _summaryRefreshKey++;
+        });
+      }),
+      _AdminSummaryTab(key: ValueKey(_summaryRefreshKey)),
+    ];
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -73,7 +83,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 }
 
 class _AdminSummaryTab extends StatefulWidget {
-  const _AdminSummaryTab();
+  const _AdminSummaryTab({super.key});
 
   @override
   State<_AdminSummaryTab> createState() => _AdminSummaryTabState();
@@ -81,6 +91,7 @@ class _AdminSummaryTab extends StatefulWidget {
 
 class _AdminSummaryTabState extends State<_AdminSummaryTab> {
   final _csv = CsvService();
+  final _xlsx = XlsxService();
   final _file = FileExportService();
 
   String assessmentType = 'pre';
@@ -143,8 +154,8 @@ class _AdminSummaryTabState extends State<_AdminSummaryTab> {
                         actions: [
                           TextButton(
                             onPressed: () =>
-                                Navigator.pop(context, 'principal'),
-                            child: const Text('Principal'),
+                                Navigator.pop(context, 'school'),
+                            child: const Text('School'),
                           ),
                           TextButton(
                             onPressed: () => Navigator.pop(context, 'district'),
@@ -163,22 +174,61 @@ class _AdminSummaryTabState extends State<_AdminSummaryTab> {
                     );
                     if (level == null) return;
 
-                    final csvText = await _csv.exportAdminAggregatedRollupCsv(
-                      adminId: adminId,
-                      orgLevel: level,
-                      assessmentType: assessmentType,
-                      schoolYear: schoolYearFilter,
+                    final fmt = await showDialog<String>(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: const Text('Export Format'),
+                        content: const Text(
+                          'Choose the export format for this consolidated summary.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, 'csv'),
+                            child: const Text('CSV\n(for sharing/import)'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, 'xlsx'),
+                            child: const Text('XLSX\n(styled for printing)'),
+                          ),
+                        ],
+                      ),
                     );
+                    if (fmt == null) return;
+
                     final exportName = await _csv.buildAdminRollupFilename(
                       adminId: adminId,
                       orgLevel: level,
                       assessmentType: assessmentType,
                       schoolYear: schoolYearFilter,
                     );
-                    await _file.saveCsv(filename: exportName, csvText: csvText);
+
+                    if (fmt == 'xlsx') {
+                      final bytes =
+                          await _xlsx.exportAdminAggregatedRollupXlsx(
+                        adminId: adminId,
+                        assessmentType: assessmentType,
+                        schoolYear: schoolYearFilter,
+                      );
+                      await _file.saveXlsx(
+                        filename: exportName,
+                        xlsxBytes: bytes,
+                      );
+                    } else {
+                      final csvText =
+                          await _csv.exportAdminAggregatedRollupCsv(
+                        adminId: adminId,
+                        orgLevel: level,
+                        assessmentType: assessmentType,
+                        schoolYear: schoolYearFilter,
+                      );
+                      await _file.saveCsv(
+                        filename: exportName,
+                        csvText: csvText,
+                      );
+                    }
                   },
                   icon: const Icon(Icons.download),
-                  label: const Text('Export CSV'),
+                  label: const Text('Export'),
                 ),
               ],
             );

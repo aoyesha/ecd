@@ -12,6 +12,7 @@ import '../../../services/auth_service.dart';
 import '../../../services/class_service.dart';
 import '../../../services/csv_service.dart';
 import '../../../services/file_export_service.dart';
+import '../../../services/xlsx_service.dart';
 import '../../../services/learner_service.dart';
 import '../../../services/scoring_service.dart';
 import '../../widgets/empty_state.dart';
@@ -366,6 +367,7 @@ class _ClassSummaryTab extends StatefulWidget {
 class _ClassSummaryTabState extends State<_ClassSummaryTab> {
   final _analytics = AnalyticsService();
   final _csv = CsvService();
+  final _xlsx = XlsxService();
   final _file = FileExportService();
 
   String assessmentType = 'pre'; // pre|post
@@ -415,18 +417,51 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
                     foregroundColor: Colors.white,
                   ),
                   onPressed: () async {
-                    final csvText = await _csv.exportTeacherClassRollupCsv(
-                      teacherId: teacherId,
-                      classId: widget.classId,
-                      assessmentType: assessmentType,
-                      languageForSkills: language,
+                    final fmt = await showDialog<String>(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: const Text('Export Format'),
+                        content: const Text(
+                          'Choose the export format for this class summary.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, 'csv'),
+                            child: const Text('CSV\n(for sharing/import)'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, 'xlsx'),
+                            child: const Text('XLSX\n(styled for printing)'),
+                          ),
+                        ],
+                      ),
                     );
+                    if (fmt == null) return;
                     final name =
                         'teacher_class_${widget.grade}_${widget.section}_${widget.schoolYear}_$assessmentType';
-                    await _file.saveCsv(filename: name, csvText: csvText);
+                    if (fmt == 'xlsx') {
+                      final bytes = await _xlsx.exportTeacherClassRollupXlsx(
+                        teacherId: teacherId,
+                        classId: widget.classId,
+                        assessmentType: assessmentType,
+                        languageForSkills: language,
+                      );
+                      await _file.saveXlsx(
+                        filename: name,
+                        xlsxBytes: bytes,
+                      );
+                    } else {
+                      final csvText = await _csv.exportTeacherClassRollupCsv(
+                        teacherId: teacherId,
+                        classId: widget.classId,
+                        assessmentType: assessmentType,
+                        languageForSkills: language,
+                      );
+                      await _file.saveCsv(filename: name, csvText: csvText);
+                    }
                   },
                   icon: const Icon(Icons.download),
-                  label: const Text('Export CSV'),
+                  label: const Text('Export'),
                 ),
               ],
             );

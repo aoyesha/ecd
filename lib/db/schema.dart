@@ -1,6 +1,6 @@
 class DbSchema {
-  // V6: add mother/father optional learner profile fields.
-  static const int dbVersion = 6;
+  // V7: add label column to rollup_sources for display in detail page.
+  static const int dbVersion = 7;
 
   // USERS
   static const String tUsers = 'users';
@@ -100,7 +100,8 @@ class DbSchema {
   static const String cSrcSchoolYear = 'school_year';
   static const String cSrcStatus = 'status'; // active|archived
   static const String cSrcLevel =
-      'org_level'; // teacher|principal|district|division|regional
+      'org_level'; // teacher|school|district|division|regional
+  static const String cSrcLabel = 'label'; // e.g. section name, school name
   static const String cSrcCreatedAt = 'created_at';
 
   // ADMIN ROLLUP ROWS (domain×gender×level counts)

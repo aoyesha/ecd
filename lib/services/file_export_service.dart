@@ -1,9 +1,7 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_saver/file_saver.dart';
-import 'package:path_provider/path_provider.dart';
 
 class FileExportService {
 
@@ -14,6 +12,14 @@ class FileExportService {
   }) async {
     final bytes = Uint8List.fromList(csvText.codeUnits);
     await _saveFile(filename, bytes, 'csv');
+  }
+
+  // ================= XLSX =================
+  Future<void> saveXlsx({
+    required String filename,
+    required Uint8List xlsxBytes,
+  }) async {
+    await _saveFile(filename, xlsxBytes, 'xlsx');
   }
 
   // ================= PDF =================
@@ -27,12 +33,18 @@ class FileExportService {
   // ================= CORE SAVE LOGIC =================
   Future<void> _saveFile(String filename, Uint8List bytes, String ext) async {
 
+    MimeType mimeFor(String e) {
+      if (e == 'pdf') return MimeType.pdf;
+      if (e == 'xlsx') return MimeType.microsoftExcel;
+      return MimeType.csv;
+    }
+
     if (kIsWeb) {
       await FileSaver.instance.saveFile(
         name: filename,
         bytes: bytes,
         ext: ext,
-        mimeType: ext == 'pdf' ? MimeType.pdf : MimeType.csv,
+        mimeType: mimeFor(ext),
       );
       return;
     }
@@ -42,7 +54,7 @@ class FileExportService {
         name: filename,
         bytes: bytes,
         ext: ext,
-        mimeType: ext == 'pdf' ? MimeType.pdf : MimeType.csv,
+        mimeType: mimeFor(ext),
       );
       return;
     }

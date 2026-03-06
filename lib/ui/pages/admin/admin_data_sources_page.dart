@@ -7,9 +7,12 @@ import '../../../services/auth_service.dart';
 import '../../../services/csv_service.dart';
 import '../../widgets/section_title.dart';
 import 'admin_add_data_source_page.dart';
+import 'admin_data_source_detail_page.dart';
 
 class AdminDataSourcesPage extends StatefulWidget {
-  const AdminDataSourcesPage({super.key});
+  final VoidCallback onSourceImported;
+
+  const AdminDataSourcesPage({super.key, required this.onSourceImported});
 
   @override
   State<AdminDataSourcesPage> createState() => _AdminDataSourcesPageState();
@@ -18,6 +21,17 @@ class AdminDataSourcesPage extends StatefulWidget {
 class _AdminDataSourcesPageState extends State<AdminDataSourcesPage> {
   final _csv = CsvService();
   String? schoolYearFilter;
+
+  Future<void> _openAddSource() async {
+    final imported = await navPushNoTransition<bool>(
+      context,
+      const AdminAddDataSourcePage(),
+    );
+    if (imported == true && mounted) {
+      setState(() {}); // refresh the sources list
+      widget.onSourceImported(); // switch to My Summary tab
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,13 +90,23 @@ class _AdminDataSourcesPageState extends State<AdminDataSourcesPage> {
                   final id = s['id'] as int;
                   final sy = (s['school_year'] ?? '').toString();
                   final level = (s['org_level'] ?? '').toString();
+                  final label = (s['label'] ?? '').toString();
                   return _NotebookCard(
                     width: cardWidth,
                     height: cardHeight,
                     color: _pastelForSourceId(id),
                     schoolYear: sy,
                     title: _levelLabel(level),
-                    subtitle: 'Data Source',
+                    subtitle: label.isNotEmpty ? label : 'Data Source',
+                    onTap: () => navPushNoTransition(
+                      context,
+                      AdminDataSourceDetailPage(
+                        sourceId: id,
+                        orgLevel: level,
+                        schoolYear: sy,
+                        label: label,
+                      ),
+                    ),
                     onArchive: () async {
                       await _csv.archiveSource(id);
                       if (!mounted) return;
@@ -90,7 +114,7 @@ class _AdminDataSourcesPageState extends State<AdminDataSourcesPage> {
                     },
                   );
                 }),
-                _AddSourceCard(width: cardWidth, height: cardHeight),
+                _AddSourceCard(width: cardWidth, height: cardHeight, onTap: _openAddSource),
               ];
 
               return SingleChildScrollView(
@@ -140,8 +164,9 @@ class _AdminDataSourcesPageState extends State<AdminDataSourcesPage> {
 class _AddSourceCard extends StatelessWidget {
   final double width;
   final double height;
+  final VoidCallback onTap;
 
-  const _AddSourceCard({required this.width, required this.height});
+  const _AddSourceCard({required this.width, required this.height, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -150,8 +175,7 @@ class _AddSourceCard extends StatelessWidget {
       height: height,
       child: InkWell(
         borderRadius: BorderRadius.circular(22),
-        onTap: () =>
-            navPushNoTransition(context, const AdminAddDataSourcePage()),
+        onTap: onTap,
         child: Card(
           child: const Center(
             child: Column(
@@ -179,6 +203,7 @@ class _NotebookCard extends StatelessWidget {
   final String schoolYear;
   final String title;
   final String subtitle;
+  final VoidCallback onTap;
   final VoidCallback onArchive;
 
   const _NotebookCard({
@@ -188,6 +213,7 @@ class _NotebookCard extends StatelessWidget {
     required this.schoolYear,
     required this.title,
     required this.subtitle,
+    required this.onTap,
     required this.onArchive,
   });
 
@@ -217,7 +243,10 @@ class _NotebookCard extends StatelessWidget {
             left: 18,
             child: Card(
               color: color,
-              child: Padding(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: onTap,
+                child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -263,6 +292,7 @@ class _NotebookCard extends StatelessWidget {
               ),
             ),
           ),
+        ),
         ],
       ),
     );

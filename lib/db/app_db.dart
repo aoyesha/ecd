@@ -32,6 +32,9 @@ class AppDb {
         if (oldVersion < 6) {
           await _upgradeToV6(db);
         }
+        if (oldVersion < 7) {
+          await _upgradeToV7(db);
+        }
       },
     );
   }
@@ -178,6 +181,7 @@ CREATE TABLE ${DbSchema.tRollupRows} (
     await _upgradeToV4(db);
     await _upgradeToV5(db);
     await _upgradeToV6(db);
+    await _upgradeToV7(db);
   }
 
   Future<void> _upgradeToV2(Database db) async {
@@ -376,6 +380,15 @@ FROM ${DbSchema.tUsers}
       DbSchema.tLearners,
       DbSchema.cLearnerFatherOccupation,
       'TEXT',
+    );
+  }
+
+  Future<void> _upgradeToV7(Database db) async {
+    await _addColumnIfMissing(
+      db,
+      DbSchema.tRollupSources,
+      DbSchema.cSrcLabel,
+      "TEXT NOT NULL DEFAULT ''",
     );
   }
 
