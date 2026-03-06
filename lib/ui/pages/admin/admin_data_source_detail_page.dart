@@ -114,12 +114,9 @@ class _AdminDataSourceDetailPageState
                     ),
                   ),
                   const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      widget.label,
-                      style: const TextStyle(fontWeight: FontWeight.w500),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  Text(
+                    _levelLabel(widget.orgLevel),
+                    style: const TextStyle(fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
