@@ -28,8 +28,8 @@ class _AdminDataSourcesPageState extends State<AdminDataSourcesPage> {
       const AdminAddDataSourcePage(),
     );
     if (imported == true && mounted) {
-      setState(() {}); // refresh the sources list
-      widget.onSourceImported(); // switch to My Summary tab
+      setState(() {});
+      widget.onSourceImported();
     }
   }
 
@@ -37,14 +37,16 @@ class _AdminDataSourcesPageState extends State<AdminDataSourcesPage> {
   Widget build(BuildContext context) {
     final adminId = context.watch<AuthService>().session!.userId;
     final isMobile = MediaQuery.of(context).size.width < 700;
-    final cardWidth = isMobile ? 170.0 : 260.0;
-    final cardHeight = isMobile ? 190.0 : 330.0;
+
+    final cardWidth = isMobile ? double.infinity : 260.0;
+    final cardHeight = isMobile ? 135.0 : 330.0;
 
     return Column(
       children: [
         LayoutBuilder(
           builder: (context, constraints) {
             final compact = constraints.maxWidth < 700;
+
             final dropdown = DropdownButton<String>(
               value: schoolYearFilter,
               hint: const Text('School Year'),
@@ -53,6 +55,7 @@ class _AdminDataSourcesPageState extends State<AdminDataSourcesPage> {
                   .toList(),
               onChanged: (v) => setState(() => schoolYearFilter = v),
             );
+
             if (!compact) {
               return Row(
                 children: [
@@ -61,6 +64,7 @@ class _AdminDataSourcesPageState extends State<AdminDataSourcesPage> {
                 ],
               );
             }
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -71,7 +75,9 @@ class _AdminDataSourcesPageState extends State<AdminDataSourcesPage> {
             );
           },
         ),
+
         const SizedBox(height: 12),
+
         Expanded(
           child: FutureBuilder(
             future: _csv.listAdminSources(
@@ -85,19 +91,84 @@ class _AdminDataSourcesPageState extends State<AdminDataSourcesPage> {
               }
 
               final list = snapshot.data!;
+
+              // ================= MOBILE (same as teacher layout) =================
+              if (isMobile) {
+                return ListView(
+                  padding: const EdgeInsets.all(12),
+                  children: [
+                    ...list.map((s) {
+                      final id = s['id'] as int;
+                      String sy = (s['school_year'] ?? '').toString();
+
+
+                      if (sy.contains('META') || sy.contains('DATA')) {
+                        sy = sy.split('\n').first;
+                      }
+
+
+                      if (sy.contains(',')) {
+                        sy = sy.split(',').first;
+                      }
+                      final level = (s['org_level'] ?? '').toString();
+                      String label = (s['label'] ?? '').toString();
+
+
+                      if (label.contains('META') || label.contains('DATA')) {
+                        label = '';
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: _NotebookCard(
+                          width: double.infinity,
+                          height: 135,
+                          color: _pastelForSourceId(id),
+                          schoolYear: sy,
+                          title: _levelLabel(level),   // School / District / Division
+                          subtitle: 'Source',
+                          onTap: () => navPushNoTransition(
+                            context,
+                            AdminDataSourceDetailPage(
+                              sourceId: id,
+                              orgLevel: level,
+                              schoolYear: sy,
+                              label: label,
+                            ),
+                          ),
+                          onArchive: () async {
+                            await _csv.archiveSource(id);
+                            if (!mounted) return;
+                            setState(() {});
+                          },
+                        ),
+                      );
+                    }),
+
+                    _AddSourceCard(
+                      width: double.infinity,
+                      height: 135,
+                      onTap: _openAddSource,
+                    ),
+                  ],
+                );
+              }
+
+              // ================= DESKTOP GRID =================
               final items = <Widget>[
                 ...list.map((s) {
                   final id = s['id'] as int;
                   final sy = (s['school_year'] ?? '').toString();
                   final level = (s['org_level'] ?? '').toString();
                   final label = (s['label'] ?? '').toString();
+
                   return _NotebookCard(
                     width: cardWidth,
                     height: cardHeight,
                     color: _pastelForSourceId(id),
                     schoolYear: sy,
-                    title: _levelLabel(level),
-                    subtitle: label.isNotEmpty ? label : 'Data Source',
+                    title: _levelLabel(level),   // School / District / Division
+                    subtitle: 'Source',
                     onTap: () => navPushNoTransition(
                       context,
                       AdminDataSourceDetailPage(
@@ -114,19 +185,24 @@ class _AdminDataSourcesPageState extends State<AdminDataSourcesPage> {
                     },
                   );
                 }),
-                _AddSourceCard(width: cardWidth, height: cardHeight, onTap: _openAddSource),
+
+                _AddSourceCard(
+                  width: cardWidth,
+                  height: cardHeight,
+                  onTap: _openAddSource,
+                ),
               ];
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(8),
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Wrap(
-                    alignment: WrapAlignment.start,
-                    runAlignment: WrapAlignment.start,
-                    spacing: 16,
-                    runSpacing: 16,
-                    children: items,
+              return SizedBox.expand(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(8),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: items,
+                    ),
                   ),
                 ),
               );
@@ -166,7 +242,11 @@ class _AddSourceCard extends StatelessWidget {
   final double height;
   final VoidCallback onTap;
 
-  const _AddSourceCard({required this.width, required this.height, required this.onTap});
+  const _AddSourceCard({
+    required this.width,
+    required this.height,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -219,6 +299,8 @@ class _NotebookCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 700;
+
     return SizedBox(
       width: width,
       height: height,
@@ -226,73 +308,146 @@ class _NotebookCard extends StatelessWidget {
         children: [
           Positioned(
             left: 6,
-            top: 18,
-            bottom: 18,
+            top: 10,
+            bottom: 10,
             child: Container(
-              width: 26,
+              width: 24,
               decoration: const BoxDecoration(
                 color: Color(0xFF1E1E1E),
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  bottomLeft: Radius.circular(20),
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
                 ),
               ),
             ),
           ),
+
           Positioned.fill(
             left: 18,
             child: Card(
               color: color,
               child: InkWell(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 onTap: onTap,
-                child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      schoolYear.isEmpty ? 'No School Year' : schoolYear,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black54,
+
+                // ---------- MOBILE LAYOUT ----------
+                child: isMobile
+                    ? Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              schoolYear,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Flexible(
+                              child: Text(
+                                subtitle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                softWrap: false,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            Flexible(
+                              child: Text(
+                                title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                softWrap: false,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.maroon,
-                          foregroundColor: Colors.white,
+
+                      IconButton(
+                        icon: const Icon(
+                          Icons.archive,
+                          color: AppColors.maroon,
                         ),
                         onPressed: onArchive,
-                        icon: const Icon(Icons.archive),
-                        label: const Text('Archive'),
+                        tooltip: "Archive",
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                )
+
+                // ---------- DESKTOP LAYOUT ----------
+                    : Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        schoolYear.isEmpty
+                            ? 'No School Year'
+                            : schoolYear,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black54,
+                        ),
+                      ),
+
+                      const Spacer(),
+
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.maroon,
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: onArchive,
+                          icon: const Icon(Icons.archive),
+                          label: const Text('Archive'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
         ],
       ),
     );
