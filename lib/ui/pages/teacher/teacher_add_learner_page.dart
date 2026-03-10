@@ -46,7 +46,7 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
     if (value.isEmpty) return null;
     final nameRegex = RegExp(r"^[A-Za-z]+([ '\-][A-Za-z]+)*$");
     if (!nameRegex.hasMatch(value)) {
-      return '$label must contain letters only (no spaces or symbols)';
+      return "$label must use letters only, with single spaces, apostrophes, or hyphens";
     }
     return null;
   }
@@ -72,9 +72,18 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
     if (value.isEmpty) return null;
     final occupationRegex = RegExp(r"^[A-Za-z]+([ '\-][A-Za-z]+)*$");
     if (!occupationRegex.hasMatch(value)) {
-      return '$label must contain letters only';
+      return "$label must use letters only, with single spaces, apostrophes, or hyphens";
     }
     return null;
+  }
+
+  void _syncGuardianFromParentIfNeeded() {
+    if (!guardianSameAsParent) return;
+    guardianNameCtrl.text = _derivedParentName();
+    guardianOccupationCtrl.text = motherOccupationCtrl.text.trim().isNotEmpty
+        ? motherOccupationCtrl.text
+        : fatherOccupationCtrl.text;
+    guardianEducationCtrl.text = _derivedParentEducation();
   }
 
   String gender = 'M';
@@ -336,8 +345,8 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                   if (v == null || v.trim().isEmpty) {
                                     return 'LRN is required';
                                   }
-                                  if (v.trim().length > 12) {
-                                    return 'LRN must be at most 12 digits';
+                                  if (!RegExp(r'^\d{12}$').hasMatch(v.trim())) {
+                                    return 'LRN must be exactly 12 digits';
                                   }
                                   return null;
                                 },
@@ -577,6 +586,8 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                                     RegExp(r"[A-Za-z\s\-']"),
                                                   ),
                                                 ],
+                                                onChanged:
+                                                    _syncGuardianFromParentIfNeeded,
                                               ),
                                             ),
                                             const SizedBox(width: 10),
@@ -594,6 +605,8 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                                     RegExp(r"[A-Za-z\s\-']"),
                                                   ),
                                                 ],
+                                                onChanged:
+                                                    _syncGuardianFromParentIfNeeded,
                                               ),
                                             ),
                                             const SizedBox(width: 10),
@@ -603,6 +616,8 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                                 "Mother's Highest Educational Attainment",
                                                 null,
                                                 width: double.infinity,
+                                                onChanged:
+                                                    _syncGuardianFromParentIfNeeded,
                                               ),
                                             ),
                                           ],
@@ -623,6 +638,8 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                                   RegExp(r"[A-Za-z\s\-']"),
                                                 ),
                                               ],
+                                              onChanged:
+                                                  _syncGuardianFromParentIfNeeded,
                                             ),
                                             const SizedBox(height: 10),
                                             _field(
@@ -638,6 +655,8 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                                   RegExp(r"[A-Za-z\s\-']"),
                                                 ),
                                               ],
+                                              onChanged:
+                                                  _syncGuardianFromParentIfNeeded,
                                             ),
                                             const SizedBox(height: 10),
                                             _field(
@@ -645,6 +664,8 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                               "Mother's Highest Educational Attainment",
                                               null,
                                               width: double.infinity,
+                                              onChanged:
+                                                  _syncGuardianFromParentIfNeeded,
                                             ),
                                           ],
                                         ),
@@ -682,6 +703,8 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                                     RegExp(r"[A-Za-z\s\-']"),
                                                   ),
                                                 ],
+                                                onChanged:
+                                                    _syncGuardianFromParentIfNeeded,
                                               ),
                                             ),
                                             const SizedBox(width: 10),
@@ -699,6 +722,8 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                                     RegExp(r"[A-Za-z\s\-']"),
                                                   ),
                                                 ],
+                                                onChanged:
+                                                    _syncGuardianFromParentIfNeeded,
                                               ),
                                             ),
                                             const SizedBox(width: 10),
@@ -708,6 +733,8 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                                 "Father's Highest Educational Attainment",
                                                 null,
                                                 width: double.infinity,
+                                                onChanged:
+                                                    _syncGuardianFromParentIfNeeded,
                                               ),
                                             ),
                                           ],
@@ -728,6 +755,8 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                                   RegExp(r"[A-Za-z\s\-']"),
                                                 ),
                                               ],
+                                              onChanged:
+                                                  _syncGuardianFromParentIfNeeded,
                                             ),
                                             const SizedBox(height: 10),
                                             _field(
@@ -743,6 +772,8 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                                   RegExp(r"[A-Za-z\s\-']"),
                                                 ),
                                               ],
+                                              onChanged:
+                                                  _syncGuardianFromParentIfNeeded,
                                             ),
                                             const SizedBox(height: 10),
                                             _field(
@@ -750,6 +781,8 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                               "Father's Highest Educational Attainment",
                                               null,
                                               width: double.infinity,
+                                              onChanged:
+                                                  _syncGuardianFromParentIfNeeded,
                                             ),
                                           ],
                                         ),
@@ -770,16 +803,7 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                       setState(() {
                                         guardianSameAsParent = useSame;
                                         if (useSame) {
-                                          guardianNameCtrl.text =
-                                              _derivedParentName();
-                                          guardianOccupationCtrl.text =
-                                              (motherOccupationCtrl.text
-                                                  .trim()
-                                                  .isNotEmpty
-                                              ? motherOccupationCtrl.text
-                                              : fatherOccupationCtrl.text);
-                                          guardianEducationCtrl.text =
-                                              _derivedParentEducation();
+                                          _syncGuardianFromParentIfNeeded();
                                         }
                                       });
                                     },
@@ -800,6 +824,11 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                                 ),
                                                 width: double.infinity,
                                                 readOnly: guardianSameAsParent,
+                                                inputFormatters: [
+                                                  FilteringTextInputFormatter.allow(
+                                                    RegExp(r"[A-Za-z\s\-']"),
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                             const SizedBox(width: 10),
@@ -807,9 +836,17 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                               child: _field(
                                                 guardianOccupationCtrl,
                                                 "Guardian's Occupation",
-                                                null,
+                                                (v) => _occupationValidator(
+                                                  v,
+                                                  "Guardian's Occupation",
+                                                ),
                                                 width: double.infinity,
                                                 readOnly: guardianSameAsParent,
+                                                inputFormatters: [
+                                                  FilteringTextInputFormatter.allow(
+                                                    RegExp(r"[A-Za-z\s\-']"),
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                             const SizedBox(width: 10),
@@ -835,14 +872,27 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                               ),
                                               width: double.infinity,
                                               readOnly: guardianSameAsParent,
+                                              inputFormatters: [
+                                                FilteringTextInputFormatter.allow(
+                                                  RegExp(r"[A-Za-z\s\-']"),
+                                                ),
+                                              ],
                                             ),
                                             const SizedBox(height: 10),
                                             _field(
                                               guardianOccupationCtrl,
                                               "Guardian's Occupation",
-                                              null,
+                                              (v) => _occupationValidator(
+                                                v,
+                                                "Guardian's Occupation",
+                                              ),
                                               width: double.infinity,
                                               readOnly: guardianSameAsParent,
+                                              inputFormatters: [
+                                                FilteringTextInputFormatter.allow(
+                                                  RegExp(r"[A-Za-z\s\-']"),
+                                                ),
+                                              ],
                                             ),
                                             const SizedBox(height: 10),
                                             _field(

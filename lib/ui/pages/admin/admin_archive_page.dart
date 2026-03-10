@@ -19,7 +19,11 @@ class _AdminArchivePageState extends State<AdminArchivePage> {
 
   @override
   Widget build(BuildContext context) {
-    final adminId = context.watch<AuthService>().session!.userId;
+    final session = context.watch<AuthService>().session;
+    if (session == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final adminId = session.userId;
 
     return Padding(
       padding: const EdgeInsets.all(16),

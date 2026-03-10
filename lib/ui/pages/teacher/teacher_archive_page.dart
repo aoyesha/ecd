@@ -19,7 +19,11 @@ class _TeacherArchivePageState extends State<TeacherArchivePage> {
 
   @override
   Widget build(BuildContext context) {
-    final teacherId = context.watch<AuthService>().session!.userId;
+    final session = context.watch<AuthService>().session;
+    if (session == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final teacherId = session.userId;
 
     return Padding(
       padding: const EdgeInsets.all(16),

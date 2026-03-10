@@ -187,7 +187,9 @@ class XlsxService {
       HorizontalAlign halign = HorizontalAlign.Left,
       VerticalAlign valign = VerticalAlign.Top,
       int? fontSize,
+      bool border = false,
     }) {
+      final thin = Border(borderStyle: BorderStyle.Thin);
       return CellStyle(
         backgroundColorHex: bgColor != null
             ? ExcelColor.fromHexString(bgColor)
@@ -197,6 +199,10 @@ class XlsxService {
         horizontalAlign: halign,
         verticalAlign: valign,
         fontSize: fontSize,
+        leftBorder: border ? thin : null,
+        rightBorder: border ? thin : null,
+        topBorder: border ? thin : null,
+        bottomBorder: border ? thin : null,
       );
     }
 
@@ -227,6 +233,12 @@ class XlsxService {
         CellIndex.indexByColumnRow(columnIndex: sc, rowIndex: sr),
         CellIndex.indexByColumnRow(columnIndex: ec, rowIndex: er),
       );
+      if (style != null) {
+        sheet.setMergedCellStyle(
+          CellIndex.indexByColumnRow(columnIndex: sc, rowIndex: sr),
+          style,
+        );
+      }
     }
 
     // ── Column widths ─────────────────────────────────────────────────────────
@@ -288,6 +300,7 @@ class XlsxService {
         halign: HorizontalAlign.Center,
         valign: VerticalAlign.Center,
         wrap: true,
+        border: true,
       ),
     );
 
@@ -301,6 +314,7 @@ class XlsxService {
           bgColor: color,
           bold: true,
           halign: HorizontalAlign.Center,
+          border: true,
         ),
       );
     }
@@ -312,6 +326,7 @@ class XlsxService {
         bgColor: _gtColor,
         bold: true,
         halign: HorizontalAlign.Center,
+        border: true,
       ),
     );
 
@@ -323,22 +338,21 @@ class XlsxService {
         bgColor: color,
         bold: true,
         halign: HorizontalAlign.Center,
+        border: true,
       );
       set(sc, 11, 'M', style: sty);
       set(sc + 1, 11, 'F', style: sty);
       set(sc + 2, 11, 'TOTAL', style: sty);
     }
-    final gtSub =
-        makeStyle(bgColor: _gtColor, bold: true, halign: HorizontalAlign.Center);
+    final gtSub = makeStyle(
+      bgColor: _gtColor,
+      bold: true,
+      halign: HorizontalAlign.Center,
+      border: true,
+    );
     set(_gtStartCol, 11, 'M', style: gtSub);
     set(_gtStartCol + 1, 11, 'F', style: gtSub);
     set(_gtStartCol + 2, 11, 'TOTAL', style: gtSub);
-    // Level label sub-header cell already covered by the merge above
-    // but we need to fill the B row-11 cell style
-    sheet
-        .cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 11))
-        .cellStyle = makeStyle(bgColor: _levelColor);
-
     // ── Level data rows 12-16 ─────────────────────────────────────────────────
     for (int i = 0; i < _levels.length; i++) {
       final level = _levels[i];
@@ -352,6 +366,7 @@ class XlsxService {
           bgColor: evenBg ?? _levelColor,
           halign: HorizontalAlign.Left,
           wrap: true,
+          border: true,
         ),
       );
 
@@ -360,7 +375,11 @@ class XlsxService {
         final color = _domainColors[domain]!;
         final m = counts[domain]?['M']?[level] ?? 0;
         final f = counts[domain]?['F']?[level] ?? 0;
-        final numSty = makeStyle(bgColor: color, halign: HorizontalAlign.Center);
+        final numSty = makeStyle(
+          bgColor: color,
+          halign: HorizontalAlign.Center,
+          border: true,
+        );
         set(sc, row, m, style: numSty);
         set(sc + 1, row, f, style: numSty);
         set(sc + 2, row, m + f, style: numSty);
@@ -368,7 +387,11 @@ class XlsxService {
 
       final gtM = counts['ALL']?['M']?[level] ?? 0;
       final gtF = counts['ALL']?['F']?[level] ?? 0;
-      final gtSty = makeStyle(bgColor: _gtColor, halign: HorizontalAlign.Center);
+      final gtSty = makeStyle(
+        bgColor: _gtColor,
+        halign: HorizontalAlign.Center,
+        border: true,
+      );
       set(_gtStartCol, row, gtM, style: gtSty);
       set(_gtStartCol + 1, row, gtF, style: gtSty);
       set(_gtStartCol + 2, row, gtM + gtF, style: gtSty);
@@ -379,22 +402,35 @@ class XlsxService {
     mergeSet(
       0, totRow, 1, totRow,
       'TOTAL',
-      style: makeStyle(bold: true, halign: HorizontalAlign.Center),
+      style: makeStyle(
+        bold: true,
+        halign: HorizontalAlign.Center,
+        border: true,
+      ),
     );
     for (final domain in _domains) {
       final sc = _domainStartCols[domain]!;
       final color = _domainColors[domain]!;
       final m = _levels.fold(0, (a, l) => a + (counts[domain]?['M']?[l] ?? 0));
       final f = _levels.fold(0, (a, l) => a + (counts[domain]?['F']?[l] ?? 0));
-      final sty = makeStyle(bgColor: color, bold: true, halign: HorizontalAlign.Center);
+      final sty = makeStyle(
+        bgColor: color,
+        bold: true,
+        halign: HorizontalAlign.Center,
+        border: true,
+      );
       set(sc, totRow, m, style: sty);
       set(sc + 1, totRow, f, style: sty);
       set(sc + 2, totRow, m + f, style: sty);
     }
     final gtMT = _levels.fold(0, (a, l) => a + (counts['ALL']?['M']?[l] ?? 0));
     final gtFT = _levels.fold(0, (a, l) => a + (counts['ALL']?['F']?[l] ?? 0));
-    final gtTotSty =
-        makeStyle(bgColor: _gtColor, bold: true, halign: HorizontalAlign.Center);
+    final gtTotSty = makeStyle(
+      bgColor: _gtColor,
+      bold: true,
+      halign: HorizontalAlign.Center,
+      border: true,
+    );
     set(_gtStartCol, totRow, gtMT, style: gtTotSty);
     set(_gtStartCol + 1, totRow, gtFT, style: gtTotSty);
     set(_gtStartCol + 2, totRow, gtMT + gtFT, style: gtTotSty);
@@ -410,18 +446,30 @@ class XlsxService {
       final headerText =
           'What are the Three Most Learned Skills in ${_skillDisplayNames[domain]}?';
       mergeSet(sc, mostHdrRow, sc + 2, mostHdrRow, headerText,
-          style: makeStyle(bold: true, wrap: true));
+          style: makeStyle(bold: true, wrap: true, border: true));
 
       final most = top3Skills[domain]?['most'] ?? [];
       mergeSet(sc, mostSkill1Row, sc + 2, mostSkill1Row,
           most.isNotEmpty ? most[0] : '',
-          style: makeStyle(wrap: true, valign: VerticalAlign.Center));
+          style: makeStyle(
+            wrap: true,
+            valign: VerticalAlign.Center,
+            border: true,
+          ));
       mergeSet(sc, mostSkill2Row, sc + 2, mostSkill2Row,
           most.length > 1 ? most[1] : '',
-          style: makeStyle(wrap: true, valign: VerticalAlign.Center));
+          style: makeStyle(
+            wrap: true,
+            valign: VerticalAlign.Center,
+            border: true,
+          ));
       mergeSet(sc, mostSkill3Row, sc + 2, mostSkill3Row,
           most.length > 2 ? most[2] : '',
-          style: makeStyle(wrap: true, valign: VerticalAlign.Center));
+          style: makeStyle(
+            wrap: true,
+            valign: VerticalAlign.Center,
+            border: true,
+          ));
     }
 
     for (int r = mostSkill1Row; r <= mostSkill3Row; r++) {
@@ -439,18 +487,30 @@ class XlsxService {
       final headerText =
           'What are the Three Least Mastered Skills in ${_skillDisplayNames[domain]}?';
       mergeSet(sc, leastHdrRow, sc + 2, leastHdrRow, headerText,
-          style: makeStyle(bold: true, wrap: true));
+          style: makeStyle(bold: true, wrap: true, border: true));
 
       final least = top3Skills[domain]?['least'] ?? [];
       mergeSet(sc, leastSkill1Row, sc + 2, leastSkill1Row,
           least.isNotEmpty ? least[0] : '',
-          style: makeStyle(wrap: true, valign: VerticalAlign.Center));
+          style: makeStyle(
+            wrap: true,
+            valign: VerticalAlign.Center,
+            border: true,
+          ));
       mergeSet(sc, leastSkill2Row, sc + 2, leastSkill2Row,
           least.length > 1 ? least[1] : '',
-          style: makeStyle(wrap: true, valign: VerticalAlign.Center));
+          style: makeStyle(
+            wrap: true,
+            valign: VerticalAlign.Center,
+            border: true,
+          ));
       mergeSet(sc, leastSkill3Row, sc + 2, leastSkill3Row,
           least.length > 2 ? least[2] : '',
-          style: makeStyle(wrap: true, valign: VerticalAlign.Center));
+          style: makeStyle(
+            wrap: true,
+            valign: VerticalAlign.Center,
+            border: true,
+          ));
     }
 
     for (int r = leastSkill1Row; r <= leastSkill3Row; r++) {
@@ -468,38 +528,6 @@ class XlsxService {
     mergeSet(9, sigRoleRow, 12, sigRoleRow,
         'Master Teacher/ Kindergarten Coordinator');
     mergeSet(17, sigRoleRow, 20, sigRoleRow, 'School Head');
-
-    // ── Apply borders ─────────────────────────────────────────────────────────
-    void applyBorders(int startCol, int startRow, int endCol, int endRow) {
-      final thin = Border(borderStyle: BorderStyle.Thin);
-      for (int r = startRow; r <= endRow; r++) {
-        for (int c = startCol; c <= endCol; c++) {
-          final cell = sheet.cell(
-            CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r),
-          );
-          final s = cell.cellStyle;
-          cell.cellStyle = CellStyle(
-            backgroundColorHex: s?.backgroundColor ?? ExcelColor.none,
-            bold: s?.isBold ?? false,
-            textWrapping: s?.wrap,
-            horizontalAlign: s?.horizontalAlignment ?? HorizontalAlign.Left,
-            verticalAlign: s?.verticalAlignment ?? VerticalAlign.Top,
-            fontSize: s?.fontSize,
-            leftBorder: thin,
-            rightBorder: thin,
-            topBorder: thin,
-            bottomBorder: thin,
-          );
-        }
-      }
-    }
-
-    // Summary table: domain headers + M/F/Total row + level rows + TOTAL row
-    applyBorders(0, 10, 25, 17);
-    // Most Learned section: header + 3 skill rows (7 domains × 3 cols = 21 cols)
-    applyBorders(0, mostHdrRow, 20, mostSkill3Row);
-    // Least Mastered section: header + 3 skill rows
-    applyBorders(0, leastHdrRow, 20, leastSkill3Row);
 
     // ── Save ──────────────────────────────────────────────────────────────────
     final bytes = excel.save();

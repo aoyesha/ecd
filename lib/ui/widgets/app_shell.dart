@@ -28,7 +28,9 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
     final session = auth.session;
-    if (session == null) return const LoginPage();
+    if (session == null) {
+      return const LoginPage();
+    }
 
     final role = session.role;
     final userId = session.userId;
