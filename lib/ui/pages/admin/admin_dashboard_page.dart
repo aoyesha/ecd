@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/app_dialogs.dart';
 import '../../../core/constants.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/csv_service.dart';
@@ -24,12 +25,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   @override
   Widget build(BuildContext context) {
     final tabs = [
-      AdminDataSourcesPage(onSourceImported: () {
-        setState(() {
-          tab = 1;
-          _summaryRefreshKey++;
-        });
-      }),
+      AdminDataSourcesPage(
+        onSourceImported: () {
+          setState(() {
+            tab = 1;
+            _summaryRefreshKey++;
+          });
+        },
+      ),
       _AdminSummaryTab(key: ValueKey(_summaryRefreshKey)),
     ];
 
@@ -71,10 +74,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           ),
           const SizedBox(height: 12),
           Expanded(
-            child: IndexedStack(
-              index: tab,
-              children: tabs,
-            ),
+            child: IndexedStack(index: tab, children: tabs),
           ),
         ],
       ),
@@ -144,56 +144,64 @@ class _AdminSummaryTabState extends State<_AdminSummaryTab> {
                     foregroundColor: Colors.white,
                   ),
                   onPressed: () async {
-                    final level = await showDialog<String>(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: const Text('Export As'),
-                        content: const Text(
+                    final level = await AppDialogs.showChoiceDialog<String>(
+                      context,
+                      title: 'Export As',
+                      message:
                           'Choose the organization level for this exported rollup file.',
+                      options: const [
+                        AppDialogOption(
+                          value: 'school',
+                          title: 'School',
+                          subtitle: 'Create a school-level rollup file.',
+                          icon: Icons.school_rounded,
                         ),
-                        actions: [
-                          TextButton(
-                            onPressed: () =>
-                                Navigator.pop(context, 'school'),
-                            child: const Text('School'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, 'district'),
-                            child: const Text('District'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, 'division'),
-                            child: const Text('Division'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, 'regional'),
-                            child: const Text('Regional'),
-                          ),
-                        ],
-                      ),
+                        AppDialogOption(
+                          value: 'district',
+                          title: 'District',
+                          subtitle: 'Export a district aggregation.',
+                          icon: Icons.location_city_rounded,
+                        ),
+                        AppDialogOption(
+                          value: 'division',
+                          title: 'Division',
+                          subtitle: 'Export a division-level datasource.',
+                          icon: Icons.account_balance_rounded,
+                        ),
+                        AppDialogOption(
+                          value: 'regional',
+                          title: 'Regional',
+                          subtitle: 'Generate a region-wide rollup.',
+                          icon: Icons.map_rounded,
+                        ),
+                      ],
                     );
                     if (level == null) return;
+                    if (!mounted) return;
 
-                    final fmt = await showDialog<String>(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: const Text('Export Format'),
-                        content: const Text(
+                    final fmt = await AppDialogs.showChoiceDialog<String>(
+                      context,
+                      title: 'Export Format',
+                      message:
                           'Choose the export format for this consolidated summary.',
+                      options: const [
+                        AppDialogOption(
+                          value: 'csv',
+                          title: 'CSV',
+                          subtitle: 'Best for sharing and importing.',
+                          icon: Icons.table_chart_rounded,
                         ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, 'csv'),
-                            child: const Text('CSV\n(for sharing/import)'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, 'xlsx'),
-                            child: const Text('XLSX\n(styled for printing)'),
-                          ),
-                        ],
-                      ),
+                        AppDialogOption(
+                          value: 'xlsx',
+                          title: 'XLSX',
+                          subtitle:
+                              'Styled spreadsheet for printing or review.',
+                          icon: Icons.grid_on_rounded,
+                        ),
+                      ],
                     );
                     if (fmt == null) return;
+                    if (!mounted) return;
 
                     final exportName = await _csv.buildAdminRollupFilename(
                       adminId: adminId,
@@ -203,8 +211,7 @@ class _AdminSummaryTabState extends State<_AdminSummaryTab> {
                     );
 
                     if (fmt == 'xlsx') {
-                      final bytes =
-                          await _xlsx.exportAdminAggregatedRollupXlsx(
+                      final bytes = await _xlsx.exportAdminAggregatedRollupXlsx(
                         adminId: adminId,
                         assessmentType: assessmentType,
                         schoolYear: schoolYearFilter,
@@ -214,8 +221,7 @@ class _AdminSummaryTabState extends State<_AdminSummaryTab> {
                         xlsxBytes: bytes,
                       );
                     } else {
-                      final csvText =
-                          await _csv.exportAdminAggregatedRollupCsv(
+                      final csvText = await _csv.exportAdminAggregatedRollupCsv(
                         adminId: adminId,
                         orgLevel: level,
                         assessmentType: assessmentType,
@@ -620,7 +626,7 @@ class _AdminSummaryTabState extends State<_AdminSummaryTab> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: AppColors.maroon.withOpacity(0.35),
+                            color: AppColors.maroon.withValues(alpha: 0.35),
                           ),
                         ),
                         child: DropdownButtonHideUnderline(

@@ -1,6 +1,6 @@
 class DbSchema {
-  // V10: add dominant hand field for learners.
-  static const int dbVersion = 10;
+  // V11: add monthly login OTP verification timestamp for users.
+  static const int dbVersion = 11;
 
   // USERS
   static const String tUsers = 'users';
@@ -12,6 +12,7 @@ class DbSchema {
   static const String cUserAcceptedTos = 'accepted_tos';
   static const String cUserAcceptedPrivacy = 'accepted_privacy';
   static const String cUserCreatedAt = 'created_at';
+  static const String cUserLastMonthlyOtpAt = 'last_monthly_otp_at';
 
   // Org profile fields
   static const String cUserSchool = 'school';

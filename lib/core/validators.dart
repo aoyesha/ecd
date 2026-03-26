@@ -1,6 +1,9 @@
 class Validators {
   static final _emailRe = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
   static final _schoolYearPairRe = RegExp(r'^\d{4}-\d{4}$');
+  static final _accountEmailRe = RegExp(
+    r'^[a-zA-Z0-9._%+-]+@(deped\.gov\.ph|ust\.edu\.ph)$',
+  );
 
   static String? required(String? v, {String label = 'Field'}) {
     if (v == null || v.trim().isEmpty) return '$label is required';
@@ -11,6 +14,21 @@ class Validators {
     final req = required(v, label: 'Email');
     if (req != null) return req;
     if (!_emailRe.hasMatch(v!.trim())) return 'Enter a valid email';
+    return null;
+  }
+
+  static bool isAllowedAccountEmail(String value) {
+    return _accountEmailRe.hasMatch(value.trim().toLowerCase());
+  }
+
+  static String? accountEmail(String? v) {
+    final req = required(v, label: 'Email');
+    if (req != null) return req;
+    final email = v!.trim();
+    if (!_emailRe.hasMatch(email)) return 'Enter a valid email address';
+    if (!isAllowedAccountEmail(email)) {
+      return 'Email must be a valid @deped.gov.ph or @ust.edu.ph address';
+    }
     return null;
   }
 

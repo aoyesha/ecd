@@ -23,6 +23,7 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int index = 0;
+  bool navExpanded = true;
 
   @override
   Widget build(BuildContext context) {
@@ -39,17 +40,17 @@ class _AppShellState extends State<AppShell> {
 
     final pages = role == UserRole.teacher
         ? [
-      TeacherDashboardPage(teacherId: userId),
-      const TeacherArchivePage(),
-      const TeacherHistoricalPage(),
-      const SettingsPage(),
-    ]
+            TeacherDashboardPage(teacherId: userId),
+            const TeacherArchivePage(),
+            const TeacherHistoricalPage(),
+            const SettingsPage(),
+          ]
         : const [
-      AdminDashboardPage(),
-      AdminArchivePage(),
-      AdminHistoricalPage(),
-      SettingsPage(),
-    ];
+            AdminDashboardPage(),
+            AdminArchivePage(),
+            AdminHistoricalPage(),
+            SettingsPage(),
+          ];
 
     final items = const [
       AppNavItem(icon: Icons.dashboard, label: 'Dashboard'),
@@ -58,7 +59,8 @@ class _AppShellState extends State<AppShell> {
       AppNavItem(icon: Icons.settings, label: 'Account Settings'),
     ];
 
-    final body = pages[index];
+    final safeIndex = index >= 0 && index < pages.length ? index : 0;
+    final body = pages[safeIndex];
     final userFuture = auth.getUser(userId);
 
     return Scaffold(
@@ -66,20 +68,21 @@ class _AppShellState extends State<AppShell> {
       drawer: isDesktop(context)
           ? null
           : FutureBuilder<Map<String, Object?>?>(
-        future: userFuture,
-        builder: (context, snapshot) {
-          final u = snapshot.data ?? const <String, Object?>{};
-          return Drawer(
-            child: AppNav(
-              items: items,
-              selectedIndex: index,
-              onSelected: (i) => setState(() => index = i),
-              profileName: (u['name'] ?? 'User').toString(),
-              division: (u['division'] ?? 'MIMAROPA').toString(),
+              future: userFuture,
+              builder: (context, snapshot) {
+                final u = snapshot.data ?? const <String, Object?>{};
+                return Drawer(
+                  child: AppNav(
+                    items: items,
+                    selectedIndex: safeIndex,
+                    closeOnSelect: true,
+                    onSelected: (i) => setState(() => index = i),
+                    profileName: (u['name'] ?? 'User').toString(),
+                    division: (u['division'] ?? 'MIMAROPA').toString(),
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
       body: Row(
         children: [
           if (isDesktop(context))
@@ -87,11 +90,16 @@ class _AppShellState extends State<AppShell> {
               future: userFuture,
               builder: (context, snapshot) {
                 final u = snapshot.data ?? const <String, Object?>{};
-                return SizedBox(
-                  width: 280,
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
+                  width: navExpanded ? 260 : 96,
                   child: AppNav(
                     items: items,
-                    selectedIndex: index,
+                    selectedIndex: safeIndex,
+                    compact: !navExpanded,
+                    onToggleCompact: () =>
+                        setState(() => navExpanded = !navExpanded),
                     onSelected: (i) => setState(() => index = i),
                     profileName: (u['name'] ?? 'User').toString(),
                     division: (u['division'] ?? 'MIMAROPA').toString(),
@@ -109,14 +117,17 @@ class _AppShellState extends State<AppShell> {
                     color: AppColors.offWhite,
                     padding: EdgeInsets.fromLTRB(
                       16,
-                      isDesktop(context) ? 16 : topInset + 16, // ⭐ mobile spacing fix
+                      isDesktop(context)
+                          ? 16
+                          : topInset + 16, // ⭐ mobile spacing fix
                       16,
                       12,
                     ),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        final titleSize =
-                        constraints.maxWidth < 600 ? 20.0 : 30.0;
+                        final titleSize = constraints.maxWidth < 600
+                            ? 20.0
+                            : 30.0;
                         return Row(
                           children: [
                             if (!isDesktop(context))

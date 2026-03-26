@@ -52,6 +52,7 @@ dependencies:
   bcrypt: ^1.1.3
 
   excel: ^4.0.6
+  mailer: ^6.4.1
 
 
 dev_dependencies:

@@ -22,6 +22,31 @@ class _AdminDataSourcesPageState extends State<AdminDataSourcesPage> {
   final _csv = CsvService();
   String? schoolYearFilter;
 
+  String _sourceDisplayName(Map<String, Object?> source) {
+    final label = (source['label'] ?? '').toString().trim();
+    if (label.isNotEmpty) {
+      return label;
+    }
+    return _levelLabel((source['org_level'] ?? '').toString());
+  }
+
+  String _sourceKindLabel(String level) {
+    switch (level.trim().toLowerCase()) {
+      case 'teacher':
+        return 'Section';
+      case 'school':
+        return 'School';
+      case 'district':
+        return 'District';
+      case 'division':
+        return 'Division';
+      case 'regional':
+        return 'Region';
+      default:
+        return 'Source';
+    }
+  }
+
   Future<void> _openAddSource() async {
     final imported = await navPushNoTransition<bool>(
       context,
@@ -101,18 +126,15 @@ class _AdminDataSourcesPageState extends State<AdminDataSourcesPage> {
                       final id = s['id'] as int;
                       String sy = (s['school_year'] ?? '').toString();
 
-
                       if (sy.contains('META') || sy.contains('DATA')) {
                         sy = sy.split('\n').first;
                       }
-
 
                       if (sy.contains(',')) {
                         sy = sy.split(',').first;
                       }
                       final level = (s['org_level'] ?? '').toString();
                       String label = (s['label'] ?? '').toString();
-
 
                       if (label.contains('META') || label.contains('DATA')) {
                         label = '';
@@ -125,8 +147,8 @@ class _AdminDataSourcesPageState extends State<AdminDataSourcesPage> {
                           height: 135,
                           color: _pastelForSourceId(id),
                           schoolYear: sy,
-                          title: _levelLabel(level),   // School / District / Division
-                          subtitle: 'Source',
+                          title: _sourceDisplayName(s),
+                          subtitle: _sourceKindLabel(level),
                           onTap: () => navPushNoTransition(
                             context,
                             AdminDataSourceDetailPage(
@@ -167,8 +189,8 @@ class _AdminDataSourcesPageState extends State<AdminDataSourcesPage> {
                     height: cardHeight,
                     color: _pastelForSourceId(id),
                     schoolYear: sy,
-                    title: _levelLabel(level),   // School / District / Division
-                    subtitle: 'Source',
+                    title: _sourceDisplayName(s),
+                    subtitle: _sourceKindLabel(level),
                     onTap: () => navPushNoTransition(
                       context,
                       AdminDataSourceDetailPage(
@@ -198,11 +220,7 @@ class _AdminDataSourcesPageState extends State<AdminDataSourcesPage> {
                   padding: const EdgeInsets.all(8),
                   child: Align(
                     alignment: Alignment.topLeft,
-                    child: Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
-                      children: items,
-                    ),
+                    child: Wrap(spacing: 16, runSpacing: 16, children: items),
                   ),
                 ),
               );
@@ -333,118 +351,117 @@ class _NotebookCard extends StatelessWidget {
                 // ---------- MOBILE LAYOUT ----------
                 child: isMobile
                     ? Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    schoolYear,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Flexible(
+                                    child: Text(
+                                      subtitle,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      softWrap: false,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                  Flexible(
+                                    child: Text(
+                                      title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      softWrap: false,
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            IconButton(
+                              icon: const Icon(
+                                Icons.archive,
+                                color: AppColors.maroon,
+                              ),
+                              onPressed: onArchive,
+                              tooltip: "Archive",
+                            ),
+                          ],
+                        ),
+                      )
+                    // ---------- DESKTOP LAYOUT ----------
+                    : Padding(
+                        padding: const EdgeInsets.all(24),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              schoolYear,
+                              schoolYear.isEmpty
+                                  ? 'No School Year'
+                                  : schoolYear,
                               style: const TextStyle(
                                 fontWeight: FontWeight.w700,
                                 color: Colors.black54,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Flexible(
-                              child: Text(
-                                subtitle,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                softWrap: false,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                ),
+
+                            const Spacer(),
+
+                            Text(
+                              subtitle,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                            Flexible(
-                              child: Text(
-                                title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                softWrap: false,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w900,
+
+                            const SizedBox(height: 8),
+
+                            Text(
+                              title,
+                              style: const TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.maroon,
+                                  foregroundColor: Colors.white,
                                 ),
+                                onPressed: onArchive,
+                                icon: const Icon(Icons.archive),
+                                label: const Text('Archive'),
                               ),
                             ),
                           ],
                         ),
                       ),
-
-                      IconButton(
-                        icon: const Icon(
-                          Icons.archive,
-                          color: AppColors.maroon,
-                        ),
-                        onPressed: onArchive,
-                        tooltip: "Archive",
-                      ),
-                    ],
-                  ),
-                )
-
-                // ---------- DESKTOP LAYOUT ----------
-                    : Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        schoolYear.isEmpty
-                            ? 'No School Year'
-                            : schoolYear,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black54,
-                        ),
-                      ),
-
-                      const Spacer(),
-
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.maroon,
-                            foregroundColor: Colors.white,
-                          ),
-                          onPressed: onArchive,
-                          icon: const Icon(Icons.archive),
-                          label: const Text('Archive'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ),
           ),

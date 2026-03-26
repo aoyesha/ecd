@@ -1,11 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants.dart';
 import '../../../core/nav_no_transition.dart';
+import '../../../core/ui_feedback.dart';
 import '../../../core/validators.dart';
 import '../../../services/auth_service.dart';
+import '../../../services/email_otp_service.dart';
 import 'login_page.dart';
 import 'widgets/auth_form_parts.dart';
 import 'widgets/auth_layout.dart';
@@ -22,7 +25,7 @@ const Map<String, Map<String, List<String>>> _regionHierarchy = {
       'Rizal',
       'Sablayan',
       'San Jose',
-      'Santa Cruz'
+      'Santa Cruz',
     ],
     'Oriental Mindoro': [
       'Baco',
@@ -33,7 +36,7 @@ const Map<String, Map<String, List<String>>> _regionHierarchy = {
       'Pinamalayan',
       'Roxas',
       'Socorro',
-      'Victoria'
+      'Victoria',
     ],
     'Marinduque': ['Boac North', 'Boac South', 'Gasan', 'Mogpog', 'Torrijos'],
     'Romblon': ['Alcantara', 'Odiongan', 'Romblon', 'San Andres'],
@@ -52,6 +55,7 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final formKey = GlobalKey<FormState>();
+  final EmailOtpService _emailOtpService = const EmailOtpService();
 
   final nameCtrl = TextEditingController();
   final emailCtrl = TextEditingController();
@@ -69,7 +73,8 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _hasUppercase(String v) => RegExp(r'[A-Z]').hasMatch(v);
   bool _hasLowercase(String v) => RegExp(r'[a-z]').hasMatch(v);
   bool _hasNumber(String v) => RegExp(r'[0-9]').hasMatch(v);
-  bool _hasSpecialChar(String v) => RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(v);
+  bool _hasSpecialChar(String v) =>
+      RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(v);
 
   int step = 1;
   String? selectedRegion = 'MIMAROPA';
@@ -83,7 +88,6 @@ class _RegisterPageState extends State<RegisterPage> {
     passCtrl.dispose();
     schoolCtrl.dispose();
     super.dispose();
-
   }
 
   Widget _passwordChecklist(String value) {
@@ -126,45 +130,197 @@ class _RegisterPageState extends State<RegisterPage> {
       _snack('You must accept Terms & Conditions and Privacy Policy.');
       return;
     }
+
+    final auth = context.read<AuthService>();
+    final normalizedEmail = emailCtrl.text.trim().toLowerCase();
+
     setState(() => loading = true);
     try {
-      await context.read<AuthService>().register(
-            role: role,
-            email: emailCtrl.text,
-            password: passCtrl.text,
-            name: nameCtrl.text,
-            school: schoolCtrl.text,
-            district: selectedDistrict,
-            division: selectedDivision,
-            region: selectedRegion,
-            acceptedTos: acceptedTos,
-            acceptedPrivacy: acceptedPrivacy,
-          );
-      if (!mounted) return;
-      navReplaceNoTransition(context, const LoginPage());
-    } catch (e)
-    {
-      if (e is StateError &&
-          e.message == 'Email already exists.') {
-        _snack('This email is already registered.');
-      } else {
-        _snack('Registration failed. Please try again.');
-      }
+      await auth.ensureEmailAvailable(normalizedEmail);
+      var challenge = _emailOtpService.createChallenge();
+      await _emailOtpService.sendOtp(
+        email: normalizedEmail,
+        challenge: challenge,
+      );
 
+      if (!mounted) return;
+      setState(() => loading = false);
+
+      final verified = await _showOtpDialog(
+        email: normalizedEmail,
+        initialChallenge: challenge,
+      );
+
+      if (!mounted || !verified) return;
+
+      setState(() => loading = true);
+      await auth.register(
+        role: role,
+        email: normalizedEmail,
+        password: passCtrl.text,
+        name: nameCtrl.text,
+        school: schoolCtrl.text,
+        district: selectedDistrict,
+        division: selectedDivision,
+        region: selectedRegion,
+        acceptedTos: acceptedTos,
+        acceptedPrivacy: acceptedPrivacy,
+      );
+
+      if (!mounted) return;
+      _snack('Account verified and created. You can now log in.');
+      await navReplaceNoTransition(context, const LoginPage());
+    } catch (e) {
+      if (e is StateError && e.message == 'Email already exists.') {
+        _snack('This email is already registered.');
+      } else if (e is StateError &&
+          e.message.toString().contains('Email OTP is not configured')) {
+        _snack(
+          'Email OTP is not configured yet. Add SMTP settings before testing sign up.',
+        );
+      } else {
+        final debugMessage = kDebugMode
+            ? 'Registration failed: ${e.runtimeType}: $e'
+            : 'Registration failed. Please try again.';
+        _snack(debugMessage);
+      }
     } finally {
       if (mounted) setState(() => loading = false);
     }
   }
 
-  void _snack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.black,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+  Future<bool> _showOtpDialog({
+    required String email,
+    required EmailOtpChallenge initialChallenge,
+  }) async {
+    final otpCtrl = TextEditingController();
+    var errorText = '';
+    var helperText = 'A 6-digit OTP was sent to $email.';
+    var challenge = initialChallenge;
+    var sending = false;
+
+    final verified = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Verify Your Email'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$helperText Enter it below to finish creating your account.',
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: otpCtrl,
+                    autofocus: true,
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    decoration: InputDecoration(
+                      labelText: 'OTP code',
+                      errorText: errorText.isEmpty ? null : errorText,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'This code expires at ${TimeOfDay.fromDateTime(challenge.expiresAt).format(context)}.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: sending
+                          ? null
+                          : () async {
+                              setDialogState(() {
+                                sending = true;
+                                errorText = '';
+                              });
+
+                              try {
+                                final nextChallenge = _emailOtpService
+                                    .createChallenge();
+                                await _emailOtpService.sendOtp(
+                                  email: email,
+                                  challenge: nextChallenge,
+                                );
+                                setDialogState(() {
+                                  challenge = nextChallenge;
+                                  helperText = 'A new OTP was sent to $email.';
+                                });
+                              } catch (e) {
+                                setDialogState(() {
+                                  errorText =
+                                      'Failed to send OTP. Please try again.';
+                                });
+                              } finally {
+                                setDialogState(() => sending = false);
+                              }
+                            },
+                      icon: sending
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.refresh_rounded),
+                      label: const Text('Resend code'),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    final enteredCode = otpCtrl.text.trim();
+                    if (challenge.isExpired) {
+                      setDialogState(() {
+                        errorText =
+                            'This OTP has expired. Please register again.';
+                      });
+                      return;
+                    }
+
+                    if (enteredCode != challenge.code) {
+                      setDialogState(() {
+                        errorText = 'The OTP you entered is incorrect.';
+                      });
+                      return;
+                    }
+
+                    Navigator.of(context).pop(true);
+                  },
+                  child: const Text('Verify'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
+
+    otpCtrl.dispose();
+    return verified ?? false;
+  }
+
+  void _snack(String message) {
+    final tone =
+        message.toLowerCase().contains('failed') ||
+            message.toLowerCase().contains('incorrect') ||
+            message.toLowerCase().contains('not configured') ||
+            message.toLowerCase().contains('already registered')
+        ? AppFeedbackTone.error
+        : AppFeedbackTone.success;
+    AppFeedback.showSnackBar(context, message, tone: tone);
   }
 
   Future<void> _showPolicyDialog({
@@ -179,14 +335,11 @@ class _RegisterPageState extends State<RegisterPage> {
           content: SizedBox(
             width: 560,
             child: SingleChildScrollView(
-              child: Text(
-                content,
-                style: const TextStyle(height: 1.45),
-              ),
+              child: Text(content, style: const TextStyle(height: 1.45)),
             ),
           ),
           actions: [
-            TextButton(
+            FilledButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('Close'),
             ),
@@ -200,10 +353,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return AuthLayout(
       heading: 'Create an Account',
-      form: Form(
-        key: formKey,
-        child: step == 1 ? _stepOne() : _stepTwo(),
-      ),
+      form: Form(key: formKey, child: step == 1 ? _stepOne() : _stepTwo()),
     );
   }
 
@@ -254,8 +404,7 @@ class _RegisterPageState extends State<RegisterPage> {
             selectedDistrict = null;
           }),
           decoration: AuthFormParts.inputDecoration('Select division'),
-          validator: (v) =>
-              Validators.required(v, label: 'Division'),
+          validator: (v) => Validators.required(v, label: 'Division'),
         ),
         const SizedBox(height: 14),
         AuthFormParts.label('District'),
@@ -266,8 +415,7 @@ class _RegisterPageState extends State<RegisterPage> {
               .toList(),
           onChanged: (v) => setState(() => selectedDistrict = v),
           decoration: AuthFormParts.inputDecoration('Select district'),
-          validator: (v) =>
-              Validators.required(v, label: 'District'),
+          validator: (v) => Validators.required(v, label: 'District'),
         ),
         const SizedBox(height: 14),
         AuthFormParts.label('Institution / School Name'),
@@ -326,23 +474,11 @@ class _RegisterPageState extends State<RegisterPage> {
         AuthFormParts.label('Your Email'),
         TextFormField(
           controller: emailCtrl,
-          decoration:
-          AuthFormParts.inputDecoration('juan.delacruz@deped.gov.ph'),
+          decoration: AuthFormParts.inputDecoration(
+            'juan.delacruz@deped.gov.ph or juan@ust.edu.ph',
+          ),
           keyboardType: TextInputType.emailAddress,
-          validator: (value) {
-            final v = value?.trim() ?? '';
-            if (v.isEmpty) {
-              return 'Email is required';
-            }
-
-            final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@deped\.gov\.ph$');
-
-            if (!emailRegex.hasMatch(v)) {
-              return 'Email must be a valid @deped.gov.ph address';
-            }
-
-            return null;
-          },
+          validator: Validators.accountEmail,
         ),
         const SizedBox(height: 14),
         AuthFormParts.label('Set Password'),
@@ -486,17 +622,16 @@ class _RegisterPageState extends State<RegisterPage> {
               text: 'Log in',
               style: const TextStyle(fontWeight: FontWeight.bold),
               recognizer: TapGestureRecognizer()
-                ..onTap = () => navReplaceNoTransition(context, const LoginPage()),
+                ..onTap = () =>
+                    navReplaceNoTransition(context, const LoginPage()),
             ),
           ],
         ),
       ),
     );
   }
-  Widget _whiteLink({
-    required String text,
-    required VoidCallback onTap,
-  }) {
+
+  Widget _whiteLink({required String text, required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
       splashColor: Colors.transparent,

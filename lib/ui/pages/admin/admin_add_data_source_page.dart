@@ -4,7 +4,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/app_dialogs.dart';
 import '../../../core/constants.dart';
+import '../../../core/ui_feedback.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/csv_service.dart';
 
@@ -31,39 +33,46 @@ class _AdminAddDataSourcePageState extends State<AdminAddDataSourcePage> {
 
     final validFiles = picked.files.where((f) => f.path != null).toList();
     if (validFiles.isEmpty) return;
+    if (!mounted) return;
 
-    final level = await showDialog<String>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('CSV Source Level'),
-        content: Text(
-          validFiles.length == 1
-              ? 'Select the source level of this imported CSV.'
-              : 'Select the source level for all ${validFiles.length} imported files.',
+    final level = await AppDialogs.showChoiceDialog<String>(
+      context,
+      title: 'CSV Source Level',
+      message: validFiles.length == 1
+          ? 'Select the source level of this imported CSV.'
+          : 'Select the source level for all ${validFiles.length} imported files.',
+      options: const [
+        AppDialogOption(
+          value: 'teacher',
+          title: 'Teacher',
+          subtitle: 'Import a class or section rollup exported by a teacher.',
+          icon: Icons.class_rounded,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'teacher'),
-            child: const Text('Teacher'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'school'),
-            child: const Text('School'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'district'),
-            child: const Text('District'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'division'),
-            child: const Text('Division'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'regional'),
-            child: const Text('Regional'),
-          ),
-        ],
-      ),
+        AppDialogOption(
+          value: 'school',
+          title: 'School',
+          subtitle: 'Import a consolidated school-level datasource.',
+          icon: Icons.school_rounded,
+        ),
+        AppDialogOption(
+          value: 'district',
+          title: 'District',
+          subtitle: 'Import a district rollup file.',
+          icon: Icons.location_city_rounded,
+        ),
+        AppDialogOption(
+          value: 'division',
+          title: 'Division',
+          subtitle: 'Import a division-level rollup.',
+          icon: Icons.account_balance_rounded,
+        ),
+        AppDialogOption(
+          value: 'regional',
+          title: 'Regional',
+          subtitle: 'Import a region-wide aggregated datasource.',
+          icon: Icons.map_rounded,
+        ),
+      ],
     );
 
     if (level == null) return;
@@ -92,8 +101,12 @@ class _AdminAddDataSourcePageState extends State<AdminAddDataSourcePage> {
         final msg = imported > 0
             ? '$imported file(s) imported. ${errors.length} failed:\n${errors.join('\n')}'
             : 'All imports failed:\n${errors.join('\n')}';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg), duration: const Duration(seconds: 6)),
+        AppFeedback.showSnackBar(
+          context,
+          msg,
+          tone: errors.isEmpty
+              ? AppFeedbackTone.success
+              : AppFeedbackTone.warning,
         );
         if (imported > 0) Navigator.pop(context, true);
       }

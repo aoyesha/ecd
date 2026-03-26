@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<!-- saved from url=(0078)https://ust.instructure.com/courses/56997/files/7620807?module_item_id=1649292 -->
+<html dir="ltr" lang="en" style="--impact-supportCenterButton-zIndex-base: 9990; --impact-expertTools-zIndex-base: 9999;"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ededed">
+  
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="apple-itunes-app" content="app-id=480883488">
+<link rel="manifest" href="https://ust.instructure.com/web-app-manifest/manifest.json">
+  <meta name="sentry-trace" content="2016acef473b4e76bf52949fca56f25e-c25cc7a210b54a08-0">
+  <title>  Introduction to Operating System-1: 3CSE - OPERATING SYSTEMS
+</title>
+
+  <link rel="preload" href="https://du11hjcvx0uqb.cloudfront.net/dist/fonts/lato/extended/Lato-Regular-bd03a2cc27.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="https://du11hjcvx0uqb.cloudfront.net/dist/fonts/lato/extended/Lato-Bold-cccb897485.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="https://du11hjcvx0uqb.cloudfront.net/dist/fonts/lato/extended/Lato-Italic-4eb103b4d1.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/fonts-eb4a10fb18.css" media="screen">
+  <link rel="stylesheet" href="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/variables-9dec371ad57e3dd0396f0b2eddb63479.css" media="all">
+  <link rel="stylesheet" href="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/common-6e20521342.css" media="all">
+  <link rel="stylesheet" href="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/new_user_tutorials-6b15f87caf.css" media="screen">
+  <link rel="apple-touch-icon" href="https://instructure-uploads-apse1.s3.ap-southeast-1.amazonaws.com/account_206640000000000001/attachments/169/download%20%25281%2529.png">
+  <link rel="icon" type="image/x-icon" href="https://instructure-uploads-apse1.s3.ap-southeast-1.amazonaws.com/account_206640000000000001/attachments/168/download%20%25281%2529.png">
+
+  <link rel="stylesheet" href="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/ust.css" media="all">
+  
+  <script src="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/launch.js.download" async="" type="text/javascript"></script><script>if (navigator.userAgent.match(/(MSIE|Trident\/)/)) location.replace('/ie-is-not-supported.html')</script>
+  <script>
+    INST = {"environment":"production","allowMediaComments":true,"kalturaSettings":{"domain":"apse1.nv.instructuremedia.com","resource_domain":"apse1.nv.instructuremedia.com","rtmp_domain":"sin.rtmp.instructuremedia.com","partner_id":"2","subpartner_id":"0","player_ui_conf":"0","kcw_ui_conf":"0","upload_ui_conf":"0","max_file_size_bytes":534773760,"do_analytics":false,"hide_rte_button":false,"js_uploader":true},"logPageViews":true,"editorButtons":[{"name":"YouTube","id":1,"favorite":true,"url":"https://www.edu-apps.org/lti_public_resources/?tool_id=youtube","icon_url":"https://www.edu-apps.org/assets/lti_public_resources/youtube_icon.png","canvas_icon_class":null,"width":560,"height":600,"use_tray":false,"on_by_default":false,"description":"\u003cp\u003eSearch publicly available YouTube videos. A new icon will show up in your course rich editor letting you search YouTube and click to embed videos in your course material.\u003c/p\u003e\n"},{"name":"Vimeo","id":2,"favorite":false,"url":"https://www.edu-apps.org/lti_public_resources/?tool_id=vimeo","icon_url":"https://www.edu-apps.org/assets/lti_public_resources/vimeo_icon.png","canvas_icon_class":null,"width":560,"height":600,"use_tray":false,"on_by_default":false,"description":"\u003cp\u003eVimeo is a video sharing website on which users can upload, share, and view videos. The community of Vimeo includes indie, professional, and novice filmmakers.\u003c/p\u003e\n"},{"name":"Dropbox","id":5,"favorite":false,"url":"https://www.edu-apps.org/tool_redirect?id=dropbox","icon_url":"http://www.edu-apps.org/tools/dropbox/icon.png","canvas_icon_class":null,"width":400,"height":200,"use_tray":false,"on_by_default":false,"description":"\u003cp\u003eThis lightweight integration lets Dropbox users select and link to files within course content or in conjunction with homework submissions.\u003c/p\u003e\n\n\u003cp\u003eDropbox is a file hosting service offering cloud storage, file synchronization, and client software. Files placed in a Dropbox folder also are accessible through a website and mobile phone applications.\u003c/p\u003e\n\n\u003cp\u003e\u003ca href=\"https://googledrive.com/host/0B5ghu5Vrh0j7X3FCOERVQ1dLSms/dropbox.png\" target=\"_blank\"\u003e \u003cimg src=\"https://googledrive.com/host/0B5ghu5Vrh0j7X3FCOERVQ1dLSms/dropbox.png\" alt=\"Dropbox insert video demonstration image.\"\u003e \u003c/a\u003e\u003c/p\u003e\n\n\u003cp\u003eThe current integration does require that users login to Dropbox each time.\u003c/p\u003e\n"},{"name":"Dropbox for Canvas","id":164,"favorite":false,"url":"https://www.dropbox.com/canvas/lti_chooser","icon_url":"https://www.dropbox.com/static/images/icons/dropbox.png","canvas_icon_class":{"enabled":true,"selection_height":160,"selection_width":340,"url":"https://www.dropbox.com/canvas/lti_chooser"},"width":340,"height":160,"use_tray":null,"on_by_default":false,"description":"\u003cp\u003eCanvas is a cloud-based learning platform. Connect it to your Dropbox account to easily attach files to courses or submit assignments without switching apps.\u003c/p\u003e\n\n\u003cp\u003eInstructors: Centralize your course content in Dropbox, where you can keep it secure. Then, upload lecture slides, videos, reading assignments, and more to a course in Canvas. You can spend your time on academics instead of on managing your files.\u003c/p\u003e\n\n\u003cp\u003eStudents: Turn in assignments quickly, without having to sign in every time. Upload files from within Dropbox, or while you’re in Canvas.\u003c/p\u003e\n"},{"name":"Google Drive (LTI 1.3)","id":168,"favorite":false,"url":"https://assignments.google.com/lti/e","icon_url":"https://www.gstatic.com/images/branding/product/2x/drive_2020q4_64dp.png","canvas_icon_class":null,"width":690,"height":530,"use_tray":false,"on_by_default":false,"description":"\u003cp\u003eCollect, analyze, and grade student work with Google Assignments\u003c/p\u003e\n"},{"name":"Panopto Video","id":170,"favorite":false,"url":"https://ust.ap.panopto.com/Panopto/LTI/LTI.aspx","icon_url":"https://ust.ap.panopto.com/Panopto/images/panopto_logo_globe.png","canvas_icon_class":null,"width":900,"height":700,"use_tray":false,"on_by_default":false,"description":""},{"name":"Insert Whiteboard or Diagram","id":863,"favorite":true,"url":"https://integration.lucid.app/canvas/lti/launchTool","icon_url":"https://cdn-cashy-static-assets.lucidchart.com/lucid/logos/Lucid-L.svg","canvas_icon_class":{"text":"Insert Whiteboard or Diagram","labels":{"da":"Insert Whiteboard or Diagram","de":"Whiteboard oder Diagramm einfügen","en":"Insert Whiteboard or Diagram","es":"Inserta pizarra o diagrama","fr":"Insérer un tableau blanc ou un diagramme","ja":"ホワイトボードまたは図を挿入","ko":"화이트보드 또는 다이어그램 삽입","nl":"Voeg een whiteboard of diagram toe.","no":"Insert Whiteboard or Diagram","pt":"Insira quadro branco ou diagrama","ru":"Вставьте доску или схему","zh":"Insert Whiteboard or Diagram","es-LA":"Inserta pizarra o diagrama","fr-FR":"Insérer un tableau blanc ou un diagramme","it-IT":"Inserisci lavagna o diagramma","pl-PL":"Wstaw tablicę lub diagram","pt-BR":"Insira quadro branco ou diagrama","sv-SE":"Infoga whiteboard eller diagram","zh-CN":"Insert Whiteboard or Diagram","zh-TW":"Insert Whiteboard or Diagram"},"icon_url":"https://cdn-cashy-static-assets.lucidchart.com/lucid/logos/Lucid-L.svg","placement":"editor_button","message_type":"LtiDeepLinkingRequest","custom_fields":{},"target_link_uri":"https://integration.lucid.app/canvas/lti/rce/create"},"width":1200,"height":800,"use_tray":null,"on_by_default":true,"description":"\u003cp\u003eInsert Lucid documents in Canvas\u003c/p\u003e\n"},{"name":"Pearson Links","id":1345,"favorite":false,"url":"https://interop.pearson.com/launch","icon_url":"https://www.pearson.com/us/content/dam/one-dot-com/one-dot-com/us/en/images/PearsonThumbprint-RGB-127x138.png/_jcr_content/renditions/cq5dam.web.1600.9600.png","canvas_icon_class":null,"width":800,"height":400,"use_tray":false,"on_by_default":false,"description":"\u003cp\u003eAccess Pearson\u003c/p\u003e\n"},{"name":"Nearpod (LTI 1.3)","id":1696,"favorite":false,"url":"https://lti.nearpod.com/lti/launch","icon_url":"https://news.nearpod.com/200x200_Nearpod_logo.png","canvas_icon_class":null,"width":1200,"height":1200,"use_tray":false,"on_by_default":false,"description":"\u003cp\u003eCreate, engage, and assess your students in every lesson!\u003c/p\u003e\n"},{"name":"Google Gemini","id":1708,"favorite":false,"url":"https://lti.gemini.google.com/lti/gemini","icon_url":"https://www.gstatic.com/images/branding/productlogos/gemini_2025/v1/web-64dp/logo_gemini_2025_color_2x_web_64dp.png","canvas_icon_class":null,"width":900,"height":640,"use_tray":false,"on_by_default":false,"description":"\u003cp\u003eGemini is an AI-powered assistant that can help you save time, create captivating learning experiences, and learn confidently. Gemini LTI™ brings a collection of product experiences powered by Gemini, like the Gemini app and NotebookLM, into your LMS.\u003c/p\u003e\n"}]};
+    ENV = {"ASSET_HOST":"https://du11hjcvx0uqb.cloudfront.net","active_brand_config_json_url":"https://du11hjcvx0uqb.cloudfront.net/dist/brandable_css/e5c5967c0fd76e295cbe915fc390f80b/variables-9dec371ad57e3dd0396f0b2eddb63479.json","active_brand_config":{"md5":"e5c5967c0fd76e295cbe915fc390f80b","variables":{"ic-brand-header-image":"https://instructure-uploads-apse1.s3.ap-southeast-1.amazonaws.com/account_206640000000000001/attachments/2765913/cicsLogo.png"},"share":false,"name":null,"created_at":"2025-08-22T06:24:31Z","js_overrides":"","css_overrides":"https://instructure-uploads-apse1.s3.ap-southeast-1.amazonaws.com/account_206640000000000001/attachments/322/ust.css","mobile_js_overrides":"","mobile_css_overrides":"","parent_md5":"1723c88ef6a176b800803f4527be3fdb"},"confetti_branding_enabled":false,"url_to_what_gets_loaded_inside_the_tinymce_editor_css":["https://du11hjcvx0uqb.cloudfront.net/dist/brandable_css/e5c5967c0fd76e295cbe915fc390f80b/variables-9dec371ad57e3dd0396f0b2eddb63479.css","https://du11hjcvx0uqb.cloudfront.net/dist/brandable_css/new_styles_normal_contrast/bundles/what_gets_loaded_inside_the_tinymce_editor-a370c48efb.css","https://du11hjcvx0uqb.cloudfront.net/dist/brandable_css/no_variables/bundles/fonts-eb4a10fb18.css"],"url_for_high_contrast_tinymce_editor_css":["https://du11hjcvx0uqb.cloudfront.net/dist/brandable_css/default/variables-high_contrast-9dec371ad57e3dd0396f0b2eddb63479.css","https://du11hjcvx0uqb.cloudfront.net/dist/brandable_css/new_styles_high_contrast/bundles/what_gets_loaded_inside_the_tinymce_editor-1d2c45ff3b.css","https://du11hjcvx0uqb.cloudfront.net/dist/brandable_css/no_variables/bundles/fonts-eb4a10fb18.css"],"captcha_site_key":"6LftyLgZAAAAAC10tel8XGucbApMIY8-uFB_yVcN","current_user_id":"13246","current_user_global_id":"206640000000013246","current_user_uuid":"C0aVTliu1FBhhcR5lCRVd383GdGnJzD5ylLz2Cmv","current_user_usage_metrics_id":"1561d1f946ac9d2d695cec30529d554f64fd0194542c23b6a973f602105c16a5","current_user_roles":["user","student"],"current_user_is_student":true,"current_user_types":[],"current_user_disabled_inbox":false,"current_user_visited_tabs":null,"discussions_reporting":true,"files_domain":"cluster267.canvas-user-content.com","group_information":null,"DOMAIN_ROOT_ACCOUNT_ID":"206640000000000001","DOMAIN_ROOT_ACCOUNT_UUID":"iSQZ20vbzGVsbMi4uZhBPAkHxz1HP2x1EunoiXEn","CAREER_THEME_URL":null,"CAREER_DARK_THEME_URL":null,"k12":false,"help_link_name":"Help","help_link_icon":"help","ADA_CHATBOT_ENABLED":false,"use_high_contrast":false,"auto_show_cc":false,"disable_celebrations":false,"disable_keyboard_shortcuts":false,"LTI_LAUNCH_FRAME_ALLOWANCES":["geolocation *","microphone *","camera *","midi *","encrypted-media *","autoplay *","clipboard-write *","display-capture *"],"DEEP_LINKING_POST_MESSAGE_ORIGIN":"https://ust.instructure.com","comment_library_suggestions_enabled":false,"SETTINGS":{"open_registration":false,"collapse_global_nav":true,"release_notes_badge_disabled":false,"can_add_pronouns":true,"show_sections_in_course_tray":true,"enable_content_a11y_checker":false,"suppress_assignments":false},"RAILS_ENVIRONMENT":"production","use_dyslexic_font":false,"IN_PACED_COURSE":false,"SENTRY_FRONTEND":{"dsn":"https://355a1d96717e4038ac25aa852fa79a8f@relay-sin.sentry.insops.net/388","org_slug":"instructure","base_url":"https://sentry.insops.net","normalized_route":"/courses/{course_id}/files/{id}","errors_sample_rate":"0.005","traces_sample_rate":"0.005","url_deny_pattern":"instructure-uploads.*amazonaws.com","revision":"canvas-lms@20260311.409"},"DATA_COLLECTION_ENDPOINT":"https://canvas-frontend-data-sin-prod.inscloudgate.net/submit","DOMAIN_ROOT_ACCOUNT_SFID":"001A000001LxB9rIAF","DIRECT_SHARE_ENABLED":false,"CAN_VIEW_CONTENT_SHARES":false,"FEATURES":{"account_level_blackout_dates":false,"assignment_edit_placement_not_on_announcements":false,"a11y_checker_ga2_features":false,"block_content_editor_toolbar_reorder":false,"commons_new_quizzes":true,"consolidated_media_player":true,"courses_popout_sisid":true,"create_external_apps_side_tray_overrides":false,"dashboard_graphql_integration":false,"developer_key_user_agent_alert":true,"disallow_threaded_replies_fix_alert":true,"disallow_threaded_replies_manage":true,"discussion_ai_survey_link":false,"discussion_checkpoints":true,"discussion_permalink":true,"enhanced_course_creation_account_fetching":false,"explicit_latex_typesetting":false,"feature_flag_ui_sorting":true,"files_a11y_rewrite":true,"files_a11y_rewrite_toggle":true,"horizon_course_setting":false,"instui_for_import_page":true,"instui_header":false,"media_links_use_attachment_id":true,"multiselect_gradebook_filters":true,"nav_menu_links":false,"new_quizzes_media_type":true,"new_quizzes_navigation_updates":true,"permanent_page_links":true,"rce_a11y_resize":true,"rce_asr_captioning_improvements":false,"rce_find_replace":true,"render_both_to_do_lists":false,"scheduled_feedback_releases":true,"speedgrader_studio_media_capture":true,"student_access_token_management":true,"validate_call_to_action":false,"block_content_editor_ai_alt_text":true,"ux_list_concluded_courses_in_bp":true,"account_level_mastery_scales":false,"ams_root_account_integration":false,"ams_advanced_content_organization":false,"api_rate_limits":true,"buttons_and_icons_root_account":true,"canvas_apps_sub_account_access":true,"course_pace_allow_bulk_pace_assign":false,"course_pace_download_document":false,"course_pace_draft_state":false,"course_pace_pacing_status_labels":false,"course_pace_pacing_with_mastery_paths":false,"course_pace_time_selection":false,"course_pace_weighted_assignments":false,"course_paces_skip_selected_days":false,"create_course_subaccount_picker":true,"disable_iframe_sandbox_file_show":false,"extended_submission_state":false,"file_verifiers_for_quiz_links":true,"instui_nav":false,"login_registration_ui_identity":true,"lti_apps_page_ai_translation":true,"lti_apps_page_instructors":false,"lti_asset_processor":true,"lti_asset_processor_discussions":false,"lti_deactivate_registrations":false,"lti_link_to_apps_from_developer_keys":true,"lti_registrations_discover_page":true,"lti_registrations_next":true,"lti_registrations_templates":false,"lti_registrations_usage_data":true,"lti_registrations_usage_data_dev":false,"lti_registrations_usage_data_low_usage":false,"lti_registrations_usage_tab":false,"lti_toggle_placements":true,"mobile_offline_mode":true,"modules_requirements_allow_percentage":false,"non_scoring_rubrics":true,"open_tools_in_new_tab":true,"pendo_extended":false,"product_tours":false,"rce_lite_enabled_speedgrader_comments":true,"rce_transform_loaded_content":false,"react_discussions_post":true,"restrict_student_access":false,"rubric_criterion_range":true,"scheduled_page_publication":true,"send_usage_metrics":false,"top_navigation_placement":false,"youtube_migration":false,"widget_dashboard":false,"account_survey_notifications":false,"embedded_release_notes":true,"canvas_k6_theme":false,"lti_asset_processor_course":false,"new_math_equation_handling":true,"youtube_overlay":false,"rce_studio_embed_improvements":false,"a11y_checker_ai_table_caption_generation":false,"a11y_checker_ai_alt_text_generation":false,"a11y_checker_close_issues":false,"a11y_checker_additional_resources":false,"peer_review_allocation_and_grading":false},"current_user":{"id":"13246","anonymous_id":"a7y","display_name":"VINCENT YURI JOSE","avatar_image_url":"https://ust.instructure.com/images/thumbnails/147275/q8HTiIe4WuKGqwGLw6tT3yBMUB5iC9idY7NZUGic","html_url":"https://ust.instructure.com/about/13246","pronouns":null,"avatar_is_fallback":false,"email":"vincentyuri.jose.cics@ust.edu.ph"},"current_user_is_admin":false,"page_view_update_url":"/page_views/09a5e0c2-94ec-4600-b332-5c9cd4836e70?page_view_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpIjoiMDlhNWUwYzItOTRlYy00NjAwLWIzMzItNWM5Y2Q0ODM2ZTcwIiwidSI6MjA2NjQwMDAwMDAwMDEzMjQ2LCJjIjoiMjAyNi0wMy0xN1QyMDozOTo0NS4wOFoifQ.e8KuKcVuI93B8Y_Eil3S7N1XqnzBLGIEHTjyEDuwf88","context_asset_string":"course_56997","ping_url":"https://ust.instructure.com/api/v1/courses/56997/ping","TIMEZONE":"Asia/Manila","CONTEXT_TIMEZONE":"Asia/Manila","LOCALES":["en"],"BIGEASY_LOCALE":"en_US","FULLCALENDAR_LOCALE":"en","MOMENT_LOCALE":"en","rce_auto_save_max_age_ms":86400000,"K5_USER":false,"USE_CLASSIC_FONT":false,"K5_HOMEROOM_COURSE":false,"K5_SUBJECT_COURSE":false,"LOCALE_TRANSLATION_FILE":"https://du11hjcvx0uqb.cloudfront.net/dist/javascripts/translations/en-8fd625a536.json","ACCOUNT_ID":"152","user_cache_key":"21e8d508179cb74fa72c03653baf14513c242d911dae3e344482ae239096eaec32b0c0ffacbc84998635576fda075bda6a969e23d8df7c1bb2899e836bf4da1c","horizon_course":false,"HORIZON_ACCOUNT":false,"current_context":{"id":"56997","name":"3CSE - OPERATING SYSTEMS","type":"Course","url":"https://ust.instructure.com/courses/56997"},"badge_counts":{"submissions":1},"notices":[],"active_context_tab":"files"};
+    BRANDABLE_CSS_HANDLEBARS_INDEX = [["new_styles_normal_contrast","new_styles_high_contrast","new_styles_normal_contrast_rtl","new_styles_high_contrast_rtl","new_styles_normal_contrast_dyslexic","new_styles_high_contrast_dyslexic","new_styles_normal_contrast_dyslexic_rtl","new_styles_high_contrast_dyslexic_rtl"],{"10":["908ffbc673",0,"d5c9044c6e",2,0,0,2,2],"15":["c8540c43a4",0,"0a2196be1d",2,0,0,2,2],"19":["df5777ed9c"],"61":["d5c4afc14e","ebb835cdef","384361a056","2e0ba247d5",0,1,2,3],"67":["db2aeb63d1",0,"32c90f1518",2,0,0,2,2],"71":["b848cc547a","83ae671549","d1c7bac7c6","0888a4a9e7",0,1,2,3],"06":["ba28819778",0,"96b99aafe5",2,0,0,2,2],"f0":["b349f31f5e",0,0,0,0,0,0,0],"c8":["aeda914f8b","c49cb30680","817080456d","ea2c01509e",0,1,2,3],"1e":["834e660fc6","35fd7c2fa0","99d344b95a","3de47096dc",0,1,2,3],"0c":["4dae5befd2",0,"c18876be89",2,0,0,2,2],"da":["b5a7f9cd8f","6e65f5abf7","773390ae11","6481b459be",0,1,2,3],"1d":["2128789890",0,"e568085637",2,0,0,2,2],"08":["64bff5a97d"],"e2":["79d37f210d"],"9f":["d39b291ba6",0,0,0,0,0,0,0],"2b":["20b6964699","b11dc54da6","62fe3ea30b","6bb4a7ae9e",0,1,2,3],"2c":["8a926fc28b",0,0,0,0,0,0,0],"c2":["6f2721ae01"],"9c":["c31821c764",0,"1693aba1da",2,0,0,2,2],"c5":["b5d5bef953","09b4a0b487","27a133737e","2098769aea",0,1,2,3],"f2":["51574f9b13"]}]
+      REMOTES = {};
+  </script>
+  <script src="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/variables-9dec371ad57e3dd0396f0b2eddb63479.js.download" defer="defer"></script>
+  <script src="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/Manila-3334582d41.js.download" defer="defer"></script>
+  <script src="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/Manila-3334582d41.js.download" defer="defer"></script>
+  <script src="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/en_US-80a0ce259b.js.download" defer="defer"></script>
+  <script src="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/react-entry-be1bde4765d8e661.js.download" crossorigin="anonymous" defer="defer"></script>
+  <script src="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/main-entry-6435e9f685a3516d.js.download" crossorigin="anonymous" defer="defer"></script>
+<script>
+//<![CDATA[
+(window.bundles || (window.bundles = [])).push('module_sequence_footer');
+(window.bundles || (window.bundles = [])).push('file_show');
+(window.bundles || (window.bundles = [])).push('navigation_header');
+//]]>
+</script>
+  
+<style type="text/css"></style><script src="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/loader.js.download" async="" type="text/javascript"></script><style type="text/css">.mejs-offscreen{clip:rect(1px 1px 1px 1px);clip:rect(1px,1px,1px,1px);clip-path:polygon(0px 0,0 0,0 0,0 0);position:absolute!important;height:1px;width:1px;overflow:hidden}.mejs-container{position:relative;background:#000;font-family:Helvetica,Arial,serif;text-align:left;vertical-align:top;text-indent:0}.mejs-fill-container,.mejs-fill-container .mejs-container{width:100%;height:100%}.mejs-fill-container{overflow:hidden}.mejs-container:focus{outline:0}.me-plugin{position:absolute}.mejs-embed,.mejs-embed body{width:100%;height:100%;margin:0;padding:0;background:#000;overflow:hidden}.mejs-fullscreen{overflow:hidden!important}.mejs-container-fullscreen{position:fixed;left:0;top:0;right:0;bottom:0;overflow:hidden;z-index:1000}.mejs-container-fullscreen .mejs-mediaelement,.mejs-container-fullscreen video{width:100%;height:100%}.mejs-clear{clear:both}.mejs-background{position:absolute;top:0;left:0}.mejs-mediaelement{position:absolute;top:0;left:0;width:100%;height:100%}.mejs-poster{position:absolute;top:0;left:0;background-size:contain;background-position:50% 50%;background-repeat:no-repeat}:root .mejs-poster img{display:none}.mejs-poster img{border:0;padding:0}.mejs-overlay{position:absolute;top:0;left:0}.mejs-overlay-play{cursor:pointer}.mejs-overlay-button{position:absolute;top:50%;left:50%;width:100px;height:100px;margin:-50px 0 0 -50px;background:url(https://du11hjcvx0uqb.cloudfront.net/dist/webpack-production/ab412966d30a966c.svg) no-repeat}.no-svg .mejs-overlay-button{background-image:url(https://du11hjcvx0uqb.cloudfront.net/dist/webpack-production/403b9897d2f9584a.png)}.mejs-overlay:hover .mejs-overlay-button{background-position:0 -100px}.mejs-overlay-loading{position:absolute;top:50%;left:50%;width:80px;height:80px;margin:-40px 0 0 -40px;background:#333;background:url(https://du11hjcvx0uqb.cloudfront.net/dist/webpack-production/019e02a0194687d6.png);background:rgba(0,0,0,.9);background:-webkit-gradient(linear,0 0,0 100%,from(rgba(50,50,50,.9)),to(rgba(0,0,0,.9)));background:-webkit-linear-gradient(top,rgba(50,50,50,.9),rgba(0,0,0,.9));background:-moz-linear-gradient(top,rgba(50,50,50,.9),rgba(0,0,0,.9));background:-o-linear-gradient(top,rgba(50,50,50,.9),rgba(0,0,0,.9));background:-ms-linear-gradient(top,rgba(50,50,50,.9),rgba(0,0,0,.9));background:linear-gradient(rgba(50,50,50,.9),rgba(0,0,0,.9))}.mejs-overlay-loading span{display:block;width:80px;height:80px;background:transparent url(https://du11hjcvx0uqb.cloudfront.net/dist/webpack-production/3d2aa6c0efad5113.gif) 50% 50% no-repeat}.mejs-container .mejs-controls{position:absolute;list-style-type:none;margin:0;padding:0;bottom:0;left:0;background:url(https://du11hjcvx0uqb.cloudfront.net/dist/webpack-production/019e02a0194687d6.png);background:rgba(0,0,0,.7);background:-webkit-gradient(linear,0 0,0 100%,from(rgba(50,50,50,.7)),to(rgba(0,0,0,.7)));background:-webkit-linear-gradient(top,rgba(50,50,50,.7),rgba(0,0,0,.7));background:-moz-linear-gradient(top,rgba(50,50,50,.7),rgba(0,0,0,.7));background:-o-linear-gradient(top,rgba(50,50,50,.7),rgba(0,0,0,.7));background:-ms-linear-gradient(top,rgba(50,50,50,.7),rgba(0,0,0,.7));background:linear-gradient(rgba(50,50,50,.7),rgba(0,0,0,.7));height:30px;width:100%}.mejs-container .mejs-controls div{list-style-type:none;background-image:none;display:block;float:left;margin:0;padding:0;width:26px;height:26px;font-size:11px;line-height:11px;font-family:Helvetica,Arial,serif;border:0}.mejs-controls .mejs-button button{cursor:pointer;display:block;font-size:0;line-height:0;text-decoration:none;margin:7px 5px;padding:0;position:absolute;height:16px;width:16px;border:0;background:transparent url(https://du11hjcvx0uqb.cloudfront.net/dist/webpack-production/e63625629c427008.svg) no-repeat}.no-svg .mejs-controls .mejs-button button{background-image:url(https://du11hjcvx0uqb.cloudfront.net/dist/webpack-production/21af56cf08cc9170.png)}.mejs-controls .mejs-button button:focus{outline:dotted 1px #999}.mejs-container .mejs-controls .mejs-time{color:#fff;display:block;height:17px;width:auto;padding:10px 3px 0;overflow:hidden;text-align:center;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}.mejs-container .mejs-controls .mejs-time a{color:#fff;font-size:11px;line-height:12px;display:block;float:left;margin:1px 2px 0 0;width:auto}.mejs-controls .mejs-play button{background-position:0 0}.mejs-controls .mejs-pause button{background-position:0 -16px}.mejs-controls .mejs-stop button{background-position:-112px 0}.mejs-controls div.mejs-time-rail{direction:ltr;width:200px;padding-top:5px}.mejs-controls .mejs-time-rail span,.mejs-controls .mejs-time-rail a{display:block;position:absolute;width:180px;height:10px;-webkit-border-radius:2px;-moz-border-radius:2px;border-radius:2px;cursor:pointer}.mejs-controls .mejs-time-rail .mejs-time-total{margin:5px;background:#333;background:rgba(50,50,50,.8);background:-webkit-gradient(linear,0 0,0 100%,from(rgba(30,30,30,.8)),to(rgba(60,60,60,.8)));background:-webkit-linear-gradient(top,rgba(30,30,30,.8),rgba(60,60,60,.8));background:-moz-linear-gradient(top,rgba(30,30,30,.8),rgba(60,60,60,.8));background:-o-linear-gradient(top,rgba(30,30,30,.8),rgba(60,60,60,.8));background:-ms-linear-gradient(top,rgba(30,30,30,.8),rgba(60,60,60,.8));background:linear-gradient(rgba(30,30,30,.8),rgba(60,60,60,.8))}.mejs-controls .mejs-time-rail .mejs-time-buffering{width:100%;background-image:-o-linear-gradient(-45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);background-image:-webkit-gradient(linear,0 100%,100% 0,color-stop(0.25,rgba(255,255,255,.15)),color-stop(0.25,transparent),color-stop(0.5,transparent),color-stop(0.5,rgba(255,255,255,.15)),color-stop(0.75,rgba(255,255,255,.15)),color-stop(0.75,transparent),to(transparent));background-image:-webkit-linear-gradient(-45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);background-image:-moz-linear-gradient(-45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);background-image:-ms-linear-gradient(-45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);background-image:linear-gradient(-45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);-webkit-background-size:15px 15px;-moz-background-size:15px 15px;-o-background-size:15px 15px;background-size:15px 15px;-webkit-animation:buffering-stripes 2s linear infinite;-moz-animation:buffering-stripes 2s linear infinite;-ms-animation:buffering-stripes 2s linear infinite;-o-animation:buffering-stripes 2s linear infinite;animation:buffering-stripes 2s linear infinite}@-webkit-keyframes buffering-stripes{from{background-position:0 0}to{background-position:30px 0}}@-moz-keyframes buffering-stripes{from{background-position:0 0}to{background-position:30px 0}}@-ms-keyframes buffering-stripes{from{background-position:0 0}to{background-position:30px 0}}@-o-keyframes buffering-stripes{from{background-position:0 0}to{background-position:30px 0}}@keyframes buffering-stripes{from{background-position:0 0}to{background-position:30px 0}}.mejs-controls .mejs-time-rail .mejs-time-loaded{background:#3caac8;background:rgba(60,170,200,.8);background:-webkit-gradient(linear,0 0,0 100%,from(rgba(44,124,145,.8)),to(rgba(78,183,212,.8)));background:-webkit-linear-gradient(top,rgba(44,124,145,.8),rgba(78,183,212,.8));background:-moz-linear-gradient(top,rgba(44,124,145,.8),rgba(78,183,212,.8));background:-o-linear-gradient(top,rgba(44,124,145,.8),rgba(78,183,212,.8));background:-ms-linear-gradient(top,rgba(44,124,145,.8),rgba(78,183,212,.8));background:linear-gradient(rgba(44,124,145,.8),rgba(78,183,212,.8));width:0}.mejs-controls .mejs-time-rail .mejs-time-current{background:#fff;background:rgba(255,255,255,.8);background:-webkit-gradient(linear,0 0,0 100%,from(rgba(255,255,255,.9)),to(rgba(200,200,200,.8)));background:-webkit-linear-gradient(top,rgba(255,255,255,.9),rgba(200,200,200,.8));background:-moz-linear-gradient(top,rgba(255,255,255,.9),rgba(200,200,200,.8));background:-o-linear-gradient(top,rgba(255,255,255,.9),rgba(200,200,200,.8));background:-ms-linear-gradient(top,rgba(255,255,255,.9),rgba(200,200,200,.8));background:linear-gradient(rgba(255,255,255,.9),rgba(200,200,200,.8));width:0}.mejs-controls .mejs-time-rail .mejs-time-handle{display:none;position:absolute;margin:0;width:10px;background:#fff;-webkit-border-radius:5px;-moz-border-radius:5px;border-radius:5px;cursor:pointer;border:solid 2px #333;top:-2px;text-align:center}.mejs-controls .mejs-time-rail .mejs-time-float{position:absolute;display:none;background:#eee;width:36px;height:17px;border:solid 1px #333;top:-26px;margin-left:-18px;text-align:center;color:#111}.mejs-controls .mejs-time-rail .mejs-time-float-current{margin:2px;width:30px;display:block;text-align:center;left:0}.mejs-controls .mejs-time-rail .mejs-time-float-corner{position:absolute;display:block;width:0;height:0;line-height:0;border:solid 5px #eee;border-color:#eee transparent transparent;-webkit-border-radius:0;-moz-border-radius:0;border-radius:0;top:15px;left:13px}.mejs-long-video .mejs-controls .mejs-time-rail .mejs-time-float{width:48px}.mejs-long-video .mejs-controls .mejs-time-rail .mejs-time-float-current{width:44px}.mejs-long-video .mejs-controls .mejs-time-rail .mejs-time-float-corner{left:18px}.mejs-controls .mejs-fullscreen-button button{background-position:-32px 0}.mejs-controls .mejs-unfullscreen button{background-position:-32px -16px}.mejs-controls .mejs-volume-button{}.mejs-controls .mejs-mute button{background-position:-16px -16px}.mejs-controls .mejs-unmute button{background-position:-16px 0}.mejs-controls .mejs-volume-button{position:relative}.mejs-controls .mejs-volume-button .mejs-volume-slider{height:115px;width:25px;background:url(https://du11hjcvx0uqb.cloudfront.net/dist/webpack-production/019e02a0194687d6.png);background:rgba(50,50,50,.7);-webkit-border-radius:0;-moz-border-radius:0;border-radius:0;top:-115px;left:0;z-index:1;position:absolute;margin:0}.mejs-controls .mejs-volume-button:hover{-webkit-border-radius:0 0 4px 4px;-moz-border-radius:0 0 4px 4px;border-radius:0 0 4px 4px}.mejs-controls .mejs-volume-button .mejs-volume-slider .mejs-volume-total{position:absolute;left:11px;top:8px;width:2px;height:100px;background:#ddd;background:rgba(255,255,255,.5);margin:0}.mejs-controls .mejs-volume-button .mejs-volume-slider .mejs-volume-current{position:absolute;left:11px;top:8px;width:2px;height:100px;background:#ddd;background:rgba(255,255,255,.9);margin:0}.mejs-controls .mejs-volume-button .mejs-volume-slider .mejs-volume-handle{position:absolute;left:4px;top:-3px;width:16px;height:6px;background:#ddd;background:rgba(255,255,255,.9);cursor:N-resize;-webkit-border-radius:1px;-moz-border-radius:1px;border-radius:1px;margin:0}.mejs-controls a.mejs-horizontal-volume-slider{height:26px;width:56px;position:relative;display:block;float:left;vertical-align:middle}.mejs-controls .mejs-horizontal-volume-slider .mejs-horizontal-volume-total{position:absolute;left:0;top:11px;width:50px;height:8px;margin:0;padding:0;font-size:1px;-webkit-border-radius:2px;-moz-border-radius:2px;border-radius:2px;background:#333;background:rgba(50,50,50,.8);background:-webkit-gradient(linear,0 0,0 100%,from(rgba(30,30,30,.8)),to(rgba(60,60,60,.8)));background:-webkit-linear-gradient(top,rgba(30,30,30,.8),rgba(60,60,60,.8));background:-moz-linear-gradient(top,rgba(30,30,30,.8),rgba(60,60,60,.8));background:-o-linear-gradient(top,rgba(30,30,30,.8),rgba(60,60,60,.8));background:-ms-linear-gradient(top,rgba(30,30,30,.8),rgba(60,60,60,.8));background:linear-gradient(rgba(30,30,30,.8),rgba(60,60,60,.8))}.mejs-controls .mejs-horizontal-volume-slider .mejs-horizontal-volume-current{position:absolute;left:0;top:11px;width:50px;height:8px;margin:0;padding:0;font-size:1px;-webkit-border-radius:2px;-moz-border-radius:2px;border-radius:2px;background:#fff;background:rgba(255,255,255,.8);background:-webkit-gradient(linear,0 0,0 100%,from(rgba(255,255,255,.9)),to(rgba(200,200,200,.8)));background:-webkit-linear-gradient(top,rgba(255,255,255,.9),rgba(200,200,200,.8));background:-moz-linear-gradient(top,rgba(255,255,255,.9),rgba(200,200,200,.8));background:-o-linear-gradient(top,rgba(255,255,255,.9),rgba(200,200,200,.8));background:-ms-linear-gradient(top,rgba(255,255,255,.9),rgba(200,200,200,.8));background:linear-gradient(rgba(255,255,255,.9),rgba(200,200,200,.8))}.mejs-controls .mejs-horizontal-volume-slider .mejs-horizontal-volume-handle{display:none}.mejs-controls .mejs-captions-button{position:relative}.mejs-controls .mejs-captions-button button{background-position:-48px 0}.mejs-controls .mejs-captions-button .mejs-captions-selector{position:absolute;bottom:26px;right:-51px;width:85px;height:100px;background:url(https://du11hjcvx0uqb.cloudfront.net/dist/webpack-production/019e02a0194687d6.png);background:rgba(50,50,50,.7);border:solid 1px transparent;padding:10px 10px 0;overflow:hidden;-webkit-border-radius:0;-moz-border-radius:0;border-radius:0}.mejs-controls .mejs-captions-button .mejs-captions-selector ul{margin:0;padding:0;display:block;list-style-type:none!important;overflow:hidden}.mejs-controls .mejs-captions-button .mejs-captions-selector ul li{margin:0 0 6px;padding:0;list-style-type:none!important;display:block;color:#fff;overflow:hidden}.mejs-controls .mejs-captions-button .mejs-captions-selector ul li input{clear:both;float:left;margin:3px 3px 0 5px}.mejs-controls .mejs-captions-button .mejs-captions-selector ul li label{width:55px;float:left;padding:4px 0 0;line-height:15px;font-family:Helvetica,Arial,serif;font-size:10px}.mejs-controls .mejs-captions-button .mejs-captions-translations{font-size:10px;margin:0 0 5px}.mejs-chapters{position:absolute;top:0;left:0;border-right:solid 1px #fff;width:10000px;z-index:1}.mejs-chapters .mejs-chapter{position:absolute;float:left;background:#222;background:rgba(0,0,0,.7);background:-webkit-gradient(linear,0 0,0 100%,from(rgba(50,50,50,.7)),to(rgba(0,0,0,.7)));background:-webkit-linear-gradient(top,rgba(50,50,50,.7),rgba(0,0,0,.7));background:-moz-linear-gradient(top,rgba(50,50,50,.7),rgba(0,0,0,.7));background:-o-linear-gradient(top,rgba(50,50,50,.7),rgba(0,0,0,.7));background:-ms-linear-gradient(top,rgba(50,50,50,.7),rgba(0,0,0,.7));background:linear-gradient(rgba(50,50,50,.7),rgba(0,0,0,.7));filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0, startColorstr=#323232, endColorstr=#000000);overflow:hidden;border:0}.mejs-chapters .mejs-chapter .mejs-chapter-block{font-size:11px;color:#fff;padding:5px;display:block;border-right:solid 1px #333;border-bottom:solid 1px #333;cursor:pointer}.mejs-chapters .mejs-chapter .mejs-chapter-block-last{border-right:0}.mejs-chapters .mejs-chapter .mejs-chapter-block:hover{background:#666;background:rgba(102,102,102,.7);background:-webkit-gradient(linear,0 0,0 100%,from(rgba(102,102,102,.7)),to(rgba(50,50,50,.6)));background:-webkit-linear-gradient(top,rgba(102,102,102,.7),rgba(50,50,50,.6));background:-moz-linear-gradient(top,rgba(102,102,102,.7),rgba(50,50,50,.6));background:-o-linear-gradient(top,rgba(102,102,102,.7),rgba(50,50,50,.6));background:-ms-linear-gradient(top,rgba(102,102,102,.7),rgba(50,50,50,.6));background:linear-gradient(rgba(102,102,102,.7),rgba(50,50,50,.6));filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0, startColorstr=#666666, endColorstr=#323232)}.mejs-chapters .mejs-chapter .mejs-chapter-block .ch-title{font-size:12px;font-weight:700;display:block;white-space:nowrap;text-overflow:ellipsis;margin:0 0 3px;line-height:12px}.mejs-chapters .mejs-chapter .mejs-chapter-block .ch-timespan{font-size:12px;line-height:12px;margin:3px 0 4px;display:block;white-space:nowrap;text-overflow:ellipsis}.mejs-captions-layer{position:absolute;bottom:0;left:0;text-align:center;line-height:20px;font-size:16px;color:#fff}.mejs-captions-layer a{color:#fff;text-decoration:underline}.mejs-captions-layer[lang=ar]{font-size:20px;font-weight:400}.mejs-captions-position{position:absolute;width:100%;bottom:15px;left:0}.mejs-captions-position-hover{bottom:35px}.mejs-captions-text,.mejs__captions-text *{padding:0;background:url(https://du11hjcvx0uqb.cloudfront.net/dist/webpack-production/019e02a0194687d6.png);background:rgba(20,20,20,.5);white-space:pre-wrap;-webkit-box-shadow:5px 0 0 rgba(20,20,20,.5),-5px 0 0 rgba(20,20,20,.5);box-shadow:5px 0 0 rgba(20,20,20,.5),-5px 0 0 rgba(20,20,20,.5)}.me-cannotplay{}.me-cannotplay a{color:#fff;font-weight:700}.me-cannotplay span{padding:15px;display:block}.mejs-controls .mejs-loop-off button{background-position:-64px -16px}.mejs-controls .mejs-loop-on button{background-position:-64px 0}.mejs-controls .mejs-backlight-off button{background-position:-80px -16px}.mejs-controls .mejs-backlight-on button{background-position:-80px 0}.mejs-controls .mejs-picturecontrols-button{background-position:-96px 0}.mejs-contextmenu{position:absolute;width:150px;padding:10px;border-radius:4px;top:0;left:0;background:#fff;border:solid 1px #999;z-index:1001}.mejs-contextmenu .mejs-contextmenu-separator{height:1px;font-size:0;margin:5px 6px;background:#333}.mejs-contextmenu .mejs-contextmenu-item{font-family:Helvetica,Arial,serif;font-size:12px;padding:4px 6px;cursor:pointer;color:#333}.mejs-contextmenu .mejs-contextmenu-item:hover{background:#2C7C91;color:#fff}.mejs-controls .mejs-sourcechooser-button{position:relative}.mejs-controls .mejs-sourcechooser-button button{background-position:-128px 0}.mejs-controls .mejs-sourcechooser-button .mejs-sourcechooser-selector{position:absolute;bottom:26px;right:-10px;width:130px;height:100px;background:url(https://du11hjcvx0uqb.cloudfront.net/dist/webpack-production/019e02a0194687d6.png);background:rgba(50,50,50,.7);border:solid 1px transparent;padding:10px;overflow:hidden;-webkit-border-radius:0;-moz-border-radius:0;border-radius:0}.mejs-controls .mejs-sourcechooser-button .mejs-sourcechooser-selector ul{margin:0;padding:0;display:block;list-style-type:none!important;overflow:hidden}.mejs-controls .mejs-sourcechooser-button .mejs-sourcechooser-selector ul li{margin:0 0 6px;padding:0;list-style-type:none!important;display:block;color:#fff;overflow:hidden}.mejs-controls .mejs-sourcechooser-button .mejs-sourcechooser-selector ul li input{clear:both;float:left;margin:3px 3px 0 5px}.mejs-controls .mejs-sourcechooser-button .mejs-sourcechooser-selector ul li label{width:100px;float:left;padding:4px 0 0;line-height:15px;font-family:Helvetica,Arial,serif;font-size:10px}.mejs-postroll-layer{position:absolute;bottom:0;left:0;width:100%;height:100%;background:url(https://du11hjcvx0uqb.cloudfront.net/dist/webpack-production/019e02a0194687d6.png);background:rgba(50,50,50,.7);z-index:1000;overflow:hidden}.mejs-postroll-layer-content{width:100%;height:100%}.mejs-postroll-close{position:absolute;right:0;top:0;background:url(https://du11hjcvx0uqb.cloudfront.net/dist/webpack-production/019e02a0194687d6.png);background:rgba(50,50,50,.7);color:#fff;padding:4px;z-index:100;cursor:pointer}div.mejs-speed-button{width:46px!important;position:relative}.mejs-controls .mejs-button.mejs-speed-button button{background:transparent;width:36px;font-size:11px;line-height:normal;color:#fff}.mejs-controls .mejs-speed-button .mejs-speed-selector{position:absolute;top:-100px;left:-10px;width:60px;height:100px;background:url(https://du11hjcvx0uqb.cloudfront.net/dist/webpack-production/019e02a0194687d6.png);background:rgba(50,50,50,.7);border:solid 1px transparent;padding:0;overflow:hidden;-webkit-border-radius:0;-moz-border-radius:0;border-radius:0}.mejs-controls .mejs-speed-button .mejs-speed-selector ul li label.mejs-speed-selected{color:rgba(33,248,248,1)}.mejs-controls .mejs-speed-button .mejs-speed-selector ul{margin:0;padding:0;display:block;list-style-type:none!important;overflow:hidden}.mejs-controls .mejs-speed-button .mejs-speed-selector ul li{margin:0 0 6px;padding:0 10px;list-style-type:none!important;display:block;color:#fff;overflow:hidden}.mejs-controls .mejs-speed-button .mejs-speed-selector ul li input{clear:both;float:left;margin:3px 3px 0 5px}.mejs-controls .mejs-speed-button .mejs-speed-selector ul li label{width:60px;float:left;padding:4px 0 0;line-height:15px;font-family:Helvetica,Arial,serif;font-size:11px;color:#fff;margin-left:5px;cursor:pointer}.mejs-controls .mejs-speed-button .mejs-speed-selector ul li:hover{background-color:#c8c8c8!important;background-color:rgba(255,255,255,.4)!important}.mejs-controls .mejs-button.mejs-jump-forward-button{background:transparent url(https://du11hjcvx0uqb.cloudfront.net/dist/webpack-production/1b04fe65cf397777.png) no-repeat 3px 3px}.mejs-controls .mejs-button.mejs-jump-forward-button button{background:transparent;font-size:9px;line-height:normal;color:#fff}.mejs-controls .mejs-button.mejs-skip-back-button{background:transparent url(https://du11hjcvx0uqb.cloudfront.net/dist/webpack-production/83bc028944a3cf2a.png) no-repeat 3px 3px}.mejs-controls .mejs-button.mejs-skip-back-button button{background:transparent;font-size:9px;line-height:normal;color:#fff}</style><style type="text/css">/*
+ * Copyright (C) 2014 - present Instructure, Inc.
+ *
+ * This file is part of Canvas.
+ *
+ * Canvas is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, version 3 of the License.
+ *
+ * Canvas is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Affero General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* customizations to mediaelementplayer css */
+
+/*
+  Because this file is not proccessed by our brandable_css sass pipeline,
+  it cannot use our sass-direction helpers. So we have to handle RTL manually
+  by putting direction-specific styles in [dir="ltr"] or [dir="rtl"] blocks.
+*/
+/* stylelint-disable property-disallowed-list, declaration-property-value-disallowed-list */
+
+/* good menu widths */
+.mejs-sourcechooser-selector {
+  width: 160px;
+}
+.mejs-sourcechooser-selector label {
+  width: 160px !important;
+}
+
+.mejs-captions-selector {
+  width: 105px;
+}
+[dir="ltr"]  .mejs-captions-selector { text-align: left }
+[dir="rtl"]  .mejs-captions-selector { text-align: right }
+
+.mejs-captions-selector label {
+  width: 70px !important;
+}
+
+/* Subtitile upload link */
+.mejs-captions-selector .upload-track {
+  color: white;
+  margin-top: 3px;
+  margin-bottom: 5px;
+}
+[dir="ltr"] .mejs-captions-selector .upload-track {
+  margin-right: 0px;
+  margin-left: 5px;
+  float: left;
+}
+[dir="rtl"] .mejs-captions-selector .upload-track {
+  margin-left: 0px;
+  margin-right: 5px;
+  float: right;
+}
+
+/* inherited caption "?" icon for tooltip */
+.mejs-captions-selector .track-tip-container {
+  position: absolute;
+  top: 5px;
+}
+
+/* "x" button to remove a subtitle */
+.mejs-captions-selector a[data-remove] {
+  position: absolute;
+  top: 5px;
+  color: white;
+}
+[dir="ltr"] .mejs-captions-selector a[data-remove] { right: 5px }
+[dir="rtl"] .mejs-captions-selector a[data-remove] { left: 5px }
+
+[dir="ltr"] .mejs-captions-selector .track-tip-container { right: 6px }
+[dir="rtl"] .mejs-captions-selector .track-tip-container { left: 6px }
+
+
+/* style menu items without a radio button */
+.mejs-button [role="menu"] {
+  padding: 0 !important;
+}
+ /* compensate for above 0 padding */
+ .mejs-button [role="menu"] ul li {
+  position: relative;
+  padding: 0 10px !important;
+}
+/* add a hover effect */
+.mejs-button [role="menu"] ul li:hover {
+  background-color: #c8c8c8 !important;
+  background-color: rgba(255, 255, 255, 0.4) !important;
+}
+.mejs-button [role="menu"] ul li input {
+  border: 0;
+  clip: rect(0 0 0 0);
+  position: absolute;
+  overflow: hidden;
+  margin: -1px;
+  padding: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.mejs-button [role="menu"] ul li input[type="radio"]:not(:checked)+span {
+  display: none;
+}
+
+.mejs-button [role="menu"] ul li input[type="radio"]:checked+span {
+  display: inline;
+  position: absolute;
+  top: 5px;
+  left: 2px;
+}
+
+.mejs-button [role="menu"] ul li label {
+  cursor: pointer;
+}
+[dir="ltr"] .mejs-button [role="menu"] ul li label { margin-left: 5px }
+[dir="rtl"] .mejs-button [role="menu"] ul li label { margin-right: 5px }
+
+
+.mejs-button [role="menu"] label.mejs-selected {
+  color: #21f8f8 !important;
+}
+
+.mejs-button.mejs-speed-button .mejs-speed-selector{
+  height: 150px;
+}
+.mejs-button.mejs-speed-button .mejs-speed-selector li, label { margin-bottom: 0px; }
+
+/* stylelint-enable property-disallowed-list, declaration-property-value-disallowed-list */
+</style><script type="text/javascript" src="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/jQueryPrivate.js.download" async=""></script><style data-emotion="css" data-s=""></style><link type="text/css" href="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/proactiveresources-base.min.css" rel="stylesheet"><link type="text/css" href="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/style.css" rel="stylesheet"><link type="text/css" href="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/support-center.min.css" rel="stylesheet"><link type="text/css" href="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/override-proactive.css" rel="stylesheet"><link type="text/css" href="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/support-center-theme-defaults.min.css" rel="stylesheet"><link type="text/css" href="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/support-center-theme-canvas.min.css" rel="stylesheet"><script type="module" src="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/impact.js.download" async=""></script><style data-styled="active" data-styled-version="6.1.18"></style><link type="text/css" href="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/support-tab-custom.min.css" rel="stylesheet"></head>
+
+<body class="with-left-side course-menu-expanded files primary-nav-transitions full-width context-course_56997 responsive_student_grades_page webkit chrome no-touch" data-new-gr-c-s-check-loaded="14.1277.0" data-gr-ext-installed="" style="--eesy-tab-custom-primary-color: #ffffff; --eesy-tab-custom-background-color: #fbb641; --eesy-tab-custom-position-left: 30px; --eesy-tab-custom-position-right: 30px; --eesy-tab-custom-position-bottom: 50px; --eesy-tab-custom-position-top: 120px; --eesy-tab-custom-border-radius: 0px 0px 0px 0px; --eesy-tab-custom-scale: 0.65;" data-new-gr-c-s-loaded="14.1277.0"><div></div>
+
+<noscript>
+  <div role="alert" class="ic-flash-static ic-flash-error">
+    <div class="ic-flash__icon" aria-hidden="true">
+      <i class="icon-warning"></i>
+    </div>
+    <h1>You need to have JavaScript enabled in order to access this site.</h1>
+  </div>
+</noscript>
+
+
+
+
+<div id="flash_message_holder"></div>
+<div id="flash_screenreader_holder" role="alert" aria-live="assertive" aria-relevant="additions" class="screenreader-only" aria-atomic="true"></div>
+
+<div id="application" class="ic-app ">
+  
+
+
+
+
+<header id="mobile-header" class="no-print">
+  <button type="button" class="Button Button--icon-action-rev Button--large mobile-header-hamburger">
+    <i class="icon-solid icon-hamburger"></i>
+    <span id="mobileHeaderInboxUnreadBadge" class="menu-item__badge" style="min-width: 0px; top: 12px; height: 12px; right: 6px;"></span>
+    <span class="screenreader-only">Global Navigation Menu</span>
+  </button>
+  <div class="mobile-header-space"></div>
+    <a class="mobile-header-title expandable" href="https://ust.instructure.com/courses/56997" role="button" aria-controls="mobileContextNavContainer">
+      <div>125.26.ICS26012.3CSE</div>
+        <div>Introduction to Operating System-1</div>
+    </a>
+
+  <div id="nutrition_facts_mobile_container"></div>
+
+
+    <div class="mobile-header-space"></div>
+    <button type="button" class="Button Button--icon-action-rev Button--large mobile-header-arrow" aria-label="Navigation Menu">
+      <i class="icon-arrow-open-down" id="mobileHeaderArrowIcon"></i>
+    </button>
+</header>
+<nav id="mobileContextNavContainer" aria-expanded="false"><div></div></nav>
+
+<header id="header" class="ic-app-header no-print " aria-label="Global Header">
+  <a href="https://ust.instructure.com/courses/56997/files/7620807?module_item_id=1649292#content" id="skip_navigation_link">Skip To Content</a>
+  <div role="region" class="ic-app-header__main-navigation" aria-label="Global Navigation">
+      <div class="ic-app-header__logomark-container">
+        <a href="https://ust.instructure.com/" class="ic-app-header__logomark">
+          <span class="screenreader-only">Dashboard</span>
+        </a>
+      </div>
+    <ul id="menu" class="ic-app-header__menu-list">
+        <li class="menu-item ic-app-header__menu-list-item ">
+          <a id="global_nav_profile_link" role="button" href="https://ust.instructure.com/profile/settings" class="ic-app-header__menu-list-link">
+            <div class="menu-item-icon-container">
+              <div aria-hidden="true" class="fs-exclude ic-avatar ">
+                <img src="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/5a888553-7d4b-4431-b2a1-f258071ca148" alt="VINCENT YURI JOSE">
+              </div>
+              <span class="menu-item__badge"></span>
+            </div>
+            <div class="menu-item__text">
+              Account
+            </div>
+          </a>
+        </li>
+      <li class="ic-app-header__menu-list-item ">
+        <a id="global_nav_dashboard_link" href="https://ust.instructure.com/" class="ic-app-header__menu-list-link">
+          <div class="menu-item-icon-container" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" class="ic-icon-svg ic-icon-svg--dashboard" version="1.1" x="0" y="0" viewBox="0 0 280 200" enable-background="new 0 0 280 200" xml:space="preserve"><path d="M273.09,180.75H197.47V164.47h62.62A122.16,122.16,0,1,0,17.85,142a124,124,0,0,0,2,22.51H90.18v16.29H6.89l-1.5-6.22A138.51,138.51,0,0,1,1.57,142C1.57,65.64,63.67,3.53,140,3.53S278.43,65.64,278.43,142a137.67,137.67,0,0,1-3.84,32.57ZM66.49,87.63,50.24,71.38,61.75,59.86,78,76.12Zm147,0L202,76.12l16.25-16.25,11.51,11.51ZM131.85,53.82v-23h16.29v23Zm15.63,142.3a31.71,31.71,0,0,1-28-16.81c-6.4-12.08-15.73-72.29-17.54-84.25a8.15,8.15,0,0,1,13.58-7.2c8.88,8.21,53.48,49.72,59.88,61.81a31.61,31.61,0,0,1-27.9,46.45ZM121.81,116.2c4.17,24.56,9.23,50.21,12,55.49A15.35,15.35,0,1,0,161,157.3C158.18,152,139.79,133.44,121.81,116.2Z"></path></svg>
+
+          </div>
+          <div class="menu-item__text">
+            Dashboard
+          </div>
+        </a>
+      </li>
+        <li class="menu-item ic-app-header__menu-list-item ic-app-header__menu-list-item--active" aria-current="page">
+          <a id="global_nav_courses_link" role="button" href="https://ust.instructure.com/courses" class="ic-app-header__menu-list-link">
+            <div class="menu-item-icon-container" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" class="ic-icon-svg ic-icon-svg--courses" version="1.1" x="0" y="0" viewBox="0 0 280 259" enable-background="new 0 0 280 259" xml:space="preserve"><path d="M73.31,198c-11.93,0-22.22,8-24,18.73a26.67,26.67,0,0,0-.3,3.63v.3a22,22,0,0,0,5.44,14.65,22.47,22.47,0,0,0,17.22,8H200V228.19h-134V213.08H200V198Zm21-105.74h90.64V62H94.3ZM79.19,107.34V46.92H200v60.42Zm7.55,30.21V122.45H192.49v15.11ZM71.65,16.71A22.72,22.72,0,0,0,49,39.36V190.88a41.12,41.12,0,0,1,24.32-8h157V16.71ZM33.88,39.36A37.78,37.78,0,0,1,71.65,1.6H245.36V198H215.15v45.32h22.66V258.4H71.65a37.85,37.85,0,0,1-37.76-37.76Z"></path></svg>
+
+            </div>
+            <div class="menu-item__text">
+              Courses
+            </div>
+          </a>
+        </li>
+        <li class="menu-item ic-app-header__menu-list-item ">
+          <a id="global_nav_groups_link" role="button" href="https://ust.instructure.com/groups" class="ic-app-header__menu-list-link">
+            <div class="menu-item-icon-container" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" class="ic-icon-svg ic-icon-svg--groups" viewBox="0 0 200 135"><path d="M134.5 129.4c0-1.1 0-19.8-6.2-31.1-4.5-8.5-16.4-12.4-35-19.2-1.7-.6-3.4-1.1-5.1-1.7v-8.5c5.6-5.1 8.5-12.4 8.5-20.3V29.4C96.6 13 83.6 0 67.2 0S37.9 13 37.9 29.4v19.2c0 7.3 3.4 14.7 8.5 20.3v8.5c-1.7.6-3.4 1.1-5.1 1.7-18.6 6.2-30.5 10.7-35 19.2C0 109.6 0 128.8 0 129.4c0 3.4 2.3 5.6 5.6 5.6h123.7c3.5 0 5.7-2.3 5.2-5.6zm-123.2-5.7c.6-5.6 1.7-14.7 3.4-19.8C17 98.8 30 94.3 43.5 89.8c2.8-1.1 5.6-2.3 9-3.4 2.3-.6 4-2.8 4-5.1V66.7c0-1.7-.6-3.4-1.7-4.5-4-3.4-6.2-8.5-6.2-13.6V29.4c0-10.2 7.9-18.1 18.1-18.1s18.1 7.9 18.1 18.1v19.2c0 5.1-2.3 10.2-6.2 13.6-1.1 1.1-1.7 2.8-1.7 4.5v14.7c0 2.3 1.7 4.5 4 5.1 2.8 1.1 6.2 2.3 9 3.4 13.6 5.1 26.6 9.6 28.8 14.1 2.8 5.1 4 13.6 4.5 19.8H11.3zM196 79.1c-2.8-6.2-11.3-9.6-22.6-13.6l-1.7-.6v-3.4c4.5-4 6.8-9.6 6.8-15.8V35c0-12.4-9.6-22-22-22s-22 10.2-22 22v10.7c0 6.2 2.3 11.9 6.8 15.8V65l-1.7.6c-7.3 2.8-13 4.5-16.9 7.3-1.7 1.1-2.3 2.8-2.3 5.1.6 1.7 1.7 3.4 3.4 4.5 7.9 4 12.4 7.3 14.1 10.7 2.3 4.5 4 10.2 5.1 18.1.6 2.3 2.8 4.5 5.6 4.5h45.8c3.4 0 5.6-2.8 5.6-5.1 0-3.9 0-24.3-4-31.6zm-42.9 25.4c-1.1-6.8-2.8-12.4-5.1-16.9-1.7-4-5.1-6.8-9.6-10.2 1.7-1.1 3.4-1.7 5.1-2.3l5.6-2.3c1.7-.6 3.4-2.8 3.4-5.1v-9.6c0-1.7-.6-3.4-2.3-4.5-2.8-1.7-4.5-5.1-4.5-8.5V34.5c0-6.2 4.5-10.7 10.7-10.7s10.7 5.1 10.7 10.7v10.7c0 3.4-1.7 6.2-4.5 8.5-1.1 1.1-2.3 2.8-2.3 4.5v10.2c0 2.3 1.1 4.5 3.4 5.1l5.6 2.3c6.8 2.3 15.3 5.6 16.4 7.9 1.7 2.8 2.8 12.4 2.8 20.9h-35.4z"></path></svg>
+
+            </div>
+            <div class="menu-item__text">
+              Groups
+            </div>
+          </a>
+        </li>
+      <li class="menu-item ic-app-header__menu-list-item ">
+        <a id="global_nav_calendar_link" href="https://ust.instructure.com/calendar" class="ic-app-header__menu-list-link">
+          <div class="menu-item-icon-container" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" class="ic-icon-svg ic-icon-svg--calendar" version="1.1" x="0" y="0" viewBox="0 0 280 280" enable-background="new 0 0 280 280" xml:space="preserve"><path d="M197.07,213.38h16.31V197.07H197.07Zm-16.31,16.31V180.76h48.92v48.92Zm-48.92-16.31h16.31V197.07H131.85Zm-16.31,16.31V180.76h48.92v48.92ZM66.62,213.38H82.93V197.07H66.62ZM50.32,229.68V180.76H99.24v48.92Zm146.75-81.53h16.31V131.85H197.07Zm-16.31,16.31V115.54h48.92v48.92Zm-48.92-16.31h16.31V131.85H131.85Zm-16.31,16.31V115.54h48.92v48.92ZM66.62,148.15H82.93V131.85H66.62ZM50.32,164.46V115.54H99.24v48.92ZM34,262.29H246V82.93H34ZM246,66.62V42.16A8.17,8.17,0,0,0,237.84,34H213.38v8.15a8.15,8.15,0,1,1-16.31,0V34H82.93v8.15a8.15,8.15,0,0,1-16.31,0V34H42.16A8.17,8.17,0,0,0,34,42.16V66.62Zm-8.15-48.92a24.49,24.49,0,0,1,24.46,24.46V278.6H17.71V42.16A24.49,24.49,0,0,1,42.16,17.71H66.62V9.55a8.15,8.15,0,0,1,16.31,0v8.15H197.07V9.55a8.15,8.15,0,1,1,16.31,0v8.15Z"></path></svg>
+
+          </div>
+          <div class="menu-item__text">
+            Calendar
+          </div>
+        </a>
+      </li>
+      <li class="menu-item ic-app-header__menu-list-item ">
+      <!-- TODO: Add back global search when available -->
+        <a id="global_nav_conversations_link" href="https://ust.instructure.com/conversations" class="ic-app-header__menu-list-link">
+          <div class="menu-item-icon-container">
+            <span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" class="ic-icon-svg ic-icon-svg--inbox" version="1.1" x="0" y="0" viewBox="0 0 280 280" enable-background="new 0 0 280 280" xml:space="preserve"><path d="M91.72,120.75h96.56V104.65H91.72Zm0,48.28h80.47V152.94H91.72Zm0-96.56h80.47V56.37H91.72Zm160.94,34.88H228.52V10.78h-177v96.56H27.34A24.17,24.17,0,0,0,3.2,131.48V244.14a24.17,24.17,0,0,0,24.14,24.14H252.66a24.17,24.17,0,0,0,24.14-24.14V131.48A24.17,24.17,0,0,0,252.66,107.34Zm0,16.09a8.06,8.06,0,0,1,8,8v51.77l-32.19,19.31V123.44ZM67.58,203.91v-177H212.42v177ZM27.34,123.44H51.48v79.13L19.29,183.26V131.48A8.06,8.06,0,0,1,27.34,123.44ZM252.66,252.19H27.34a8.06,8.06,0,0,1-8-8V202l30,18H230.75l30-18v42.12A8.06,8.06,0,0,1,252.66,252.19Z"></path></svg>
+</span>
+            <span class="menu-item__badge"><span dir="ltr"><span class="css-r9cwls-screenReaderContent">One unread message.</span><span aria-hidden="true">1</span></span></span>
+          </div>
+          <div class="menu-item__text">
+            Inbox
+          </div>
+        </a>
+      </li>
+        <li class="menu-item ic-app-header__menu-list-item">
+          <a id="global_nav_history_link" role="button" href="https://ust.instructure.com/courses/56997/files/7620807?module_item_id=1649292#" class="ic-app-header__menu-list-link">
+            <div class="menu-item-icon-container" aria-hidden="true">
+              <svg viewBox="0 0 1920 1920" class="ic-icon-svg menu-item__icon svg-icon-history" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <path d="M960 112.941c-467.125 0-847.059 379.934-847.059 847.059 0 467.125 379.934 847.059 847.059 847.059 467.125 0 847.059-379.934 847.059-847.059 0-467.125-379.934-847.059-847.059-847.059M960 1920C430.645 1920 0 1489.355 0 960S430.645 0 960 0s960 430.645 960 960-430.645 960-960 960m417.905-575.955L903.552 988.28V395.34h112.941v536.47l429.177 321.77-67.765 90.465z" stroke="none" stroke-width="1" fill-rule="evenodd"></path>
+</svg>
+            </div>
+            <div class="menu-item__text">
+              History
+            </div>
+          </a>
+        </li>
+        
+
+      <li class="ic-app-header__menu-list-item">
+        <a id="global_nav_help_link" role="button" class="ic-app-header__menu-list-link" data-track-category="help system" data-track-label="help button" href="https://ust.instructure.com/courses/56997/files/7620807?module_item_id=1649292#">
+          <div class="menu-item-icon-container" role="presentation">
+              <svg xmlns="http://www.w3.org/2000/svg" class="ic-icon-svg menu-item__icon svg-icon-help" version="1.1" x="0" y="0" viewBox="0 0 200 200" enable-background="new 0 0 200 200" xml:space="preserve" fill="currentColor"><path d="M100,127.88A11.15,11.15,0,1,0,111.16,139,11.16,11.16,0,0,0,100,127.88Zm8.82-88.08a33.19,33.19,0,0,1,23.5,23.5,33.54,33.54,0,0,1-24,41.23,3.4,3.4,0,0,0-2.74,3.15v9.06H94.42v-9.06a14.57,14.57,0,0,1,11.13-14,22.43,22.43,0,0,0,13.66-10.27,22.73,22.73,0,0,0,2.31-17.37A21.92,21.92,0,0,0,106,50.59a22.67,22.67,0,0,0-19.68,3.88,22.18,22.18,0,0,0-8.65,17.64H66.54a33.25,33.25,0,0,1,13-26.47A33.72,33.72,0,0,1,108.82,39.8ZM100,5.2A94.8,94.8,0,1,0,194.8,100,94.91,94.91,0,0,0,100,5.2m0,178.45A83.65,83.65,0,1,1,183.65,100,83.73,83.73,0,0,1,100,183.65" transform="translate(-5.2 -5.2)"></path></svg>
+
+            <span class="menu-item__badge"><span dir="ltr"><span class="css-r9cwls-screenReaderContent">10 unread release notes.</span><span aria-hidden="true">10</span></span></span>
+          </div>
+          <div class="menu-item__text">
+            Help
+          </div>
+</a>      </li>
+    </ul>
+  </div>
+  <div class="ic-app-header__secondary-navigation">
+    <ul class="ic-app-header__menu-list">
+      <li class="menu-item ic-app-header__menu-list-item">
+        <a id="primaryNavToggle" role="button" href="https://ust.instructure.com/courses/56997/files/7620807?module_item_id=1649292#" class="ic-app-header__menu-list-link ic-app-header__menu-list-link--nav-toggle" aria-label="Expand global navigation
+                " title="Expand global navigation
+                ">
+          <div class="menu-item-icon-container" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" class="ic-icon-svg ic-icon-svg--navtoggle" version="1.1" x="0" y="0" width="40" height="32" viewBox="0 0 40 32" xml:space="preserve">
+  <path d="M39.5,30.28V2.48H37.18v27.8Zm-4.93-13.9L22.17,4,20.53,5.61l9.61,9.61H.5v2.31H30.14l-9.61,9.61,1.64,1.64Z"></path>
+</svg>
+
+          </div>
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div id="global_nav_tray_container"></div>
+  <div id="global_nav_tour"></div>
+</header>
+
+
+  <div id="instructure_ajax_error_box">
+    <div style="text-align: right; background-color: #fff;"><a href="https://ust.instructure.com/courses/56997/files/7620807?module_item_id=1649292#" class="close_instructure_ajax_error_box_link">Close</a></div>
+    <iframe id="instructure_ajax_error_result" src="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/saved_resource.html" style="border: 0;" title="Error"></iframe>
+  </div>
+
+  <div id="wrapper" class="ic-Layout-wrapper">
+        <div class="ic-app-nav-toggle-and-crumbs no-print">
+            <button type="button" id="courseMenuToggle" class="Button Button--link ic-app-course-nav-toggle" aria-live="polite" aria-label="Hide Courses Navigation Menu">
+              <i class="icon-hamburger" aria-hidden="true"></i>
+            </button>
+
+          <div class="ic-app-crumbs ic-app-crumbs-enhanced-rubrics">
+              <nav id="breadcrumbs" role="navigation" aria-label="breadcrumbs"><ol><li class="home"><a href="https://ust.instructure.com/"><span class="ellipsible"><i class="icon-home" title="My Dashboard">
+  <span class="screenreader-only">My Dashboard</span>
+</i>
+</span></a></li><li><a href="https://ust.instructure.com/courses/56997"><span class="ellipsible">125.26.ICS26012.3CSE</span></a></li><li><a href="https://ust.instructure.com/courses/56997/files"><span class="ellipsible">Files</span></a></li><li aria-current="page"><a href="https://ust.instructure.com/courses/56997/files/7620807"><span class="ellipsible">Introduction to Operating System-1</span></a></li></ol></nav>
+          </div>
+
+
+          <div id="nutrition_facts_container"></div>
+          <div class="right-of-crumbs right-of-crumbs-no-reverse">
+              
+            <div id="ai-information-mount"></div>
+          </div>
+
+        </div>
+    <div id="main" class="ic-Layout-columns">
+        <div class="ic-Layout-watermark" aria-hidden="true"></div>
+        <div id="left-side" class="ic-app-course-menu ic-sticky-on list-view" style="display: block">
+          <div id="sticky-container" class="ic-sticky-frame has-scrollbar">
+              <span id="section-tabs-header-subtitle" class="ellipsis">2nd Term SY 2025-2026</span>
+            <nav role="navigation" aria-label="Courses Navigation Menu"><ul id="section-tabs"><li class="section"><a id="home-link" href="https://ust.instructure.com/courses/56997" class="home" tabindex="0">Home</a></li><li class="section"><a id="igniteai-search-link" href="https://ust.instructure.com/courses/56997/search" class="search" tabindex="0">IgniteAI Search</a></li><li class="section"><a id="announcements-link" href="https://ust.instructure.com/courses/56997/announcements" class="announcements" tabindex="0">Announcements</a></li><li class="section"><a id="assignments-link" href="https://ust.instructure.com/courses/56997/assignments" class="assignments" tabindex="0">Assignments</a></li><li class="section"><a id="discussions-link" href="https://ust.instructure.com/courses/56997/discussion_topics" class="discussions" tabindex="0">Discussions</a></li><li class="section"><a id="grades-link" href="https://ust.instructure.com/courses/56997/grades" class="grades" tabindex="0">Grades<b class="nav-badge">1</b></a></li><li class="section"><a id="people-link" href="https://ust.instructure.com/courses/56997/users" class="people" tabindex="0">People</a></li><li class="section"><a id="files-link" href="https://ust.instructure.com/courses/56997/files" aria-current="page" class="files active" tabindex="0">Files</a></li><li class="section"><a id="syllabus-link" href="https://ust.instructure.com/courses/56997/assignments/syllabus" class="syllabus" tabindex="0">Syllabus</a></li><li class="section"><a id="quizzes-link" href="https://ust.instructure.com/courses/56997/quizzes" class="quizzes" tabindex="0">Quizzes</a></li><li class="section"><a id="modules-link" href="https://ust.instructure.com/courses/56997/modules" class="modules" tabindex="0">Modules</a></li><li class="section"><a id="collaborations-link" href="https://ust.instructure.com/courses/56997/collaborations" class="collaborations" tabindex="0">Collaborations</a></li><li class="section"><a id="context_external_tool_169-link" href="https://ust.instructure.com/courses/56997/external_tools/169" class="context_external_tool_169" tabindex="0">UST Zoom</a></li><li class="section"><a id="context_external_tool_170-link" href="https://ust.instructure.com/courses/56997/external_tools/170" class="context_external_tool_170" tabindex="0">Panopto Video</a></li><li class="section"><a id="context_external_tool_636-link" href="https://ust.instructure.com/courses/56997/external_tools/636" class="context_external_tool_636" tabindex="0">Gradescope</a></li><li class="section"><a id="context_external_tool_1530-link" href="https://ust.instructure.com/courses/56997/external_tools/1530" class="context_external_tool_1530" tabindex="0">Parchment Badges</a></li><li class="section"><a id="context_external_tool_1560-link" href="https://ust.instructure.com/courses/56997/external_tools/1560" class="context_external_tool_1560" tabindex="0">e-Learning Handbook</a></li><li class="section"><a id="context_external_tool_1561-link" href="https://ust.instructure.com/courses/56997/external_tools/1561" class="context_external_tool_1561" tabindex="0">Miguel de Benavides Library</a></li><li class="section"><a id="context_external_tool_1708-link" href="https://ust.instructure.com/courses/56997/external_tools/1708" class="context_external_tool_1708" tabindex="0">Google Gemini</a></li></ul></nav>
+          </div>
+        </div>
+      <div id="not_right_side" class="ic-app-main-content">
+        <div id="content-wrapper" class="ic-Layout-contentWrapper">
+          
+          <div id="content" class="ic-Layout-contentMain" role="main">
+            
+  <h2>Introduction to Operating System-1</h2>
+  <div>
+    <span style="font-size: 1.2em;">
+      <a download="true" href="https://ust.instructure.com/courses/56997/files/7620807/download?download_frd=1">Download Introduction to Operating System-1</a>
+    </span> (2.09 MB)
+  </div>
+    <div id="doc_preview" data-canvadoc_session_url="/api/v1/canvadoc_session?blob=%7B%22anonymous_instructor_annotations%22:null,%22enable_annotations%22:null,%22submission_id%22:null,%22user_id%22:206640000000013246,%22attachment_id%22:7620807,%22type%22:%22canvadoc%22%7D&amp;hmac=aab24a06378e759f3de9e8f836e7a23deaee527f" data-attachment_name="Introduction to Operating System-1" data-attachment_id="7620807" data-mimetype="application/pdf" data-attachment_view_inline_ping_url="https://ust.instructure.com/courses/56997/files/7620807/inline_view" data-attachment_preview_processing="true" style="height: 400px;"><div style="overflow: auto; resize: vertical; border: 1px solid transparent; height: 100%;"><iframe aria-label="File preview for Introduction to Operating System-1" src="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/canvadoc_session.html" width="100%" allowfullscreen="1" style="border: 0; overflow: auto; height: 99%; min-height: 800px" id="undefined"></iframe></div></div>
+
+  <div id="sequence_footer" data-course-id="56997" data-asset-id="7620807" data-asset-type="File"><div class="module-sequence-padding"></div>
+<div class="module-sequence-footer" role="navigation" aria-label="Module Navigation">
+  <div class="module-sequence-footer-content">
+    <div class="module-sequence-footer-left">
+      
+    </div>
+    <div class="module-sequence-footer-right">
+      
+        <span class="module-sequence-footer-button--next"><span data-position="Popover___0" class="css-1ihz85b-position"><a dir="ltr" aria-label="Next Module Item" aria-describedby="Tooltip___0" data-popover-trigger="true" data-position-target="Popover___0" cursor="pointer" href="https://ust.instructure.com/courses/56997/modules/items/1649293" class="css-pbm3ki-view--inlineBlock-baseButton"><span class="css-1ta5ds2-baseButton__content"><span class="css-11xkk0o-baseButton__children"><span dir="ltr" direction="row" wrap="no-wrap" class="css-1fhlhgp-view--flex-flex">Next <svg name="IconMiniArrowEnd" viewBox="0 0 1920 1920" rotate="0" width="1em" height="1em" aria-hidden="true" role="presentation" focusable="false" class="css-1xnn9jb-inlineSVG-svgIcon" style="width: 1em; height: 1em;"><g role="presentation"><path d="M1225.982 926.244c27.296 18.796 27.3 49.269 0 68.067l-509.836 351.074c-27.296 18.797-49.424 7.18-49.424-25.959V601.13c0-33.133 22.125-44.757 49.424-25.959l509.836 351.074Z" fill-rule="evenodd"></path></g></svg></span></span></span></a></span></span>
+      
+    </div>
+  </div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+        <div id="right-side-wrapper" class="ic-app-main-content__secondary">
+          <aside id="right-side" role="complementary">
+            
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+    <div style="display:none;"><!-- Everything inside of this should always stay hidden -->
+        <div id="page_view_id">09a5e0c2-94ec-4600-b332-5c9cd4836e70</div>
+    </div>
+  <div id="aria_alerts" class="hide-text affix" role="alert" aria-live="assertive"></div>
+  <div id="StudentTray__Container"></div>
+    <div class="NewUserTutorialTray__Container"></div>
+  <div id="react-router-portals"></div>
+
+
+  
+
+  <iframe src="./Introduction to Operating System-1_ 3CSE - OPERATING SYSTEMS_files/post_message_forwarding.html" name="post_message_forwarding" title="post_message_forwarding" id="post_message_forwarding" sandbox="allow-scripts allow-same-origin" style="display:none;"></iframe>
+
+
+
+<script>
+//<![CDATA[
+(window.bundles || (window.bundles = [])).push('inst_fs_service_worker');
+//]]>
+</script>
+
+<script>
+  window.eesyLaunchConfig = {
+    host: 'ust-canvas.eesysoft.com',
+    key: 'MFkHk3Y8',
+    supportTab: true
+  };  (function() {
+      var e = document.createElement('script');
+      e.src = '//' + window.eesyLaunchConfig.host + "/resources/js/canvas/launch.js";
+      e.async = true;
+      e.type = 'text/javascript';      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(e, s);
+  } ());
+</script>
+
+
+</div> <!-- #application -->
+
+
+<div id="nav-tray-portal" style="position: relative; z-index: 99;"></div><span dir="ltr"><span dir="ltr" data-position-content="Popover___0" class="css-6o3toi-view--inlineBlock-contextView"><span dir="ltr" class="css-dch2aj-view--block-contextView__content"><span class="css-1990avv-contextView__arrow"></span><span id="Tooltip___0" role="tooltip" class="css-cfm3yr-tooltip"><i class="icon-paperclip"></i> ICS26012 Course Orientation 25-26.pdf</span></span></span></span><div id="impact-sr-alert" class="impact-sr-only" aria-live="polite"></div><div class="eesy eesy-tab-custom-container eesy-tab-display-type-floating eesy-tab-alignment-right eesy-tab-position-bottom eesy-tab-behaviour-draggable" style="position: fixed">
+            <div id="eesy-tab-custom-inner" data-eesy-role="support-center-button" class="eesy-tab-custom eesy-tab-custom-btn eesy-tab-corners-type-round-left eesy-tab-expandable eesy-tab-drag-controller-position-right">
+                <div class="eesy-tab-custom-btn-content" aria-label="Help" role="button" tabindex="0">
+                        <div class="eesy-tab-custom-btn-icon eesy-tab-icon-position-right ">
+                                <i aria-hidden="true" class="fa fa-question-circle"></i>
+                        </div>
+                        <div class="eesy-tab-custom-btn-text">Help</div>
+                </div>
+                    <div aria-label="Change Support Center position by pressing up and down arrows" class="eesy-tab-custom-btn-drag-handlers" id="eesy-tab-custom-drag-handlers">
+                        <i class="fa fa-chevron-left eesy-tab-custom-btn-handle-left" tabindex="0"></i>
+                        <i class="fa fa-chevron-right eesy-tab-custom-btn-handle-right" tabindex="0"></i>
+                    </div>
+            </div>
+        </div></body><grammarly-desktop-integration data-grammarly-shadow-root="true"><template shadowrootmode="open"><style>
+      div.grammarly-desktop-integration {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select:none;
+        user-select:none;
+      }
+
+      div.grammarly-desktop-integration:before {
+        content: attr(data-content);
+      }
+    </style><div aria-label="grammarly-integration" role="group" tabindex="-1" class="grammarly-desktop-integration" data-content="{&quot;mode&quot;:&quot;full&quot;,&quot;isActive&quot;:true,&quot;isUserDisabled&quot;:false}"></div></template></grammarly-desktop-integration></html>

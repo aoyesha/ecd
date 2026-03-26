@@ -44,6 +44,9 @@ class AppDb {
         if (oldVersion < 10) {
           await _upgradeToV10(db);
         }
+        if (oldVersion < 11) {
+          await _upgradeToV11(db);
+        }
       },
     );
   }
@@ -63,6 +66,7 @@ CREATE TABLE ${DbSchema.tUsers} (
   ${DbSchema.cUserDivision} TEXT,
   ${DbSchema.cUserRegion} TEXT,
   ${DbSchema.cUserCreatedAt} TEXT NOT NULL,
+  ${DbSchema.cUserLastMonthlyOtpAt} TEXT,
   UNIQUE(${DbSchema.cUserEmail}, ${DbSchema.cUserRole})
 )
 ''');
@@ -201,6 +205,7 @@ CREATE TABLE ${DbSchema.tRollupRows} (
     await _upgradeToV8(db);
     await _upgradeToV9(db);
     await _upgradeToV10(db);
+    await _upgradeToV11(db);
   }
 
   Future<void> _upgradeToV2(Database db) async {
@@ -458,6 +463,15 @@ FROM ${DbSchema.tUsers}
       db,
       DbSchema.tLearners,
       DbSchema.cLearnerDominantHand,
+      'TEXT',
+    );
+  }
+
+  Future<void> _upgradeToV11(Database db) async {
+    await _addColumnIfMissing(
+      db,
+      DbSchema.tUsers,
+      DbSchema.cUserLastMonthlyOtpAt,
       'TEXT',
     );
   }

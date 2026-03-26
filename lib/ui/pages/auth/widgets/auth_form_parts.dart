@@ -34,10 +34,11 @@ class AuthFormParts {
 
   static ButtonStyle actionButtonStyle() {
     return ElevatedButton.styleFrom(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF241617),
       foregroundColor: Colors.white,
-      minimumSize: const Size.fromHeight(46),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      elevation: 0,
+      minimumSize: const Size.fromHeight(50),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     );
   }
 }

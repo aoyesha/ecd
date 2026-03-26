@@ -12,16 +12,25 @@ class SectionTitle extends StatelessWidget {
     return Row(
       children: [
         Container(
-            width: 6,
-            height: 22,
-            decoration: BoxDecoration(
-                color: AppColors.maroon,
-                borderRadius: BorderRadius.circular(4))),
-        const SizedBox(width: 10),
+          width: 8,
+          height: 34,
+          decoration: BoxDecoration(
+            color: AppColors.maroon,
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        const SizedBox(width: 12),
         Expanded(
-            child: Text(title,
-                style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.w800))),
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF2B2021),
+              letterSpacing: 0.1,
+            ),
+          ),
+        ),
         if (trailing != null) trailing!,
       ],
     );

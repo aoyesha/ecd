@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants.dart';
+import '../../../core/ui_feedback.dart';
 import '../../../core/validators.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/settings_service.dart';
@@ -29,7 +30,8 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _hasUppercase(String v) => RegExp(r'[A-Z]').hasMatch(v);
   bool _hasLowercase(String v) => RegExp(r'[a-z]').hasMatch(v);
   bool _hasNumber(String v) => RegExp(r'[0-9]').hasMatch(v);
-  bool _hasSpecialChar(String v) => RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(v);
+  bool _hasSpecialChar(String v) =>
+      RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(v);
 
   bool _editingProfile = false;
   bool _obscureCurrentPw = true;
@@ -46,22 +48,24 @@ class _SettingsPageState extends State<SettingsPage> {
     'name': '',
     'email': '',
     'school': '',
-    'currentPw':'',
+    'currentPw': '',
   };
 
-  static const List<String> _regions = [
-    'MIMAROPA',
-  ];
+  static const List<String> _regions = ['MIMAROPA'];
 
-  static const Map<String,List<String>> _divisionsByRegion = {
+  static const Map<String, List<String>> _divisionsByRegion = {
     'MIMAROPA': [
-      'Oriental Mindoro','Occidental Mindoro','Marinduque',
-      'Romblon','Palawan','Puerto Princesa City','Calapan City',
+      'Oriental Mindoro',
+      'Occidental Mindoro',
+      'Marinduque',
+      'Romblon',
+      'Palawan',
+      'Puerto Princesa City',
+      'Calapan City',
     ],
   };
 
   static const Map<String, List<String>> _districtsByDivision = {
-
     // Occidental Mindoro
     'Occidental Mindoro': [
       'Abra de Ilog',
@@ -151,15 +155,9 @@ class _SettingsPageState extends State<SettingsPage> {
     ],
 
     // Independent Cities
-    'Puerto Princesa City': [
-      'Puerto Princesa North',
-      'Puerto Princesa South',
-    ],
+    'Puerto Princesa City': ['Puerto Princesa North', 'Puerto Princesa South'],
 
-    'Calapan City': [
-      'Calapan East',
-      'Calapan West',
-    ],
+    'Calapan City': ['Calapan East', 'Calapan West'],
   };
 
   @override
@@ -172,78 +170,92 @@ class _SettingsPageState extends State<SettingsPage> {
     super.dispose();
   }
 
-  void _hydrate(Map<String,Object?> user){
-    if(_loaded) return;
-    currentProfile['name'] = _nameCtrl.text=(user['name']??'').toString();
-    currentProfile['email'] = _emailCtrl.text=(user['email']??'').toString();
-    _schoolCtrl.text=(user['school']??'').toString();
-    _selectedRegion=(user['region']??'').toString().isEmpty?null:user['region'].toString();
-    _selectedDivision=(user['division']??'').toString().isEmpty?null:user['division'].toString();
-    _selectedDistrict=(user['district']??'').toString().isEmpty?null:user['district'].toString();
-    _loaded=true;
+  void _hydrate(Map<String, Object?> user) {
+    if (_loaded) return;
+    currentProfile['name'] = _nameCtrl.text = (user['name'] ?? '').toString();
+    currentProfile['email'] = _emailCtrl.text = (user['email'] ?? '')
+        .toString();
+    _schoolCtrl.text = (user['school'] ?? '').toString();
+    _selectedRegion = (user['region'] ?? '').toString().isEmpty
+        ? null
+        : user['region'].toString();
+    _selectedDivision = (user['division'] ?? '').toString().isEmpty
+        ? null
+        : user['division'].toString();
+    _selectedDistrict = (user['district'] ?? '').toString().isEmpty
+        ? null
+        : user['district'].toString();
+    _loaded = true;
   }
 
   @override
   Widget build(BuildContext context) {
-    final auth=context.watch<AuthService>();
-    final settings=context.watch<SettingsService>();
-    final session=auth.session!;
+    final auth = context.watch<AuthService>();
+    final settings = context.watch<SettingsService>();
+    final session = auth.session!;
 
-    return FutureBuilder<Map<String,Object?>?>(
-      future:auth.getUser(session.userId),
-      builder:(context,snapshot){
-        if(!snapshot.hasData){
-          return const Center(child:CircularProgressIndicator());
+    return FutureBuilder<Map<String, Object?>?>(
+      future: auth.getUser(session.userId),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
         }
 
-        final user=snapshot.data ?? const <String,Object?>{};
+        final user = snapshot.data ?? const <String, Object?>{};
         _hydrate(user);
 
         return Column(
           children: [
-
             /// SCROLLABLE CONTENT
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: ListView(
                   children: [
-                    const SectionTitle(title:'Account Settings'),
-                    const SizedBox(height:12),
+                    const SectionTitle(title: 'Account Settings'),
+                    const SizedBox(height: 12),
 
                     _sectionCard(
-                      title:'Profile Information',
-                      initiallyExpanded:true,
-                      child:_editingProfile
-                          ? _editProfileForm(session,auth)
+                      title: 'Profile Information',
+                      initiallyExpanded: true,
+                      child: _editingProfile
+                          ? _editProfileForm(session, auth)
                           : _profileViewCard(),
                     ),
 
-                    const SizedBox(height:12),
+                    const SizedBox(height: 12),
 
                     _sectionCard(
-                      title:'App Preferences',
+                      title: 'App Preferences',
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children:[
-                          const Text('Font Size',style:TextStyle(fontWeight:FontWeight.w700)),
+                        children: [
+                          const Text(
+                            'Font Size',
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
                           Slider(
-                            value:settings.fontScale,
-                            min:0.9,max:1.4,divisions:10,
-                            label:settings.fontScale.toStringAsFixed(2),
-                            onChanged:(v)=>settings.setFontScale(v),
+                            value: settings.fontScale,
+                            min: 0.9,
+                            max: 1.4,
+                            divisions: 10,
+                            label: settings.fontScale.toStringAsFixed(2),
+                            onChanged: (v) => settings.setFontScale(v),
                           ),
                         ],
                       ),
                     ),
 
-                    const SizedBox(height:12),
-                    _sectionCard(title:'Security', child:_passwordSection(auth,session)),
-                    const SizedBox(height:12),
-                    _sectionCard(title:'Support', child:_supportSection()),
-                    const SizedBox(height:12),
-                    _sectionCard(title:'Developers', child:_developersGrid()),
-                    const SizedBox(height:20),
+                    const SizedBox(height: 12),
+                    _sectionCard(
+                      title: 'Security',
+                      child: _passwordSection(auth, session),
+                    ),
+                    const SizedBox(height: 12),
+                    _sectionCard(title: 'Support', child: _supportSection()),
+                    const SizedBox(height: 12),
+                    _sectionCard(title: 'Developers', child: _developersGrid()),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -274,31 +286,45 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   // ================= PROFILE VIEW =================
-  Widget _profileViewCard(){
-    Widget item(String l,String v)=>Padding(
-      padding:const EdgeInsets.symmetric(vertical:6),
-      child:Row(children:[
-        SizedBox(width:130,child:Text(l,style:const TextStyle(fontWeight:FontWeight.w700,color:Colors.black54))),
-        Expanded(child:Text(v.isEmpty?'-':v)),
-      ]),
+  Widget _profileViewCard() {
+    Widget item(String l, String v) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 130,
+            child: Text(
+              l,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: Colors.black54,
+              ),
+            ),
+          ),
+          Expanded(child: Text(v.isEmpty ? '-' : v)),
+        ],
+      ),
     );
 
-    return Column(children:[
-      Align(
-        alignment:Alignment.centerRight,
-        child:IconButton(
-          icon:const Icon(Icons.edit),
-          onPressed:()=>setState(()=>_editingProfile=true),
+    return Column(
+      children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () => setState(() => _editingProfile = true),
+          ),
         ),
-      ),
-      item('Full Name',_nameCtrl.text),
-      item('Email',_emailCtrl.text),
-      item('Region',_selectedRegion??''),
-      item('Division',_selectedDivision??''),
-      item('District',_selectedDistrict??''),
-      item('School',_schoolCtrl.text),
-    ]);
+        item('Full Name', _nameCtrl.text),
+        item('Email', _emailCtrl.text),
+        item('Region', _selectedRegion ?? ''),
+        item('Division', _selectedDivision ?? ''),
+        item('District', _selectedDistrict ?? ''),
+        item('School', _schoolCtrl.text),
+      ],
+    );
   }
+
   String? _requiredDropdown(String? value, String label) {
     if (value == null || value.trim().isEmpty) {
       return '$label is required';
@@ -306,154 +332,148 @@ class _SettingsPageState extends State<SettingsPage> {
     return null;
   }
 
-
   // ================= PROFILE EDIT =================
-  Widget _editProfileForm(session,AuthService auth){
+  Widget _editProfileForm(session, AuthService auth) {
     return Form(
-      key:_profileKey,
-      child:Column(children:[
-        TextFormField(
-          controller: _nameCtrl,
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(
-              RegExp(r"[A-Za-z\s\-']"),
-            ),
-          ],
-          validator: (v) {
-            final value = v?.trim() ?? '';
+      key: _profileKey,
+      child: Column(
+        children: [
+          TextFormField(
+            controller: _nameCtrl,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r"[A-Za-z\s\-']")),
+            ],
+            validator: (v) {
+              final value = v?.trim() ?? '';
 
-            if (value.isEmpty) {
-              return 'Full Name is required';
-            }
-
-            final nameRegex = RegExp(r"^[A-Za-z]+([ '\-][A-Za-z]+)*$");
-
-            if (!nameRegex.hasMatch(value)) {
-              return 'Name must contain letters only';
-            }
-
-            return null;
-          },
-          decoration: const InputDecoration(
-            labelText: 'Full Name',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height:10),
-        _field(
-          _emailCtrl,
-          'Email',
-              (value) {
-            final v = value?.trim() ?? '';
-
-            if (v.isEmpty) {
-              return 'Email is required';
-            }
-
-            if (!RegExp(r'^[\w\.-]+@[\w\.-]+\.\w+$').hasMatch(v)) {
-              return 'Enter a valid email address';
-            }
-
-            if (!v.toLowerCase().endsWith('@deped.gov.ph')) {
-              return 'Email must be a valid deped.gov.ph address';
-            }
-
-            return null;
-          },
-        ),
-        const SizedBox(height:10),
-        DropdownButtonFormField<String>(
-          value: _selectedRegion,
-          items: _regionItems(),
-          validator: (v) => _requiredDropdown(v, 'Region'),
-          onChanged: (v) => setState(() {
-            _selectedRegion = v;
-            _selectedDivision = null;
-            _selectedDistrict = null;
-          }),
-          decoration: const InputDecoration(
-            labelText: 'Region',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height:10),
-        DropdownButtonFormField<String>(
-          value: _selectedDivision,
-          items: _divisionItems(),
-          validator: (v) => _requiredDropdown(v, 'Division'),
-          onChanged: (v) => setState(() {
-            _selectedDivision = v;
-            _selectedDistrict = null;   // reset cascade
-          }),
-          decoration: const InputDecoration(
-            labelText: 'Division',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height:10),
-        DropdownButtonFormField<String>(
-          value: _selectedDistrict,
-          items: _districtItems(),
-          validator: (v) => _requiredDropdown(v, 'District'),
-          onChanged: (v) => setState(() => _selectedDistrict = v),
-          decoration: const InputDecoration(
-            labelText: 'District',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height:10),
-        _field(_schoolCtrl,'School',(v)=>Validators.required(v,label:'School')),
-        const SizedBox(height:16),
-
-        Row(mainAxisAlignment:MainAxisAlignment.end,children:[
-          TextButton(
-            onPressed:()=>setState(()=>_editingProfile=false),
-            child:const Text('Cancel'),
-          ),
-          const SizedBox(width:8),
-          ElevatedButton(
-            style:ElevatedButton.styleFrom(
-                backgroundColor:AppColors.maroon,
-                foregroundColor:Colors.white),
-            onPressed:() async{
-              if(!_profileKey.currentState!.validate()) return;
-              try {
-                await auth.updateProfile(
-                  userId: session.userId,
-                  name: _nameCtrl.text,
-                  email: _emailCtrl.text,
-                  school: _schoolCtrl.text,
-                  district: _selectedDistrict ?? '',
-                  division: _selectedDivision ?? '',
-                  region: _selectedRegion ?? '',
-                );
-
-                setState(() => _editingProfile = false);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Profile updated.')),
-                );
-              } catch (e) {
-                if (e is StateError && e.message == 'Email already exists.') {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('This email is already registered.')),
-                  );
-                    _emailCtrl.text = currentProfile['email'];
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Failed to update profile.')),
-                  );
-                  // TO-DO: idk if kaya i-run _hydrate again somehow, dito sana
-                }
+              if (value.isEmpty) {
+                return 'Full Name is required';
               }
-              setState(()=>_editingProfile=false);
-              ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content:Text('Profile updated.')));
+
+              final nameRegex = RegExp(r"^[A-Za-z]+([ '\-][A-Za-z]+)*$");
+
+              if (!nameRegex.hasMatch(value)) {
+                return 'Name must contain letters only';
+              }
+
+              return null;
             },
-            child:const Text('Save'),
+            decoration: const InputDecoration(
+              labelText: 'Full Name',
+              border: OutlineInputBorder(),
+            ),
           ),
-        ])
-      ]),
+          const SizedBox(height: 10),
+          _field(_emailCtrl, 'Email', Validators.accountEmail),
+          const SizedBox(height: 10),
+          DropdownButtonFormField<String>(
+            value: _selectedRegion,
+            items: _regionItems(),
+            validator: (v) => _requiredDropdown(v, 'Region'),
+            onChanged: (v) => setState(() {
+              _selectedRegion = v;
+              _selectedDivision = null;
+              _selectedDistrict = null;
+            }),
+            decoration: const InputDecoration(
+              labelText: 'Region',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 10),
+          DropdownButtonFormField<String>(
+            value: _selectedDivision,
+            items: _divisionItems(),
+            validator: (v) => _requiredDropdown(v, 'Division'),
+            onChanged: (v) => setState(() {
+              _selectedDivision = v;
+              _selectedDistrict = null; // reset cascade
+            }),
+            decoration: const InputDecoration(
+              labelText: 'Division',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 10),
+          DropdownButtonFormField<String>(
+            value: _selectedDistrict,
+            items: _districtItems(),
+            validator: (v) => _requiredDropdown(v, 'District'),
+            onChanged: (v) => setState(() => _selectedDistrict = v),
+            decoration: const InputDecoration(
+              labelText: 'District',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 10),
+          _field(
+            _schoolCtrl,
+            'School',
+            (v) => Validators.required(v, label: 'School'),
+          ),
+          const SizedBox(height: 16),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () => setState(() => _editingProfile = false),
+                child: const Text('Cancel'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.maroon,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  if (!_profileKey.currentState!.validate()) return;
+                  try {
+                    await auth.updateProfile(
+                      userId: session.userId,
+                      name: _nameCtrl.text,
+                      email: _emailCtrl.text,
+                      school: _schoolCtrl.text,
+                      district: _selectedDistrict ?? '',
+                      division: _selectedDivision ?? '',
+                      region: _selectedRegion ?? '',
+                    );
+
+                    if (!mounted) return;
+                    setState(() => _editingProfile = false);
+                    AppFeedback.showSnackBar(
+                      context,
+                      'Profile updated.',
+                      tone: AppFeedbackTone.success,
+                    );
+                  } catch (e) {
+                    if (!mounted) return;
+                    if (e is StateError &&
+                        e.message == 'Email already exists.') {
+                      AppFeedback.showSnackBar(
+                        context,
+                        'This email is already registered.',
+                        tone: AppFeedbackTone.error,
+                      );
+                      _emailCtrl.text = currentProfile['email'];
+                    } else {
+                      AppFeedback.showSnackBar(
+                        context,
+                        'Failed to update profile.',
+                        tone: AppFeedbackTone.error,
+                      );
+                      // TO-DO: idk if kaya i-run _hydrate again somehow, dito sana
+                    }
+                    return;
+                  }
+                  setState(() => _editingProfile = false);
+                },
+                child: const Text('Save'),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -463,7 +483,6 @@ class _SettingsPageState extends State<SettingsPage> {
       key: _pwKey,
       child: Column(
         children: [
-
           /// CURRENT PASSWORD
           TextFormField(
             controller: _currentPwCtrl,
@@ -556,18 +575,18 @@ class _SettingsPageState extends State<SettingsPage> {
                   _showPwRules = false;
 
                   if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Password successfully updated'),
-                    ),
+                  AppFeedback.showSnackBar(
+                    context,
+                    'Password successfully updated',
+                    tone: AppFeedbackTone.success,
                   );
                 } catch (e) {
                   if (!mounted) return;
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Current password is incorrect'),
-                    ),
+                  AppFeedback.showSnackBar(
+                    context,
+                    'Current password is incorrect',
+                    tone: AppFeedbackTone.error,
                   );
                 }
               },
@@ -582,9 +601,9 @@ class _SettingsPageState extends State<SettingsPage> {
   // ================= SUPPORT =================
   Widget _supportSection() {
     return Align(
-      alignment: Alignment.centerLeft,   // force left alignment
+      alignment: Alignment.centerLeft, // force left alignment
       child: SizedBox(
-        width: double.infinity,          // take full width of card
+        width: double.infinity, // take full width of card
         child: const Column(
           crossAxisAlignment: CrossAxisAlignment.start, // left align children
           children: [
@@ -596,7 +615,7 @@ class _SettingsPageState extends State<SettingsPage> {
             SizedBox(height: 4),
             Text(
               'Your account and assessment data are stored locally in this system. '
-                  'Only exported files that you intentionally share are transmitted outside your device.',
+              'Only exported files that you intentionally share are transmitted outside your device.',
               textAlign: TextAlign.left,
               style: TextStyle(height: 1.4),
             ),
@@ -611,11 +630,11 @@ class _SettingsPageState extends State<SettingsPage> {
             SizedBox(height: 4),
             Text(
               '1. Why is a learner missing in summary?\n'
-                  'Only active learners with saved checklists are included.\n\n'
-                  '2. Why is my class not in general summary?\n'
-                  'Archived classes are excluded from active summaries.\n\n'
-                  '3. Why can\'t CSV export proceed?\n'
-                  'All required checklist records must be saved first.',
+              'Only active learners with saved checklists are included.\n\n'
+              '2. Why is my class not in general summary?\n'
+              'Archived classes are excluded from active summaries.\n\n'
+              '3. Why can\'t CSV export proceed?\n'
+              'All required checklist records must be saved first.',
               textAlign: TextAlign.left,
               style: TextStyle(height: 1.4),
             ),
@@ -640,58 +659,71 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   // ================= DEVELOPERS GRID =================
-  Widget _developersGrid(){
-    const devs=[
-      ('Jose, Vincent Yuri E.','Project Manager'),
-      ('Fernandez, Alfred Joaquin','System Analyst'),
-      ('Amado, Aoyesha Ayen B.','Developer'),
-      ('Tolentino, Liam Nathan S.','Developer'),
-      ('Espina, Ericka Joana I.','QA Developer'),
-      ('Maglalang, Jaz Mare C.','QA Developer'),
+  Widget _developersGrid() {
+    const devs = [
+      ('Jose, Vincent Yuri E.', 'Project Manager'),
+      ('Fernandez, Alfred Joaquin', 'System Analyst'),
+      ('Amado, Aoyesha Ayen B.', 'Developer'),
+      ('Tolentino, Liam Nathan S.', 'Developer'),
+      ('Espina, Ericka Joana I.', 'QA Developer'),
+      ('Maglalang, Jaz Mare C.', 'QA Developer'),
     ];
 
     return Wrap(
-      spacing:12,runSpacing:12,
-      children:[
-        for(final d in devs)
+      spacing: 12,
+      runSpacing: 12,
+      children: [
+        for (final d in devs)
           Container(
-            width:260,
-            padding:const EdgeInsets.all(12),
-            decoration:BoxDecoration(
-              border:Border.all(color:const Color(0xFFE6E6E6)),
-              borderRadius:BorderRadius.circular(10),
+            width: 260,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              border: Border.all(color: const Color(0xFFE6E6E6)),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child:Column(
-              crossAxisAlignment:CrossAxisAlignment.start,
-              children:[
-                Text(d.$1,style:const TextStyle(fontWeight:FontWeight.w700)),
-                const SizedBox(height:4),
-                Text(d.$2,style:const TextStyle(color:Colors.black54)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(d.$1, style: const TextStyle(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 4),
+                Text(d.$2, style: const TextStyle(color: Colors.black54)),
               ],
             ),
-          )
+          ),
       ],
     );
   }
 
-  Widget _field(TextEditingController c,String label,String? Function(String?)? validator){
+  Widget _field(
+    TextEditingController c,
+    String label,
+    String? Function(String?)? validator,
+  ) {
     return TextFormField(
-      controller:c,
-      validator:validator,
-      decoration:InputDecoration(labelText:label,border:const OutlineInputBorder()),
+      controller: c,
+      validator: validator,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
     );
   }
 
-  Widget _sectionCard({required String title,required Widget child,bool initiallyExpanded=false}){
+  Widget _sectionCard({
+    required String title,
+    required Widget child,
+    bool initiallyExpanded = false,
+  }) {
     return Card(
-      elevation:0,
-      shape:RoundedRectangleBorder(
-          borderRadius:BorderRadius.circular(16),
-          side:const BorderSide(color:Color(0xFFE6E6E6))),
-      child:ExpansionTile(
-        initiallyExpanded:initiallyExpanded,
-        title:Text(title,style:const TextStyle(fontWeight:FontWeight.w800)),
-        children:[Padding(padding:const EdgeInsets.all(14),child:child)],
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Color(0xFFE6E6E6)),
+      ),
+      child: ExpansionTile(
+        initiallyExpanded: initiallyExpanded,
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+        children: [Padding(padding: const EdgeInsets.all(14), child: child)],
       ),
     );
   }
@@ -764,4 +796,4 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
   }
-  }
+}

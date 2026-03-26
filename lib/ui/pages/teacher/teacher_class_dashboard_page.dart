@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/app_dialogs.dart';
 import '../../../core/constants.dart';
 import '../../../core/nav_no_transition.dart';
 import '../../../core/responsive.dart';
@@ -144,7 +145,8 @@ class _ViewClassTabState extends State<_ViewClassTab> {
   Future<bool> _hasAssessment(int learnerId, String type) async {
     final db = AppDb.instance.db;
 
-    final rows = await db.rawQuery('''
+    final rows = await db.rawQuery(
+      '''
     SELECT s.${DbSchema.cSumAssessId}
     FROM ${DbSchema.tAssessments} a
     JOIN ${DbSchema.tAssessmentSummary} s
@@ -153,7 +155,9 @@ class _ViewClassTabState extends State<_ViewClassTab> {
       AND a.${DbSchema.cAssessClassId} = ?
       AND a.${DbSchema.cAssessType} = ?
     LIMIT 1
-  ''', [learnerId, widget.classId, type]);
+  ''',
+      [learnerId, widget.classId, type],
+    );
 
     return rows.isNotEmpty;
   }
@@ -260,19 +264,24 @@ class _ViewClassTabState extends State<_ViewClassTab> {
 
                       final bool mobile = !isDesktop(context);
 
-                      final ButtonStyle compactButtonStyle = OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: mobile ? 10 : 16,
-                          vertical: mobile ? 4 : 12,
-                        ),
-                        minimumSize: Size(0, mobile ? 30 : 40),
-                        tapTargetSize: mobile
-                            ? MaterialTapTargetSize.shrinkWrap
-                            : MaterialTapTargetSize.padded,
-                        visualDensity:
-                        mobile ? const VisualDensity(horizontal: -2, vertical: -2) : null,
-                        textStyle: TextStyle(fontSize: mobile ? 12 : 14),
-                      );
+                      final ButtonStyle compactButtonStyle =
+                          OutlinedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: mobile ? 10 : 16,
+                              vertical: mobile ? 4 : 12,
+                            ),
+                            minimumSize: Size(0, mobile ? 30 : 40),
+                            tapTargetSize: mobile
+                                ? MaterialTapTargetSize.shrinkWrap
+                                : MaterialTapTargetSize.padded,
+                            visualDensity: mobile
+                                ? const VisualDensity(
+                                    horizontal: -2,
+                                    vertical: -2,
+                                  )
+                                : null,
+                            textStyle: TextStyle(fontSize: mobile ? 12 : 14),
+                          );
 
                       return Card(
                         elevation: 0,
@@ -281,10 +290,9 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                           side: const BorderSide(color: Color(0xFFE6E6E6)),
                         ),
                         child: ListTile(
-                          title: Text(name,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                          ),
+                          title: Text(
+                            name,
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
                             'Gender: $gender • Age: $age \n• ${done ? "Completed" : "In Progress"}',
@@ -295,44 +303,44 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                               spacing: 6,
                               runSpacing: 6,
                               children: [
-                              OutlinedButton(
-                                style: compactButtonStyle,
-                                onPressed: () async {
-                                  await navPushNoTransition(
-                                    context,
-                                    TeacherLearnerProfilePage(learnerId: id),
-                                  );
-                                  if (!mounted) return;
-                                  setState(() => _reloadTick++);
-                                },
-                                child: const Text('View'),
-                              ),
-                              OutlinedButton(
-                                style: compactButtonStyle,
-                                onPressed: () async {
-                                  await navPushNoTransition(
-                                    context,
-                                    TeacherChecklistPage(
-                                      classId: widget.classId,
-                                      learnerId: id,
-                                    ),
-                                  );
-                                  if (!mounted) return;
-                                  setState(() => _reloadTick++);
-                                },
-                                child: const Text('Checklist'),
-                              ),
-                              IconButton(
-                                tooltip: 'Drop',
-                                onPressed: () async {
-                                  await _learners.dropLearner(id);
-                                  setState(() {});
-                                },
-                                icon: const Icon(Icons.person_off),
-                              ),
-                            ],
+                                OutlinedButton(
+                                  style: compactButtonStyle,
+                                  onPressed: () async {
+                                    await navPushNoTransition(
+                                      context,
+                                      TeacherLearnerProfilePage(learnerId: id),
+                                    );
+                                    if (!mounted) return;
+                                    setState(() => _reloadTick++);
+                                  },
+                                  child: const Text('View'),
+                                ),
+                                OutlinedButton(
+                                  style: compactButtonStyle,
+                                  onPressed: () async {
+                                    await navPushNoTransition(
+                                      context,
+                                      TeacherChecklistPage(
+                                        classId: widget.classId,
+                                        learnerId: id,
+                                      ),
+                                    );
+                                    if (!mounted) return;
+                                    setState(() => _reloadTick++);
+                                  },
+                                  child: const Text('Checklist'),
+                                ),
+                                IconButton(
+                                  tooltip: 'Drop',
+                                  onPressed: () async {
+                                    await _learners.dropLearner(id);
+                                    setState(() {});
+                                  },
+                                  icon: const Icon(Icons.person_off),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
                         ),
                       );
                     },
@@ -417,24 +425,26 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
                     foregroundColor: Colors.white,
                   ),
                   onPressed: () async {
-                    final fmt = await showDialog<String>(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: const Text('Export Format'),
-                        content: const Text(
+                    final fmt = await AppDialogs.showChoiceDialog<String>(
+                      context,
+                      title: 'Export Format',
+                      message:
                           'Choose the export format for this class summary.',
+                      options: const [
+                        AppDialogOption(
+                          value: 'csv',
+                          title: 'CSV',
+                          subtitle: 'Best for sharing and importing.',
+                          icon: Icons.table_chart_rounded,
                         ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, 'csv'),
-                            child: const Text('CSV\n(for sharing/import)'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, 'xlsx'),
-                            child: const Text('XLSX\n(styled for printing)'),
-                          ),
-                        ],
-                      ),
+                        AppDialogOption(
+                          value: 'xlsx',
+                          title: 'XLSX',
+                          subtitle:
+                              'Styled spreadsheet for printing or review.',
+                          icon: Icons.grid_on_rounded,
+                        ),
+                      ],
                     );
                     if (fmt == null) return;
                     final name =
@@ -446,10 +456,7 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
                         assessmentType: assessmentType,
                         languageForSkills: language,
                       );
-                      await _file.saveXlsx(
-                        filename: name,
-                        xlsxBytes: bytes,
-                      );
+                      await _file.saveXlsx(filename: name, xlsxBytes: bytes);
                     } else {
                       final csvText = await _csv.exportTeacherClassRollupCsv(
                         teacherId: teacherId,
