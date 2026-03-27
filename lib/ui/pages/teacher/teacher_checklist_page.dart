@@ -3,8 +3,11 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants.dart';
+import '../../../core/ui_feedback.dart';
 import '../../../core/unsaved_guard.dart';
 import '../../../data/eccd_questions.dart';
+import '../../../db/app_db.dart';
+import '../../../db/schema.dart';
 import '../../../services/assessment_service.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/file_export_service.dart';
@@ -161,6 +164,7 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
     }
 
     try {
+      if (!mounted) return;
       final exportingUserId = context.read<AuthService>().session?.userId;
       final bytes = await _pdf.buildLearnerPdf(
         learnerId: widget.learnerId,
@@ -169,10 +173,8 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
         language: language,
         exportingUserId: exportingUserId,
       );
-      final saved = await _file.savePdf(
-        filename: 'learner_${widget.learnerId}_$_effectiveType',
-        pdfBytes: bytes,
-      );
+      final filename = await _buildLearnerExportFileName();
+      final saved = await _file.savePdf(filename: filename, pdfBytes: bytes);
       if (!mounted) return;
       if (saved) {
         _showSnackBar('PDF exported successfully.');
@@ -271,9 +273,7 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
                           ),
                           DropdownMenuItem(
                             value: 'Conditional Test',
-                            child: Text(
-                              'Conditional Test',
-                            ),
+                            child: Text('Conditional Test'),
                           ),
                         ],
                         onChanged: (v) async {
@@ -406,15 +406,10 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
     return OutlinedButton.icon(
       onPressed: onTap,
       icon: const Icon(Icons.edit_calendar, size: 18),
-      label: Text(
-        text,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
+      label: Text(text, style: const TextStyle(fontWeight: FontWeight.w600)),
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
     );
   }
@@ -533,14 +528,42 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
 
   void _showSnackBar(String message, {bool isError = false}) {
     if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: isError ? Colors.red.shade700 : null,
-      ),
+    AppFeedback.showSnackBar(
+      context,
+      message,
+      tone: isError ? AppFeedbackTone.error : AppFeedbackTone.success,
     );
+  }
+
+  Future<String> _buildLearnerExportFileName() async {
+    final learner = await _learners.getLearner(widget.learnerId);
+    final classRows = await AppDb.instance.db.query(
+      DbSchema.tClasses,
+      columns: [DbSchema.cClassSection],
+      where: '${DbSchema.cClassId}=?',
+      whereArgs: [widget.classId],
+      limit: 1,
+    );
+
+    final section = classRows.isEmpty
+        ? 'Section'
+        : (classRows.first[DbSchema.cClassSection] ?? 'Section').toString();
+    final lastName = (learner?[DbSchema.cLearnerLastName] ?? 'Learner')
+        .toString();
+    final firstName = (learner?[DbSchema.cLearnerFirstName] ?? '').toString();
+    final lrn = (learner?[DbSchema.cLearnerLrn] ?? '').toString();
+
+    return [
+      _slug(section),
+      _slug(lastName),
+      _slug(firstName),
+      _slug(lrn.isEmpty ? 'no_lrn' : lrn),
+    ].join('_');
+  }
+
+  String _slug(String value) {
+    final cleaned = value.trim().replaceAll(RegExp(r'\s+'), '_');
+    final safe = cleaned.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '');
+    return safe.isEmpty ? 'na' : safe;
   }
 }

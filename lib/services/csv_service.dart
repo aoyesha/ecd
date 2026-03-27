@@ -104,9 +104,15 @@ class CsvService {
       }
 
       final sorted = [...rows]..sort((a, b) => pct(b).compareTo(pct(a)));
-      final most = sorted.take(3).map((r) => r['skill_text'].toString()).toList();
+      final most = sorted
+          .take(3)
+          .map((r) => r['skill_text'].toString())
+          .toList();
       final leastSorted = [...rows]..sort((a, b) => pct(a).compareTo(pct(b)));
-      final least = leastSorted.take(3).map((r) => r['skill_text'].toString()).toList();
+      final least = leastSorted
+          .take(3)
+          .map((r) => r['skill_text'].toString())
+          .toList();
       out[domain] = {'most': most, 'least': least};
     }
     return out;
@@ -127,10 +133,10 @@ class CsvService {
         ? 'BEGINNING OF THE SCHOOL YEAR (BOSY) EARLY CHILDHOOD DEVELOPMENT ASSESSMENT'
         : 'END OF THE SCHOOL YEAR (EOSY) EARLY CHILDHOOD DEVELOPMENT ASSESSMENT';
 
-    final regionLabel =
-        region.isNotEmpty ? region.toUpperCase() : 'REGION';
-    final divisionLabel =
-        division.isNotEmpty ? division.toUpperCase() : 'SCHOOLS DIVISION OFFICE';
+    final regionLabel = region.isNotEmpty ? region.toUpperCase() : 'REGION';
+    final divisionLabel = division.isNotEmpty
+        ? division.toUpperCase()
+        : 'SCHOOLS DIVISION OFFICE';
 
     // ── Header ──
     rows.add(List.filled(30, ''));
@@ -145,30 +151,34 @@ class CsvService {
     rows.add(_r30({10: 'Summary '}));
 
     // ── Domain column headers ──
-    rows.add(_r30({
-      0: 'Level of Development',
-      2: 'GROSS MOTOR',
-      5: 'FINE MOTOR',
-      8: 'SELF-HELP',
-      11: 'RECEPTIVE LANGUAGE',
-      14: 'EXPRESSIVE LANGUAGE',
-      17: 'COGNITIVE',
-      20: 'SOCIO EMOTIONAL',
-      25: 'GRAND TOTAL',
-    }));
+    rows.add(
+      _r30({
+        0: 'Level of Development',
+        2: 'GROSS MOTOR',
+        5: 'FINE MOTOR',
+        8: 'SELF-HELP',
+        11: 'RECEPTIVE LANGUAGE',
+        14: 'EXPRESSIVE LANGUAGE',
+        17: 'COGNITIVE',
+        20: 'SOCIO EMOTIONAL',
+        25: 'GRAND TOTAL',
+      }),
+    );
 
     // ── M / F / TOTAL sub-header ──
     // SE has a blank at col 22; GT has blanks at 26 and 28.
-    rows.add(_r30({
-      2: 'M', 3: 'F', 4: 'TOTAL',
-      5: 'M', 6: 'F', 7: 'TOTAL',
-      8: 'M', 9: 'F', 10: 'TOTAL',
-      11: 'M', 12: 'F', 13: 'TOTAL',
-      14: 'M', 15: 'F', 16: 'TOTAL',
-      17: 'M', 18: 'F', 19: 'TOTAL',
-      20: 'M', 21: 'F', 23: 'TOTAL',   // col 22 intentionally blank
-      25: 'M', 27: 'F', 29: 'TOTAL',   // cols 26,28 intentionally blank
-    }));
+    rows.add(
+      _r30({
+        2: 'M', 3: 'F', 4: 'TOTAL',
+        5: 'M', 6: 'F', 7: 'TOTAL',
+        8: 'M', 9: 'F', 10: 'TOTAL',
+        11: 'M', 12: 'F', 13: 'TOTAL',
+        14: 'M', 15: 'F', 16: 'TOTAL',
+        17: 'M', 18: 'F', 19: 'TOTAL',
+        20: 'M', 21: 'F', 23: 'TOTAL', // col 22 intentionally blank
+        25: 'M', 27: 'F', 29: 'TOTAL', // cols 26,28 intentionally blank
+      }),
+    );
 
     // Standard domain → starting M column (M, F, Total in consecutive cols)
     const stdDomainCol = {
@@ -181,11 +191,11 @@ class CsvService {
     };
 
     const levelFullNames = {
-      'SSDD':  'Suggested Significant Delay in Overall Development (SSDD)',
+      'SSDD': 'Suggested Significant Delay in Overall Development (SSDD)',
       'SSLDD': 'Suggested Slight Delay in Overall Development (SSLDD)',
-      'AD':    'Average Development (AD)',
-      'SSAD':  'Suggest Slightly Advance Development (SSAD)',
-      'SHAD':  'Suggest Highly Advanced Development (SHAD)',
+      'AD': 'Average Development (AD)',
+      'SSAD': 'Suggest Slightly Advance Development (SSAD)',
+      'SHAD': 'Suggest Highly Advanced Development (SHAD)',
     };
 
     // ── Level data rows ──
@@ -195,7 +205,7 @@ class CsvService {
       for (final e in stdDomainCol.entries) {
         final m = counts[e.key]?['M']?[level] ?? 0;
         final f = counts[e.key]?['F']?[level] ?? 0;
-        vals[e.value]     = m;
+        vals[e.value] = m;
         vals[e.value + 1] = f;
         vals[e.value + 2] = m + f;
       }
@@ -208,8 +218,8 @@ class CsvService {
 
       final gtM = counts['ALL']?['M']?[level] ?? 0;
       final gtF = counts['ALL']?['F']?[level] ?? 0;
-      vals[25] = gtM;       // col 26 blank
-      vals[27] = gtF;       // col 28 blank
+      vals[25] = gtM; // col 26 blank
+      vals[27] = gtF; // col 28 blank
       vals[29] = gtM + gtF;
 
       rows.add(_r30(vals));
@@ -220,16 +230,26 @@ class CsvService {
     for (final e in stdDomainCol.entries) {
       final m = _levels.fold(0, (a, l) => a + (counts[e.key]?['M']?[l] ?? 0));
       final f = _levels.fold(0, (a, l) => a + (counts[e.key]?['F']?[l] ?? 0));
-      totVals[e.value]     = m;
+      totVals[e.value] = m;
       totVals[e.value + 1] = f;
       totVals[e.value + 2] = m + f;
     }
-    final seMT = _levels.fold(0, (a, l) => a + (counts['Social Emotional']?['M']?[l] ?? 0));
-    final seFT = _levels.fold(0, (a, l) => a + (counts['Social Emotional']?['F']?[l] ?? 0));
-    totVals[20] = seMT; totVals[21] = seFT; totVals[23] = seMT + seFT;
+    final seMT = _levels.fold(
+      0,
+      (a, l) => a + (counts['Social Emotional']?['M']?[l] ?? 0),
+    );
+    final seFT = _levels.fold(
+      0,
+      (a, l) => a + (counts['Social Emotional']?['F']?[l] ?? 0),
+    );
+    totVals[20] = seMT;
+    totVals[21] = seFT;
+    totVals[23] = seMT + seFT;
     final gtMT = _levels.fold(0, (a, l) => a + (counts['ALL']?['M']?[l] ?? 0));
     final gtFT = _levels.fold(0, (a, l) => a + (counts['ALL']?['F']?[l] ?? 0));
-    totVals[25] = gtMT; totVals[27] = gtFT; totVals[29] = gtMT + gtFT;
+    totVals[25] = gtMT;
+    totVals[27] = gtFT;
+    totVals[29] = gtMT + gtFT;
     rows.add(_r30(totVals));
 
     // ── Gap before skills sections ──
@@ -237,15 +257,22 @@ class CsvService {
 
     // Domain column positions in the skills section (each domain uses 3 cols)
     const skillCol = {
-      'Gross Motor': 0, 'Fine Motor': 3, 'Self Help': 6,
-      'Receptive Language': 9, 'Expressive Language': 12,
-      'Cognitive': 15, 'Social Emotional': 18,
+      'Gross Motor': 0,
+      'Fine Motor': 3,
+      'Self Help': 6,
+      'Receptive Language': 9,
+      'Expressive Language': 12,
+      'Cognitive': 15,
+      'Social Emotional': 18,
     };
     const skillDisplayName = {
-      'Gross Motor': 'Gross Motor', 'Fine Motor': 'Fine Motor',
-      'Self Help': 'Self-Help', 'Receptive Language': 'Receptive Language',
+      'Gross Motor': 'Gross Motor',
+      'Fine Motor': 'Fine Motor',
+      'Self Help': 'Self-Help',
+      'Receptive Language': 'Receptive Language',
       'Expressive Language': 'Expressive Language',
-      'Cognitive': 'Cognitive Domain', 'Social Emotional': 'Social Emotional',
+      'Cognitive': 'Cognitive Domain',
+      'Social Emotional': 'Social Emotional',
     };
 
     // ── Most Learned section ──
@@ -253,8 +280,10 @@ class CsvService {
     final leastHdr = <int, dynamic>{};
     for (final d in _domains) {
       final c = skillCol[d]!;
-      mostHdr[c]  = 'What are the Three Most Learned Skills in ${skillDisplayName[d]}? ';
-      leastHdr[c] = 'What are the Three Least Mastered Skills in ${skillDisplayName[d]}? ';
+      mostHdr[c] =
+          'What are the Three Most Learned Skills in ${skillDisplayName[d]}? ';
+      leastHdr[c] =
+          'What are the Three Least Mastered Skills in ${skillDisplayName[d]}? ';
     }
     rows.add(_r30(mostHdr));
     for (int i = 0; i < 3; i++) {
@@ -284,11 +313,13 @@ class CsvService {
     // ── Signature section 2 ──
     rows.add(_r30({1: 'Prepared:', 9: 'Verified:', 17: 'NOTED:'}));
     for (int i = 0; i < 2; i++) rows.add(List.filled(30, ''));
-    rows.add(_r30({
-      1: ' Kindergarten Teacher',
-      9: 'Master Teacher/ Kindergarten Coordinator',
-      17: 'School Head',
-    }));
+    rows.add(
+      _r30({
+        1: ' Kindergarten Teacher',
+        9: 'Master Teacher/ Kindergarten Coordinator',
+        17: 'School Head',
+      }),
+    );
 
     return rows;
   }
@@ -701,7 +732,9 @@ class CsvService {
     final out = <String>[];
     for (final r in rows) {
       final sy = (r[DbSchema.cSrcSchoolYear] ?? '').toString().trim();
-      if (sy.isEmpty || seen.contains(sy)) continue;
+      if (sy.isEmpty || seen.contains(sy) || !_isAllowedSchoolYear(sy)) {
+        continue;
+      }
       seen.add(sy);
       out.add(sy);
     }
@@ -1073,6 +1106,14 @@ GROUP BY domain, skill_index, skill_text
     if (years.isEmpty) return 'ALL_ACTIVE';
     final ordered = years.toList()..sort();
     return ordered.join(', ');
+  }
+
+  bool _isAllowedSchoolYear(String schoolYear) {
+    final match = RegExp(r'^(\d{4})-\d{4}$').firstMatch(schoolYear.trim());
+    if (match == null) return false;
+    final startYear = int.tryParse(match.group(1)!);
+    if (startYear == null) return false;
+    return startYear >= 2020 && startYear <= DateTime.now().year;
   }
 
   Map<String, Map<String, Map<String, int>>> _emptyAgg() {

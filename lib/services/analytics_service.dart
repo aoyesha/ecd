@@ -131,11 +131,21 @@ class AnalyticsService {
     final out = <String>[];
     for (final r in rows) {
       final sy = (r[DbSchema.cClassSchoolYear] ?? '').toString().trim();
-      if (sy.isEmpty || seen.contains(sy)) continue;
+      if (sy.isEmpty || seen.contains(sy) || !_isAllowedSchoolYear(sy)) {
+        continue;
+      }
       seen.add(sy);
       out.add(sy);
     }
     return out;
+  }
+
+  bool _isAllowedSchoolYear(String schoolYear) {
+    final match = RegExp(r'^(\d{4})-\d{4}$').firstMatch(schoolYear.trim());
+    if (match == null) return false;
+    final startYear = int.tryParse(match.group(1)!);
+    if (startYear == null) return false;
+    return startYear >= 2020 && startYear <= DateTime.now().year;
   }
 
   Future<TeacherHistoricalSnapshot> buildTeacherHistoricalSnapshot({

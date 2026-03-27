@@ -25,6 +25,74 @@ class PdfExportService {
     required EccdLanguage language,
     int? exportingUserId,
   }) async {
+    final doc = pw.Document();
+    await _appendLearnerPages(
+      doc: doc,
+      learnerId: learnerId,
+      classId: classId,
+      assessmentType: assessmentType,
+      language: language,
+      exportingUserId: exportingUserId,
+    );
+    return doc.save();
+  }
+
+  Future<Uint8List> buildClassLearnersPdf({
+    required int classId,
+    required String assessmentType,
+    required EccdLanguage language,
+    int? exportingUserId,
+  }) async {
+    final db = AppDb.instance.db;
+    final learners = await db.query(
+      DbSchema.tLearners,
+      columns: [DbSchema.cLearnerId],
+      where: '${DbSchema.cLearnerClassId}=? AND ${DbSchema.cLearnerStatus}=?',
+      whereArgs: [classId, 'active'],
+      orderBy:
+          '${DbSchema.cLearnerLastName} ASC, ${DbSchema.cLearnerFirstName} ASC',
+    );
+
+    if (learners.isEmpty) {
+      throw StateError('There are no active learners in this class to export.');
+    }
+
+    final doc = pw.Document();
+    int exportedCount = 0;
+    for (final learner in learners) {
+      final learnerId = learner[DbSchema.cLearnerId] as int;
+      try {
+        await _appendLearnerPages(
+          doc: doc,
+          learnerId: learnerId,
+          classId: classId,
+          assessmentType: assessmentType,
+          language: language,
+          exportingUserId: exportingUserId,
+        );
+        exportedCount++;
+      } on StateError {
+        continue;
+      }
+    }
+
+    if (exportedCount == 0) {
+      throw StateError(
+        'No saved ${assessmentTypeDisplay(assessmentType)} assessments were found for the active learners in this class.',
+      );
+    }
+
+    return doc.save();
+  }
+
+  Future<void> _appendLearnerPages({
+    required pw.Document doc,
+    required int learnerId,
+    required int classId,
+    required String assessmentType,
+    required EccdLanguage language,
+    int? exportingUserId,
+  }) async {
     final type = assessmentType.trim().toLowerCase();
     final t = _Txt(language);
     final db = AppDb.instance.db;
@@ -102,7 +170,6 @@ class PdfExportService {
       'conditional': (snaps['conditional']?.answersByDomain ?? {}),
     };
 
-    final doc = pw.Document();
     doc.addPage(
       pw.Page(
         pageTheme: theme,
@@ -198,8 +265,6 @@ class PdfExportService {
         },
       ),
     );
-
-    return doc.save();
   }
 
   Future<_Snap?> _snap(int learnerId, int classId, String type) async {
@@ -830,9 +895,12 @@ class PdfExportService {
                 children: [
                   _c('${i + 1}'),
                   _c(qs[i]),
-                  _c((src['pre']?[d]?[i] ?? 0) == 1 ? '/' : ''),
-                  _c((src['post']?[d]?[i] ?? 0) == 1 ? '/' : ''),
-                  _c((src['conditional']?[d]?[i] ?? 0) == 1 ? '/' : ''),
+                  _c((src['pre']?[d]?[i] ?? 0) == 1 ? '/' : '', center: true),
+                  _c((src['post']?[d]?[i] ?? 0) == 1 ? '/' : '', center: true),
+                  _c(
+                    (src['conditional']?[d]?[i] ?? 0) == 1 ? '/' : '',
+                    center: true,
+                  ),
                 ],
               ),
           ],
@@ -914,11 +982,12 @@ class PdfExportService {
     return '$years.$rem';
   }
 
-  pw.Widget _c(String s, {bool b = false}) => pw.Container(
+  pw.Widget _c(String s, {bool b = false, bool center = false}) => pw.Container(
     padding: const pw.EdgeInsets.all(2.0),
-    alignment: pw.Alignment.centerLeft,
+    alignment: center ? pw.Alignment.center : pw.Alignment.centerLeft,
     child: pw.Text(
       s,
+      textAlign: center ? pw.TextAlign.center : pw.TextAlign.left,
       style: pw.TextStyle(
         fontSize: 8.2,
         fontWeight: b ? pw.FontWeight.bold : pw.FontWeight.normal,

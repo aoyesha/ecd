@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/constants.dart';
+import '../../../core/ui_feedback.dart';
 import '../../../core/unsaved_guard.dart';
 import '../../../db/schema.dart';
 import '../../../services/learner_service.dart';
@@ -193,16 +194,20 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
   Future<void> _save() async {
     if (!formKey.currentState!.validate()) return;
     if (birthDate == null) {
-      ScaffoldMessenger.of(
+      AppFeedback.showSnackBar(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Birthdate is required')));
+        'Birthdate is required.',
+        tone: AppFeedbackTone.error,
+      );
       return;
     }
 
     final age = _derivedAgeYears;
     if (age < 3 || age > 5) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Derived age must be between 3 and 5.')),
+      AppFeedback.showSnackBar(
+        context,
+        'Derived age must be between 3 and 5.',
+        tone: AppFeedbackTone.error,
       );
       return;
     }
@@ -213,56 +218,69 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
       final totalChildren = siblings + 1;
 
       if (birthOrder > totalChildren) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Birth order cannot exceed total children ($totalChildren).',
-            ),
-          ),
+        AppFeedback.showSnackBar(
+          context,
+          'Birth order cannot exceed total children ($totalChildren).',
+          tone: AppFeedbackTone.error,
         );
         return;
       }
     }
-    await _learners.updateLearner(
-      learnerId: widget.learnerId,
-      firstName: firstNameCtrl.text,
-      lastName: lastNameCtrl.text,
-      middleName: middleNameCtrl.text,
-      gender: gender,
-      age: age,
-      lrn: lrnCtrl.text,
-      birthDate:
-          '${birthDate!.year.toString().padLeft(4, '0')}-${birthDate!.month.toString().padLeft(2, '0')}-${birthDate!.day.toString().padLeft(2, '0')}',
-      birthOrder: birthOrderCtrl.text,
-      numberOfSiblings: siblingsCtrl.text,
-      province: provinceCtrl.text,
-      city: cityCtrl.text,
-      barangay: barangayCtrl.text,
-      motherName: motherNameCtrl.text,
-      motherOccupation: motherOccupationCtrl.text,
-      motherEducation: motherEducationCtrl.text,
-      fatherName: fatherNameCtrl.text,
-      fatherOccupation: fatherOccupationCtrl.text,
-      fatherEducation: fatherEducationCtrl.text,
-      dominantHand: dominantHand,
-      parentName: _derivedParentName(),
-      parentEducation: _derivedParentEducation(),
-      guardianName: guardianSameAsParent
-          ? _derivedParentName()
-          : guardianNameCtrl.text,
-      guardianOccupation: guardianSameAsParent
-          ? (motherOccupationCtrl.text.trim().isNotEmpty
-                ? motherOccupationCtrl.text
-                : fatherOccupationCtrl.text)
-          : guardianOccupationCtrl.text,
-      guardianEducation: guardianSameAsParent
-          ? _derivedParentEducation()
-          : guardianEducationCtrl.text,
-      ageMotherAtBirth: ageMotherAtBirthCtrl.text,
-    );
+    try {
+      await _learners.updateLearner(
+        learnerId: widget.learnerId,
+        firstName: firstNameCtrl.text,
+        lastName: lastNameCtrl.text,
+        middleName: middleNameCtrl.text,
+        gender: gender,
+        age: age,
+        lrn: lrnCtrl.text,
+        birthDate:
+            '${birthDate!.year.toString().padLeft(4, '0')}-${birthDate!.month.toString().padLeft(2, '0')}-${birthDate!.day.toString().padLeft(2, '0')}',
+        birthOrder: birthOrderCtrl.text,
+        numberOfSiblings: siblingsCtrl.text,
+        province: provinceCtrl.text,
+        city: cityCtrl.text,
+        barangay: barangayCtrl.text,
+        motherName: motherNameCtrl.text,
+        motherOccupation: motherOccupationCtrl.text,
+        motherEducation: motherEducationCtrl.text,
+        fatherName: fatherNameCtrl.text,
+        fatherOccupation: fatherOccupationCtrl.text,
+        fatherEducation: fatherEducationCtrl.text,
+        dominantHand: dominantHand,
+        parentName: _derivedParentName(),
+        parentEducation: _derivedParentEducation(),
+        guardianName: guardianSameAsParent
+            ? _derivedParentName()
+            : guardianNameCtrl.text,
+        guardianOccupation: guardianSameAsParent
+            ? (motherOccupationCtrl.text.trim().isNotEmpty
+                  ? motherOccupationCtrl.text
+                  : fatherOccupationCtrl.text)
+            : guardianOccupationCtrl.text,
+        guardianEducation: guardianSameAsParent
+            ? _derivedParentEducation()
+            : guardianEducationCtrl.text,
+        ageMotherAtBirth: ageMotherAtBirthCtrl.text,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      AppFeedback.showSnackBar(
+        context,
+        'Failed to save learner profile. Please review the information and try again.',
+        tone: AppFeedbackTone.error,
+      );
+      return;
+    }
 
     if (!mounted) return;
     setState(() => dirty = false);
+    AppFeedback.showSnackBar(
+      context,
+      'Learner profile saved successfully.',
+      tone: AppFeedbackTone.success,
+    );
     Navigator.pop(context);
   }
 

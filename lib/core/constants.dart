@@ -46,7 +46,7 @@ String toSchoolYearPair(int startYear) => '$startYear-${startYear + 1}';
 
 List<String> schoolYearRangeOptions({
   int startYear = 2020,
-  int yearsFromNow = 10,
+  int yearsFromNow = 0,
   bool descending = true,
 }) {
   final endStartYear = DateTime.now().year + yearsFromNow;

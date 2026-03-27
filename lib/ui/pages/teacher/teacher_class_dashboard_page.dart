@@ -5,6 +5,7 @@ import '../../../core/app_dialogs.dart';
 import '../../../core/constants.dart';
 import '../../../core/nav_no_transition.dart';
 import '../../../core/responsive.dart';
+import '../../../core/ui_feedback.dart';
 import '../../../data/eccd_questions.dart';
 import '../../../db/app_db.dart';
 import '../../../db/schema.dart';
@@ -15,6 +16,7 @@ import '../../../services/csv_service.dart';
 import '../../../services/file_export_service.dart';
 import '../../../services/xlsx_service.dart';
 import '../../../services/learner_service.dart';
+import '../../../services/pdf_export_service.dart';
 import '../../../services/scoring_service.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/section_title.dart';
@@ -70,7 +72,7 @@ class _TeacherClassDashboardPageState extends State<TeacherClassDashboardPage> {
             tooltip: 'Archive class',
             onPressed: () async {
               await _classService.archiveClass(widget.classId);
-              if (!mounted) return;
+              if (!context.mounted) return;
               Navigator.pop(context);
             },
             icon: const Icon(Icons.archive),
@@ -377,10 +379,123 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
   final _csv = CsvService();
   final _xlsx = XlsxService();
   final _file = FileExportService();
+  final _pdf = PdfExportService();
 
   String assessmentType = 'pre'; // pre|post
   EccdLanguage language = EccdLanguage.english;
   String topDomainFilter = 'Gross Motor';
+
+  Future<void> _exportClassSummary(int teacherId) async {
+    final fmt = await AppDialogs.showChoiceDialog<String>(
+      context,
+      title: 'Export Format',
+      message: 'Choose the export format for this class summary.',
+      options: const [
+        AppDialogOption(
+          value: 'csv',
+          title: 'CSV',
+          subtitle: 'Best for sharing and importing.',
+          icon: Icons.table_chart_rounded,
+        ),
+        AppDialogOption(
+          value: 'xlsx',
+          title: 'XLSX',
+          subtitle: 'Styled spreadsheet for printing or review.',
+          icon: Icons.grid_on_rounded,
+        ),
+      ],
+    );
+    if (!mounted || fmt == null) return;
+
+    final name =
+        'teacher_class_${widget.grade}_${widget.section}_${widget.schoolYear}_$assessmentType';
+
+    try {
+      if (fmt == 'xlsx') {
+        final bytes = await _xlsx.exportTeacherClassRollupXlsx(
+          teacherId: teacherId,
+          classId: widget.classId,
+          assessmentType: assessmentType,
+          languageForSkills: language,
+        );
+        final saved = await _file.saveXlsx(filename: name, xlsxBytes: bytes);
+        if (!mounted) return;
+        _showActionMessage(
+          saved
+              ? 'Class summary exported successfully.'
+              : 'Class summary export cancelled.',
+          isError: !saved,
+        );
+        return;
+      }
+
+      final csvText = await _csv.exportTeacherClassRollupCsv(
+        teacherId: teacherId,
+        classId: widget.classId,
+        assessmentType: assessmentType,
+        languageForSkills: language,
+      );
+      final saved = await _file.saveCsv(filename: name, csvText: csvText);
+      if (!mounted) return;
+      _showActionMessage(
+        saved
+            ? 'Class summary exported successfully.'
+            : 'Class summary export cancelled.',
+        isError: !saved,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      final message = e is StateError || e is FormatException
+          ? '$e'
+                .replaceFirst('Bad state: ', '')
+                .replaceFirst('StateError: ', '')
+                .replaceFirst('FormatException: ', '')
+          : 'Unable to export the class summary right now.';
+      _showActionMessage(message, isError: true);
+    }
+  }
+
+  Future<void> _exportAllLearnerPdfs(int teacherId) async {
+    try {
+      final bytes = await _pdf.buildClassLearnersPdf(
+        classId: widget.classId,
+        assessmentType: assessmentType,
+        language: language,
+        exportingUserId: teacherId,
+      );
+      final filename = _slug(
+        '${widget.section}_All_Learners_${assessmentTypeDisplay(assessmentType)}',
+      );
+      final saved = await _file.savePdf(filename: filename, pdfBytes: bytes);
+      if (!mounted) return;
+      _showActionMessage(
+        saved
+            ? 'All learner PDFs were exported successfully.'
+            : 'Bulk learner export cancelled.',
+        isError: !saved,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      final message = e is StateError
+          ? '$e'.replaceFirst('Bad state: ', '')
+          : 'Unable to export learner PDFs for this class.';
+      _showActionMessage(message, isError: true);
+    }
+  }
+
+  void _showActionMessage(String message, {bool isError = false}) {
+    AppFeedback.showSnackBar(
+      context,
+      message,
+      tone: isError ? AppFeedbackTone.error : AppFeedbackTone.success,
+    );
+  }
+
+  String _slug(String value) {
+    final compact = value.trim().replaceAll(RegExp(r'\s+'), '_');
+    final safe = compact.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '');
+    return safe.isEmpty ? 'export' : safe;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -424,51 +539,14 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
                     backgroundColor: AppColors.maroon,
                     foregroundColor: Colors.white,
                   ),
-                  onPressed: () async {
-                    final fmt = await AppDialogs.showChoiceDialog<String>(
-                      context,
-                      title: 'Export Format',
-                      message:
-                          'Choose the export format for this class summary.',
-                      options: const [
-                        AppDialogOption(
-                          value: 'csv',
-                          title: 'CSV',
-                          subtitle: 'Best for sharing and importing.',
-                          icon: Icons.table_chart_rounded,
-                        ),
-                        AppDialogOption(
-                          value: 'xlsx',
-                          title: 'XLSX',
-                          subtitle:
-                              'Styled spreadsheet for printing or review.',
-                          icon: Icons.grid_on_rounded,
-                        ),
-                      ],
-                    );
-                    if (fmt == null) return;
-                    final name =
-                        'teacher_class_${widget.grade}_${widget.section}_${widget.schoolYear}_$assessmentType';
-                    if (fmt == 'xlsx') {
-                      final bytes = await _xlsx.exportTeacherClassRollupXlsx(
-                        teacherId: teacherId,
-                        classId: widget.classId,
-                        assessmentType: assessmentType,
-                        languageForSkills: language,
-                      );
-                      await _file.saveXlsx(filename: name, xlsxBytes: bytes);
-                    } else {
-                      final csvText = await _csv.exportTeacherClassRollupCsv(
-                        teacherId: teacherId,
-                        classId: widget.classId,
-                        assessmentType: assessmentType,
-                        languageForSkills: language,
-                      );
-                      await _file.saveCsv(filename: name, csvText: csvText);
-                    }
-                  },
+                  onPressed: () => _exportClassSummary(teacherId),
                   icon: const Icon(Icons.download),
                   label: const Text('Export'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _exportAllLearnerPdfs(teacherId),
+                  icon: const Icon(Icons.picture_as_pdf_rounded),
+                  label: const Text('Export All Learners'),
                 ),
               ],
             );
