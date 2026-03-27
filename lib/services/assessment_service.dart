@@ -21,7 +21,9 @@ class AssessmentService {
     required Map<String, List<int>> answersByDomain, // 0/1 per question
   }) async {
     final db = AppDb.instance.db;
-    final scoringAge = ageValueForScoring ?? ageAtAssessment.toDouble();
+    final scoringAge = _scoring.normalizeAgeValueForScoring(
+      ageValueForScoring ?? ageAtAssessment.toDouble(),
+    );
     final effectiveType = assessmentType.trim().toLowerCase();
 
     // Upsert assessment header

@@ -220,19 +220,23 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _showForgotPasswordDialog() async {
-    final resetEmailCtrl = TextEditingController(text: emailCtrl.text.trim());
-    final otpCtrl = TextEditingController();
-    final newPasswordCtrl = TextEditingController();
-    final confirmPasswordCtrl = TextEditingController();
-
+    final auth = context.read<AuthService>();
     EmailOtpChallenge? challenge;
+    var resetEmail = emailCtrl.text.trim();
+    var otpCode = '';
+    var newPassword = '';
+    var confirmPassword = '';
     var helperText =
         'Enter the email for the account you want to reset. We will send a reset code to that address.';
-    var errorText = '';
+    var generalErrorText = '';
+    var otpErrorText = '';
+    var passwordErrorText = '';
+    var confirmPasswordErrorText = '';
     var sending = false;
     var resetting = false;
+    UserRole? matchedRole;
 
-    await showDialog<void>(
+    final resetSuccessful = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
@@ -246,36 +250,53 @@ class _LoginPageState extends State<LoginPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(helperText),
+                    if (generalErrorText.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        generalErrorText,
+                        style: TextStyle(
+                          color: Theme.of(dialogContext).colorScheme.error,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 12),
-                    TextField(
-                      controller: resetEmailCtrl,
+                    TextFormField(
+                      initialValue: resetEmail,
                       keyboardType: TextInputType.emailAddress,
+                      onChanged: (value) => resetEmail = value,
                       decoration: const InputDecoration(labelText: 'Email'),
                     ),
                     const SizedBox(height: 10),
                     if (challenge != null) ...[
                       TextField(
-                        controller: otpCtrl,
                         keyboardType: TextInputType.number,
                         maxLength: 6,
+                        onChanged: (value) => otpCode = value,
                         decoration: InputDecoration(
                           labelText: 'Reset OTP',
-                          errorText: errorText.isEmpty ? null : errorText,
+                          errorText: otpErrorText.isEmpty ? null : otpErrorText,
                         ),
                       ),
                       TextField(
-                        controller: newPasswordCtrl,
                         obscureText: true,
-                        decoration: const InputDecoration(
+                        onChanged: (value) => newPassword = value,
+                        decoration: InputDecoration(
                           labelText: 'New Password',
+                          errorText: passwordErrorText.isEmpty
+                              ? null
+                              : passwordErrorText,
                         ),
                       ),
                       const SizedBox(height: 10),
                       TextField(
-                        controller: confirmPasswordCtrl,
                         obscureText: true,
-                        decoration: const InputDecoration(
+                        onChanged: (value) => confirmPassword = value,
+                        decoration: InputDecoration(
                           labelText: 'Confirm Password',
+                          errorText: confirmPasswordErrorText.isEmpty
+                              ? null
+                              : confirmPasswordErrorText,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -299,20 +320,30 @@ class _LoginPageState extends State<LoginPage> {
                         : () async {
                             setDialogState(() {
                               sending = true;
-                              errorText = '';
+                              generalErrorText = '';
+                              otpErrorText = '';
+                              passwordErrorText = '';
+                              confirmPasswordErrorText = '';
                             });
                             try {
-                              final email = resetEmailCtrl.text.trim();
-                              final user = await context
-                                  .read<AuthService>()
-                                  .getUserByEmail(role: role, email: email);
+                              final email = resetEmail.trim();
+                              final user = await auth.getUserByEmailAnyRole(
+                                email,
+                              );
                               if (user == null) {
                                 setDialogState(() {
-                                  errorText =
-                                      'No account found for this email and role.';
+                                  generalErrorText =
+                                      'No account was found for this email address.';
                                 });
                                 return;
                               }
+                              final nextRole =
+                                  ((user['role'] ?? '')
+                                          .toString()
+                                          .toLowerCase() ==
+                                      UserRole.admin.name)
+                                  ? UserRole.admin
+                                  : UserRole.teacher;
                               final nextChallenge = _emailOtpService
                                   .createChallenge();
                               await _emailOtpService.sendOtp(
@@ -322,12 +353,13 @@ class _LoginPageState extends State<LoginPage> {
                               );
                               setDialogState(() {
                                 challenge = nextChallenge;
+                                matchedRole = nextRole;
                                 helperText =
-                                    'A new reset code was sent to $email.';
+                                    'A new reset code was sent to $email for the ${roleLabel(nextRole).toLowerCase()} account.';
                               });
                             } catch (e) {
                               setDialogState(() {
-                                errorText = kDebugMode
+                                generalErrorText = kDebugMode
                                     ? 'Failed to send reset code: ${e.runtimeType}: $e'
                                     : 'Failed to send reset code.';
                               });
@@ -341,31 +373,43 @@ class _LoginPageState extends State<LoginPage> {
                   onPressed: sending || resetting
                       ? null
                       : () async {
-                          final email = resetEmailCtrl.text.trim();
+                          final email = resetEmail.trim();
                           final emailValidation = Validators.accountEmail(
                             email,
                           );
                           if (emailValidation != null) {
-                            setDialogState(() => errorText = emailValidation);
+                            setDialogState(() {
+                              generalErrorText = emailValidation;
+                            });
                             return;
                           }
 
                           if (challenge == null) {
                             setDialogState(() {
                               sending = true;
-                              errorText = '';
+                              generalErrorText = '';
+                              otpErrorText = '';
+                              passwordErrorText = '';
+                              confirmPasswordErrorText = '';
                             });
                             try {
-                              final user = await context
-                                  .read<AuthService>()
-                                  .getUserByEmail(role: role, email: email);
+                              final user = await auth.getUserByEmailAnyRole(
+                                email,
+                              );
                               if (user == null) {
                                 setDialogState(() {
-                                  errorText =
-                                      'No account found for this email and role.';
+                                  generalErrorText =
+                                      'No account was found for this email address.';
                                 });
                                 return;
                               }
+                              final nextRole =
+                                  ((user['role'] ?? '')
+                                          .toString()
+                                          .toLowerCase() ==
+                                      UserRole.admin.name)
+                                  ? UserRole.admin
+                                  : UserRole.teacher;
                               final nextChallenge = _emailOtpService
                                   .createChallenge();
                               await _emailOtpService.sendOtp(
@@ -375,12 +419,13 @@ class _LoginPageState extends State<LoginPage> {
                               );
                               setDialogState(() {
                                 challenge = nextChallenge;
+                                matchedRole = nextRole;
                                 helperText =
-                                    'A reset code was sent to $email. Enter it with your new password below.';
+                                    'A reset code was sent to $email for the ${roleLabel(nextRole).toLowerCase()} account. Enter it with your new password below.';
                               });
                             } catch (e) {
                               setDialogState(() {
-                                errorText = kDebugMode
+                                generalErrorText = kDebugMode
                                     ? 'Reset OTP failed: ${e.runtimeType}: $e'
                                     : 'Failed to send reset code.';
                               });
@@ -390,59 +435,61 @@ class _LoginPageState extends State<LoginPage> {
                             return;
                           }
 
-                          final newPassword = newPasswordCtrl.text;
                           if (!_isStrongPassword(newPassword)) {
                             setDialogState(() {
-                              errorText =
+                              passwordErrorText =
                                   'Password must be at least 8 characters and include uppercase, lowercase, number, and special character.';
+                              confirmPasswordErrorText = '';
                             });
                             return;
                           }
 
-                          if (newPassword != confirmPasswordCtrl.text) {
+                          if (newPassword != confirmPassword) {
                             setDialogState(() {
-                              errorText = 'Passwords do not match.';
+                              passwordErrorText = '';
+                              confirmPasswordErrorText =
+                                  'Passwords do not match.';
                             });
                             return;
                           }
 
                           if (challenge!.isExpired) {
                             setDialogState(() {
-                              errorText =
+                              otpErrorText =
                                   'This reset code has expired. Please request another one.';
                             });
                             return;
                           }
 
-                          if (otpCtrl.text.trim() != challenge!.code) {
+                          if (otpCode.trim() != challenge!.code) {
                             setDialogState(() {
-                              errorText = 'The OTP you entered is incorrect.';
+                              otpErrorText =
+                                  'The OTP you entered is incorrect.';
                             });
                             return;
                           }
 
                           setDialogState(() {
                             resetting = true;
-                            errorText = '';
+                            generalErrorText = '';
+                            otpErrorText = '';
+                            passwordErrorText = '';
+                            confirmPasswordErrorText = '';
                           });
                           try {
-                            await context
-                                .read<AuthService>()
-                                .resetPasswordByEmail(
-                                  role: role,
-                                  email: email,
-                                  newPassword: newPassword,
-                                );
-                            if (!mounted) return;
-                            Navigator.of(dialogContext).pop();
-                            AppFeedback.showSnackBar(
-                              context,
-                              'Password reset successful. You can now log in.',
-                              tone: AppFeedbackTone.success,
+                            await auth.resetPasswordByEmail(
+                              role: matchedRole ?? role,
+                              email: email,
+                              newPassword: newPassword,
                             );
+                            if (!dialogContext.mounted) return;
+                            FocusScope.of(dialogContext).unfocus();
+                            Navigator.of(dialogContext).pop(true);
+                            return;
                           } catch (e) {
+                            if (!dialogContext.mounted) return;
                             setDialogState(() {
-                              errorText = kDebugMode
+                              generalErrorText = kDebugMode
                                   ? 'Reset failed: ${e.runtimeType}: $e'
                                   : 'Failed to reset password.';
                             });
@@ -465,10 +512,13 @@ class _LoginPageState extends State<LoginPage> {
       },
     );
 
-    resetEmailCtrl.dispose();
-    otpCtrl.dispose();
-    newPasswordCtrl.dispose();
-    confirmPasswordCtrl.dispose();
+    if (resetSuccessful == true && mounted) {
+      AppFeedback.showSnackBar(
+        context,
+        'Password reset successful. You can now log in.',
+        tone: AppFeedbackTone.success,
+      );
+    }
   }
 
   bool _isStrongPassword(String value) {

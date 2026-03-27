@@ -9,6 +9,7 @@ import '../../../core/constants.dart';
 import '../../../core/ui_feedback.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/csv_service.dart';
+import '../../widgets/subpage_shell.dart';
 
 class AdminAddDataSourcePage extends StatefulWidget {
   const AdminAddDataSourcePage({super.key});
@@ -117,12 +118,10 @@ class _AdminAddDataSourcePageState extends State<AdminAddDataSourcePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add Data Source'),
-        backgroundColor: AppColors.maroon,
-        foregroundColor: Colors.white,
-      ),
+    return SubpageShell(
+      title: 'Add Data Source',
+      directorySegments: const ['Dashboard', 'My Data Sources', 'Add Data Source'],
+      navIndex: 0,
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 540),

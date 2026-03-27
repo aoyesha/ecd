@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../../core/constants.dart';
 import '../../../core/unsaved_guard.dart';
 import '../../../services/learner_service.dart';
+import '../../widgets/subpage_shell.dart';
 
 class TeacherAddLearnerPage extends StatefulWidget {
   final int classId;
@@ -147,9 +148,9 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
     }
 
     final age = _derivedAgeYears;
-    if (age < 3 || age > 5) {
+    if (age < 3) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Derived age must be between 3 and 5.')),
+        const SnackBar(content: Text('Derived age must be at least 3.')),
       );
       return;
     }
@@ -238,13 +239,10 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
 
     return UnsavedGuard(
       hasUnsavedChanges: dirty,
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF7F4F4),
-        appBar: AppBar(
-          backgroundColor: AppColors.maroon,
-          foregroundColor: Colors.white,
-          title: const Text('Add Pupil'),
-        ),
+      child: SubpageShell(
+        title: 'Add Pupil',
+        directorySegments: const ['Dashboard', 'My Classes', 'Add Pupil'],
+        navIndex: 0,
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Center(

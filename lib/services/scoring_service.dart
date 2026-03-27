@@ -9,6 +9,14 @@ class DevLevels {
 }
 
 class ScoringService {
+  static const double maxEccdScoringAge = 5.11;
+
+  double normalizeAgeValueForScoring(double ageValue) {
+    if (ageValue < 3.0) return 3.0;
+    if (ageValue > maxEccdScoringAge) return maxEccdScoringAge;
+    return ageValue;
+  }
+
   String scaledInterpretation(int scaledScore) {
     if (scaledScore <= 3) return DevLevels.ssdd;
     if (scaledScore <= 6) return DevLevels.ssldd;
@@ -30,6 +38,7 @@ class ScoringService {
     required String domain,
     required int raw,
   }) {
+    ageValue = normalizeAgeValueForScoring(ageValue);
     final d = _domainCode(domain);
     final isOlderBand = ageValue >= 5.1;
 

@@ -37,6 +37,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _obscureCurrentPw = true;
   bool _obscureNewPw = true;
   bool _showPwRules = false;
+  bool _updatingPassword = false;
 
   String? _selectedRegion;
   String? _selectedDivision;
@@ -560,37 +561,59 @@ class _SettingsPageState extends State<SettingsPage> {
                 backgroundColor: AppColors.maroon,
                 foregroundColor: Colors.white,
               ),
-              onPressed: () async {
-                if (!_pwKey.currentState!.validate()) return;
+              onPressed: _updatingPassword
+                  ? null
+                  : () async {
+                      if (!_pwKey.currentState!.validate()) return;
 
-                try {
-                  await auth.changePassword(
-                    userId: session.userId,
-                    currentPassword: _currentPwCtrl.text,
-                    newPassword: _pwCtrl.text,
-                  );
+                      final messenger = ScaffoldMessenger.of(context);
+                      final currentPassword = _currentPwCtrl.text;
+                      final newPassword = _pwCtrl.text;
 
-                  _currentPwCtrl.clear();
-                  _pwCtrl.clear();
-                  _showPwRules = false;
+                      setState(() => _updatingPassword = true);
+                      try {
+                        await auth.changePassword(
+                          userId: session.userId,
+                          currentPassword: currentPassword,
+                          newPassword: newPassword,
+                        );
 
-                  if (!mounted) return;
-                  AppFeedback.showSnackBar(
-                    context,
-                    'Password successfully updated',
-                    tone: AppFeedbackTone.success,
-                  );
-                } catch (e) {
-                  if (!mounted) return;
-
-                  AppFeedback.showSnackBar(
-                    context,
-                    'Current password is incorrect',
-                    tone: AppFeedbackTone.error,
-                  );
-                }
-              },
-              child: const Text('Update Password'),
+                        if (!mounted) return;
+                        setState(() {
+                          _currentPwCtrl.clear();
+                          _pwCtrl.clear();
+                          _showPwRules = false;
+                          _updatingPassword = false;
+                        });
+                        messenger.hideCurrentSnackBar();
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (!mounted) return;
+                          AppFeedback.showSnackBar(
+                            context,
+                            'Password successfully updated.',
+                            tone: AppFeedbackTone.success,
+                          );
+                        });
+                      } catch (e) {
+                        if (!mounted) return;
+                        setState(() => _updatingPassword = false);
+                        final message = e is StateError
+                            ? e.message.toString()
+                            : 'Failed to update password. Please try again.';
+                        messenger.hideCurrentSnackBar();
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (!mounted) return;
+                          AppFeedback.showSnackBar(
+                            context,
+                            message,
+                            tone: AppFeedbackTone.error,
+                          );
+                        });
+                      }
+                    },
+              child: Text(
+                _updatingPassword ? 'Updating...' : 'Update Password',
+              ),
             ),
           ),
         ],
@@ -648,7 +671,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             SizedBox(height: 4),
             Text(
-              'For technical support, coordinate with your school or division ECCD focal person.',
+              'For technical support, coordinate with your school or division Early Childhood Development (ECD) focal person.',
               textAlign: TextAlign.left,
               style: TextStyle(height: 1.4),
             ),

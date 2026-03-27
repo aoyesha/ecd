@@ -61,8 +61,7 @@ class Validators {
     if (req != null) return req;
     final age = int.tryParse(v!.trim());
     if (age == null) return 'Age must be a number';
-    // Adjust if your ECCD categories differ.
-    if (age < 3 || age > 5) return 'Age must be between 3 and 5';
+    if (age < 3) return 'Age must be at least 3';
     return null;
   }
 }

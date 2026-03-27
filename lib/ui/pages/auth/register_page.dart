@@ -651,10 +651,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
 const String _termsAndConditionsText = '''
 1. Acceptance of Terms
-By creating and using an ECCD Checklist account, you agree to these Terms and Conditions.
+By creating and using an Early Childhood Development (ECD) account, you agree to these Terms and Conditions.
 
 2. Purpose of Use
-This application is intended for educational assessment and reporting aligned with ECCD checklist implementation.
+This application is intended for educational assessment and reporting aligned with Early Childhood Development (ECD) implementation.
 You agree to use the system only for authorized school, division, district, and regional workflows.
 
 3. Account Responsibility
@@ -670,7 +670,7 @@ Checklist responses, raw scores, scaled scores, and interpretation outputs must 
 Users must not intentionally manipulate records to misrepresent learner outcomes.
 
 6. Local Storage and Exports
-Data is stored locally in your deployed ECCD system database.
+Data is stored locally in your deployed Early Childhood Development (ECD) system database.
 CSV and PDF exports are generated only through user action and should be handled securely.
 
 7. Authorized Sharing
@@ -688,12 +688,12 @@ Application updates may revise interface, fields, or reporting format to align w
 
 10. Limitation and Support
 The system assists assessment documentation but does not replace professional judgment.
-For operational issues, coordinate with your designated ECCD focal personnel or technical support team.
+For operational issues, coordinate with your designated Early Childhood Development (ECD) focal personnel or technical support team.
 ''';
 
 const String _privacyPolicyText = '''
 1. Scope
-This Privacy Policy explains how learner, class, and user account data are handled within the ECCD Checklist system.
+This Privacy Policy explains how learner, class, and user account data are handled within the Early Childhood Development (ECD) system.
 
 2. Data Collected
 The system may collect:

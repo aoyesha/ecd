@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants.dart';
 import '../../../services/csv_service.dart';
 import '../../../services/scoring_service.dart';
+import '../../widgets/subpage_shell.dart';
 
 class AdminDataSourceDetailPage extends StatefulWidget {
   final int sourceId;
@@ -42,29 +43,47 @@ class _AdminDataSourceDetailPageState
 
   String _levelFieldLabel(String level) {
     switch (level) {
-      case 'teacher': return 'Section:';
-      case 'school': return 'School:';
-      case 'district': return 'District:';
-      case 'division': return 'Division:';
-      case 'regional': return 'Region:';
-      default: return 'Source:';
+      case 'teacher':
+        return 'Section:';
+      case 'school':
+        return 'School:';
+      case 'district':
+        return 'District:';
+      case 'division':
+        return 'Division:';
+      case 'regional':
+        return 'Region:';
+      default:
+        return 'Source:';
     }
   }
 
   IconData _levelIcon(String level) {
     switch (level) {
-      case 'teacher': return Icons.class_;
-      case 'school': return Icons.school;
-      case 'district': return Icons.location_city;
-      case 'division': return Icons.account_balance;
-      case 'regional': return Icons.map;
-      default: return Icons.info_outline;
+      case 'teacher':
+        return Icons.class_;
+      case 'school':
+        return Icons.school;
+      case 'district':
+        return Icons.location_city;
+      case 'division':
+        return Icons.account_balance;
+      case 'regional':
+        return Icons.map;
+      default:
+        return Icons.info_outline;
     }
   }
 
   String _levelLabel(String level) {
     if (level.isEmpty) return 'Unknown';
     return level[0].toUpperCase() + level.substring(1).toLowerCase();
+  }
+
+  String get _displayName {
+    final label = widget.label.trim();
+    if (label.isNotEmpty) return label;
+    return _levelLabel(widget.orgLevel);
   }
 
   String _levelLegendText(String code) {
@@ -86,25 +105,28 @@ class _AdminDataSourceDetailPageState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          '${_levelLabel(widget.orgLevel)} · SY ${widget.schoolYear}',
-        ),
-        backgroundColor: AppColors.maroon,
-        foregroundColor: Colors.white,
-      ),
+    return SubpageShell(
+      title: '${_levelLabel(widget.orgLevel)} Source - SY ${widget.schoolYear}',
+      directorySegments: [
+        'Dashboard',
+        'My Data Sources',
+        'Details',
+      ],
+      navIndex: 0,
       body: Column(
         children: [
-          if (widget.label.isNotEmpty)
+          if (_displayName.isNotEmpty)
             Container(
               width: double.infinity,
               color: AppColors.maroon.withValues(alpha: 0.07),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Row(
                 children: [
-                  Icon(_levelIcon(widget.orgLevel),
-                      size: 18, color: AppColors.maroon),
+                  Icon(
+                    _levelIcon(widget.orgLevel),
+                    size: 18,
+                    color: AppColors.maroon,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     _levelFieldLabel(widget.orgLevel),
@@ -115,7 +137,7 @@ class _AdminDataSourceDetailPageState
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    _levelLabel(widget.orgLevel),
+                    _displayName,
                     style: const TextStyle(fontWeight: FontWeight.w500),
                   ),
                 ],
@@ -125,8 +147,10 @@ class _AdminDataSourceDetailPageState
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: Row(
               children: [
-                const Text('Assessment:',
-                    style: TextStyle(fontWeight: FontWeight.w600)),
+                const Text(
+                  'Assessment:',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
                 const SizedBox(width: 8),
                 DropdownButton<String>(
                   value: assessmentType,
@@ -134,8 +158,7 @@ class _AdminDataSourceDetailPageState
                     DropdownMenuItem(value: 'pre', child: Text('Pre-Test')),
                     DropdownMenuItem(value: 'post', child: Text('Post-Test')),
                   ],
-                  onChanged: (v) =>
-                      setState(() => assessmentType = v ?? 'pre'),
+                  onChanged: (v) => setState(() => assessmentType = v ?? 'pre'),
                 ),
               ],
             ),
@@ -248,9 +271,12 @@ class _AdminDataSourceDetailPageState
           ),
         );
 
-    Widget numCell(String text, double w,
-            {bool bold = false, Color textColor = Colors.black87}) =>
-        SizedBox(
+    Widget numCell(
+      String text,
+      double w, {
+      bool bold = false,
+      Color textColor = Colors.black87,
+    }) => SizedBox(
           width: w,
           child: Text(
             text,
@@ -339,12 +365,24 @@ class _AdminDataSourceDetailPageState
                           if (d != _domains.last) vSep(),
                         ],
                         vSep(),
-                        numCell('${rowGrandM(lvl)}', cellW,
-                            bold: true, textColor: AppColors.maroonDark),
-                        numCell('${rowGrandF(lvl)}', cellW,
-                            bold: true, textColor: AppColors.maroonDark),
-                        numCell('${rowGrandT(lvl)}', cellW,
-                            bold: true, textColor: AppColors.maroonDark),
+                        numCell(
+                          '${rowGrandM(lvl)}',
+                          cellW,
+                          bold: true,
+                          textColor: AppColors.maroonDark,
+                        ),
+                        numCell(
+                          '${rowGrandF(lvl)}',
+                          cellW,
+                          bold: true,
+                          textColor: AppColors.maroonDark,
+                        ),
+                        numCell(
+                          '${rowGrandT(lvl)}',
+                          cellW,
+                          bold: true,
+                          textColor: AppColors.maroonDark,
+                        ),
                       ],
                     ),
                   ),
@@ -355,24 +393,52 @@ class _AdminDataSourceDetailPageState
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Row(
                     children: [
-                      numCell('TOTAL', levelW,
-                          bold: true, textColor: Colors.white),
+                      numCell(
+                        'TOTAL',
+                        levelW,
+                        bold: true,
+                        textColor: Colors.white,
+                      ),
                       for (final d in _domains) ...[
-                        numCell('${colDomM(d)}', cellW,
-                            bold: true, textColor: Colors.white),
-                        numCell('${colDomF(d)}', cellW,
-                            bold: true, textColor: Colors.white),
-                        numCell('${colDomT(d)}', cellW,
-                            bold: true, textColor: Colors.white),
+                        numCell(
+                          '${colDomM(d)}',
+                          cellW,
+                          bold: true,
+                          textColor: Colors.white,
+                        ),
+                        numCell(
+                          '${colDomF(d)}',
+                          cellW,
+                          bold: true,
+                          textColor: Colors.white,
+                        ),
+                        numCell(
+                          '${colDomT(d)}',
+                          cellW,
+                          bold: true,
+                          textColor: Colors.white,
+                        ),
                         if (d != _domains.last) vSep(color: Colors.white38),
                       ],
                       vSep(color: Colors.white38),
-                      numCell('$totalGrandM', cellW,
-                          bold: true, textColor: Colors.white),
-                      numCell('$totalGrandF', cellW,
-                          bold: true, textColor: Colors.white),
-                      numCell('$totalGrandT', cellW,
-                          bold: true, textColor: Colors.white),
+                      numCell(
+                        '$totalGrandM',
+                        cellW,
+                        bold: true,
+                        textColor: Colors.white,
+                      ),
+                      numCell(
+                        '$totalGrandF',
+                        cellW,
+                        bold: true,
+                        textColor: Colors.white,
+                      ),
+                      numCell(
+                        '$totalGrandT',
+                        cellW,
+                        bold: true,
+                        textColor: Colors.white,
+                      ),
                     ],
                   ),
                 ),
@@ -409,9 +475,7 @@ class _AdminDataSourceDetailPageState
             }
             final map = snapshot.data!;
             if (map.isEmpty) {
-              return const Text(
-                'No skill data available for this source.',
-              );
+              return const Text('No skill data available for this source.');
             }
 
             final selectedDomain = map.containsKey(topDomainFilter)
@@ -465,10 +529,12 @@ class _AdminDataSourceDetailPageState
                           dropdownColor: Colors.white,
                           items: _domains
                               .where(map.containsKey)
-                              .map((d) => DropdownMenuItem(
-                                    value: d,
-                                    child: Text(d),
-                                  ))
+                              .map(
+                                (d) => DropdownMenuItem(
+                                  value: d,
+                                  child: Text(d),
+                                ),
+                              )
                               .toList(),
                           onChanged: (v) {
                             if (v == null) return;
@@ -480,8 +546,10 @@ class _AdminDataSourceDetailPageState
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(selectedDomain,
-                    style: const TextStyle(fontWeight: FontWeight.w800)),
+                Text(
+                  selectedDomain,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
                 const SizedBox(height: 6),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -489,8 +557,11 @@ class _AdminDataSourceDetailPageState
                     Expanded(child: _skillList('Most Learned', most)),
                     const SizedBox(width: 12),
                     Expanded(
-                        child:
-                            _skillList('Least Learned', least.take(3).toList())),
+                      child: _skillList(
+                        'Least Learned',
+                        least.take(3).toList(),
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -512,16 +583,20 @@ class _AdminDataSourceDetailPageState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.maroonDark)),
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              color: AppColors.maroonDark,
+            ),
+          ),
           const SizedBox(height: 6),
           for (final s in list)
             Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: Text(
-                  '${s['skill_text']} (${s['checked_sum']}/${s['total_sum']})'),
+                '${s['skill_text']} (${s['checked_sum']}/${s['total_sum']})',
+              ),
             ),
         ],
       ),

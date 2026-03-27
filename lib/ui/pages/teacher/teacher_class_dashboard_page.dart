@@ -20,6 +20,7 @@ import '../../../services/pdf_export_service.dart';
 import '../../../services/scoring_service.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/section_title.dart';
+import '../../widgets/subpage_shell.dart';
 import 'teacher_add_learner_page.dart';
 import 'teacher_learner_profile_page.dart';
 import 'teacher_checklist_page.dart';
@@ -48,6 +49,14 @@ class _TeacherClassDashboardPageState extends State<TeacherClassDashboardPage> {
 
   final _classService = ClassService();
 
+  String get _currentTabLabel => switch (tab) {
+    0 => 'View Class',
+    1 => 'Class Summary',
+    2 => 'Teacher Report',
+    3 => 'Dropped Pupils',
+    _ => 'View Class',
+  };
+
   @override
   Widget build(BuildContext context) {
     final tabs = [
@@ -62,23 +71,26 @@ class _TeacherClassDashboardPageState extends State<TeacherClassDashboardPage> {
       _DroppedTab(classId: widget.classId),
     ];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Class • Grade ${widget.grade} ${widget.section}'),
-        backgroundColor: AppColors.maroon,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            tooltip: 'Archive class',
-            onPressed: () async {
-              await _classService.archiveClass(widget.classId);
-              if (!context.mounted) return;
-              Navigator.pop(context);
-            },
-            icon: const Icon(Icons.archive),
-          ),
-        ],
-      ),
+    return SubpageShell(
+      title: 'Class - Grade ${widget.grade} ${widget.section}',
+      directorySegments: [
+        'Dashboard',
+        'My Classes',
+        '${widget.grade} ${widget.section}',
+        _currentTabLabel,
+      ],
+      navIndex: 0,
+      actions: [
+        IconButton(
+          tooltip: 'Archive class',
+          onPressed: () async {
+            await _classService.archiveClass(widget.classId);
+            if (!context.mounted) return;
+            Navigator.pop(context);
+          },
+          icon: const Icon(Icons.archive),
+        ),
+      ],
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -164,15 +176,15 @@ class _ViewClassTabState extends State<_ViewClassTab> {
     return rows.isNotEmpty;
   }
 
-  Future<Map<int, bool>> _completionFlags(
+  Future<Map<int, _AssessmentProgress>> _completionFlags(
     List<Map<String, Object?>> learners,
   ) async {
-    final out = <int, bool>{};
+    final out = <int, _AssessmentProgress>{};
     for (final l in learners) {
       final id = l['id'] as int;
       final hasPre = await _hasAssessment(id, 'pre');
       final hasPost = await _hasAssessment(id, 'post');
-      out[id] = hasPre && hasPost;
+      out[id] = _AssessmentProgress(hasPre: hasPre, hasPost: hasPost);
     }
     return out;
   }
@@ -247,7 +259,7 @@ class _ViewClassTabState extends State<_ViewClassTab> {
 
                   list = list.where((l) {
                     final id = l['id'] as int;
-                    final done = completion[id] ?? false;
+                    final done = completion[id]?.isComplete ?? false;
                     if (progressFilter == 'Completed') return done;
                     if (progressFilter == 'In Progress') return !done;
                     return true;
@@ -262,7 +274,12 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                       final name = '${l['last_name']}, ${l['first_name']}';
                       final gender = l['gender'] as String;
                       final age = l['age'] as int;
-                      final done = completion[id] ?? false;
+                      final progress =
+                          completion[id] ??
+                          const _AssessmentProgress(
+                            hasPre: false,
+                            hasPost: false,
+                          );
 
                       final bool mobile = !isDesktop(context);
 
@@ -296,8 +313,14 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                             name,
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          subtitle: Text(
-                            'Gender: $gender • Age: $age \n• ${done ? "Completed" : "In Progress"}',
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('Gender: $gender - Age: $age'),
+                              const SizedBox(height: 6),
+                              _AssessmentProgressBars(progress: progress),
+                            ],
                           ),
                           trailing: FittedBox(
                             fit: BoxFit.scaleDown,
@@ -570,7 +593,7 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
         ),
         const SizedBox(height: 12),
 
-        // 1) MATRIX TABLE (levels × domains M/F/Total + grand totals)
+        // 1) MATRIX TABLE (levels x domains M/F/Total + grand totals)
         Expanded(
           child: ListView(
             children: [_matrixCard(), const SizedBox(height: 12), _top3Card()],
@@ -1031,7 +1054,7 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                '• ${s.skillText}  (${s.checkedCount}/${s.totalLearners})',
+                '- ${s.skillText} (${s.checkedCount}/${s.totalLearners})',
                 style: const TextStyle(height: 1.3),
               ),
             ),
@@ -1081,7 +1104,7 @@ class _DroppedTabState extends State<_DroppedTab> {
               ),
               child: ListTile(
                 title: Text(name),
-                subtitle: Text('Gender: ${l['gender']} • Age: ${l['age']}'),
+                subtitle: Text('Gender: ${l['gender']} - Age: ${l['age']}'),
                 trailing: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.maroon,
@@ -1478,3 +1501,120 @@ class _DomainScore {
     required this.interp,
   });
 }
+
+class _AssessmentProgress {
+  final bool hasPre;
+  final bool hasPost;
+
+  const _AssessmentProgress({required this.hasPre, required this.hasPost});
+
+  bool get isComplete => hasPre && hasPost;
+
+  String get statusLabel {
+    if (hasPre && hasPost) {
+      return 'Pre-Test and Post-Test accomplished';
+    }
+    if (hasPre) {
+      return 'Pre-Test accomplished - Post-Test pending';
+    }
+    if (hasPost) {
+      return 'Post-Test accomplished - Pre-Test pending';
+    }
+    return 'Pre-Test and Post-Test pending';
+  }
+}
+
+class _AssessmentProgressBars extends StatelessWidget {
+  final _AssessmentProgress progress;
+
+  const _AssessmentProgressBars({required this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _ProgressPill(
+            label: 'Pre',
+            complete: progress.hasPre,
+            activeColor: const Color(0xFF2E7D4F),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _ProgressPill(
+            label: 'Post',
+            complete: progress.hasPost,
+            activeColor: const Color(0xFF2E7D4F),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ProgressPill extends StatelessWidget {
+  final String label;
+  final bool complete;
+  final Color activeColor;
+
+  const _ProgressPill({
+    required this.label,
+    required this.complete,
+    required this.activeColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = complete ? activeColor : Colors.black45;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: complete
+            ? activeColor.withValues(alpha: 0.12)
+            : const Color(0xFFF3ECEC),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: complete
+              ? activeColor.withValues(alpha: 0.28)
+              : const Color(0xFFE5DCDC),
+        ),
+      ),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: textColor,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                value: complete ? 1 : 0,
+                minHeight: 6,
+                backgroundColor: Colors.white,
+                valueColor: AlwaysStoppedAnimation<Color>(activeColor),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            complete ? 'Accomplished' : 'Pending',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+

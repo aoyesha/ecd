@@ -13,6 +13,8 @@ import '../../../services/auth_service.dart';
 import '../../../services/file_export_service.dart';
 import '../../../services/learner_service.dart';
 import '../../../services/pdf_export_service.dart';
+import '../../../services/scoring_service.dart';
+import '../../widgets/subpage_shell.dart';
 
 class TeacherChecklistPage extends StatefulWidget {
   final int classId;
@@ -33,6 +35,7 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
   final _pdf = PdfExportService();
   final _file = FileExportService();
   final _learners = LearnerService();
+  final _scoring = ScoringService();
 
   DateTime date = DateTime.now();
   EccdLanguage language = EccdLanguage.english;
@@ -122,12 +125,13 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
         (date.month == _birthDate!.month && date.day >= _birthDate!.day);
     if (!hadBirthday) age -= 1;
     if (age < 3) return 3;
-    if (age > 5) return 5;
     return age;
   }
 
   double _ageValueForScoring() {
-    if (_birthDate == null) return _fallbackAge.toDouble();
+    if (_birthDate == null) {
+      return _scoring.normalizeAgeValueForScoring(_fallbackAge.toDouble());
+    }
     int months =
         (date.year - _birthDate!.year) * 12 + (date.month - _birthDate!.month);
     if (date.day < _birthDate!.day) {
@@ -136,7 +140,9 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
     if (months < 0) months = 0;
     final years = months ~/ 12;
     final remMonths = months % 12;
-    return double.parse('$years.$remMonths');
+    return _scoring.normalizeAgeValueForScoring(
+      double.parse('$years.$remMonths'),
+    );
   }
 
   Future<void> _exportPdf() async {
@@ -224,12 +230,10 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
 
     return UnsavedGuard(
       hasUnsavedChanges: dirty,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Checklist'),
-          backgroundColor: AppColors.maroon,
-          foregroundColor: Colors.white,
-        ),
+      child: SubpageShell(
+        title: 'Checklist',
+        directorySegments: const ['Dashboard', 'My Classes', 'Checklist'],
+        navIndex: 0,
         body: Column(
           children: [
             Padding(

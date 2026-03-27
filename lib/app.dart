@@ -21,7 +21,7 @@ class EccdNewApp extends StatelessWidget {
       child: Consumer2<SettingsService, AuthService>(
         builder: (context, settings, auth, _) {
           return MaterialApp(
-            title: 'ECCD Checklist',
+            title: 'Early Childhood Development (ECD)',
             debugShowCheckedModeBanner: false,
             builder: (context, child) {
               final mq = MediaQuery.of(context);

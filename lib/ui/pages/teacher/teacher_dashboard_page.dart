@@ -6,8 +6,13 @@ import 'teacher_my_summary_page.dart';
 
 class TeacherDashboardPage extends StatefulWidget {
   final int teacherId;
+  final ValueChanged<List<String>>? onDirectoryChanged;
 
-  const TeacherDashboardPage({super.key, required this.teacherId});
+  const TeacherDashboardPage({
+    super.key,
+    required this.teacherId,
+    this.onDirectoryChanged,
+  });
 
   @override
   State<TeacherDashboardPage> createState() => _TeacherDashboardPageState();
@@ -15,6 +20,21 @@ class TeacherDashboardPage extends StatefulWidget {
 
 class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
   int tab = 0;
+
+  List<String> get _directorySegments => switch (tab) {
+    0 => const ['Dashboard', 'My Classes'],
+    1 => const ['Dashboard', 'My Summary'],
+    _ => const ['Dashboard'],
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      widget.onDirectoryChanged?.call(_directorySegments);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +56,10 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                   ButtonSegment(value: 1, label: Text('My Summary')),
                 ],
                 selected: {tab},
-                onSelectionChanged: (v) => setState(() => tab = v.first),
+                onSelectionChanged: (v) {
+                  setState(() => tab = v.first);
+                  widget.onDirectoryChanged?.call(_directorySegments);
+                },
               );
               if (!compact) {
                 return Row(

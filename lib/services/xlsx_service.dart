@@ -167,8 +167,8 @@ class XlsxService {
   }) {
     final excel = Excel.createExcel();
     // Rename the default sheet
-    excel.rename(excel.getDefaultSheet()!, 'ECCD Summary');
-    final sheet = excel.sheets['ECCD Summary']!;
+    excel.rename(excel.getDefaultSheet()!, 'ECD Summary');
+    final sheet = excel.sheets['ECD Summary']!;
 
     final assessLabel = assessmentType == 'pre'
         ? 'BEGINNING OF THE SCHOOL YEAR (BOSY) EARLY CHILDHOOD DEVELOPMENT ASSESSMENT'

@@ -327,6 +327,21 @@ class AuthService extends ChangeNotifier {
     return rows.first;
   }
 
+  Future<Map<String, Object?>?> getUserByEmailAnyRole(String email) async {
+    final db = AppDb.instance.db;
+    final normalizedEmail = email.trim().toLowerCase();
+
+    final rows = await db.query(
+      DbSchema.tUsers,
+      where: 'LOWER(${DbSchema.cUserEmail}) = ?',
+      whereArgs: [normalizedEmail],
+      limit: 1,
+    );
+
+    if (rows.isEmpty) return null;
+    return rows.first;
+  }
+
   Future<void> updateProfile({
     required int userId,
     required String name,

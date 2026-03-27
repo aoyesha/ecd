@@ -53,7 +53,8 @@ class EmailOtpService {
     'SMTP_FROM_NAME',
     defaultValue: _defaultFromName,
   );
-  static const _subject = 'ECCD Checklist verification code';
+  static const _subject =
+      'Early Childhood Development (ECD) verification code';
 
   const EmailOtpService();
 
@@ -116,24 +117,24 @@ class EmailOtpService {
       case EmailOtpPurpose.accountVerification:
         return _subject;
       case EmailOtpPurpose.monthlyLoginVerification:
-        return 'ECCD Checklist monthly teacher verification code';
+        return 'Early Childhood Development (ECD) monthly teacher verification code';
       case EmailOtpPurpose.passwordReset:
-        return 'ECCD Checklist password reset code';
+        return 'Early Childhood Development (ECD) password reset code';
     }
   }
 
   String _bodyFor(EmailOtpPurpose purpose, EmailOtpChallenge challenge) {
     final actionLine = switch (purpose) {
       EmailOtpPurpose.accountVerification =>
-        'Use this code to verify your ECCD Checklist account.',
+        'Use this code to verify your Early Childhood Development (ECD) account.',
       EmailOtpPurpose.monthlyLoginVerification =>
         'Use this code to verify that your teacher account is still active for this month.',
       EmailOtpPurpose.passwordReset =>
-        'Use this code to reset your ECCD Checklist password.',
+        'Use this code to reset your Early Childhood Development (ECD) password.',
     };
 
     return [
-      'Your ECCD Checklist verification code is ${challenge.code}.',
+      'Your Early Childhood Development (ECD) verification code is ${challenge.code}.',
       actionLine,
       'This code expires in 10 minutes.',
       'If you did not request this code, you can ignore this email.',

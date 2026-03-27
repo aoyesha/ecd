@@ -8,7 +8,7 @@ class AppColors {
 }
 
 class AppStrings {
-  static const appName = 'ECCD Checklist';
+  static const appName = 'Early Childhood Development (ECD)';
 }
 
 enum UserRole { teacher, admin }
@@ -49,7 +49,11 @@ List<String> schoolYearRangeOptions({
   int yearsFromNow = 0,
   bool descending = true,
 }) {
-  final endStartYear = DateTime.now().year + yearsFromNow;
+  final currentStartYear = DateTime.now().year;
+  final requestedEndYear = DateTime.now().year + yearsFromNow;
+  final endStartYear = requestedEndYear > currentStartYear
+      ? currentStartYear
+      : requestedEndYear;
   final out = <String>[
     for (int y = startYear; y <= endStartYear; y++) toSchoolYearPair(y),
   ];

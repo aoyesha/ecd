@@ -13,17 +13,29 @@ import '../pages/teacher/teacher_archive_page.dart';
 import '../pages/teacher/teacher_dashboard_page.dart';
 import '../pages/teacher/teacher_historical_page.dart';
 import 'app_nav.dart';
+import 'nav_ui_state.dart';
+import 'page_directory_line.dart';
 
 class AppShell extends StatefulWidget {
-  const AppShell({super.key});
+  final int initialIndex;
+
+  const AppShell({super.key, this.initialIndex = 0});
 
   @override
   State<AppShell> createState() => _AppShellState();
 }
 
 class _AppShellState extends State<AppShell> {
-  int index = 0;
-  bool navExpanded = true;
+  late int index;
+  late bool navExpanded;
+  List<String>? _overrideDirectorySegments;
+
+  @override
+  void initState() {
+    super.initState();
+    index = widget.initialIndex;
+    navExpanded = NavUiState.expanded;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,13 +52,24 @@ class _AppShellState extends State<AppShell> {
 
     final pages = role == UserRole.teacher
         ? [
-            TeacherDashboardPage(teacherId: userId),
+            TeacherDashboardPage(
+              teacherId: userId,
+              onDirectoryChanged: (segments) {
+                if (!mounted) return;
+                setState(() => _overrideDirectorySegments = segments);
+              },
+            ),
             const TeacherArchivePage(),
             const TeacherHistoricalPage(),
             const SettingsPage(),
           ]
-        : const [
-            AdminDashboardPage(),
+        : [
+            AdminDashboardPage(
+              onDirectoryChanged: (segments) {
+                if (!mounted) return;
+                setState(() => _overrideDirectorySegments = segments);
+              },
+            ),
             AdminArchivePage(),
             AdminHistoricalPage(),
             SettingsPage(),
@@ -62,6 +85,15 @@ class _AppShellState extends State<AppShell> {
     final safeIndex = index >= 0 && index < pages.length ? index : 0;
     final body = pages[safeIndex];
     final userFuture = auth.getUser(userId);
+    final directorySegments = safeIndex == 0 && _overrideDirectorySegments != null
+        ? _overrideDirectorySegments!
+        : switch (safeIndex) {
+      0 => const ['Dashboard'],
+      1 => const ['Dashboard', 'My Archive'],
+      2 => const ['Dashboard', 'Historical Data Analysis'],
+      3 => const ['Dashboard', 'Account Settings'],
+      _ => const ['Dashboard'],
+    };
 
     return Scaffold(
       backgroundColor: AppColors.offWhite,
@@ -76,7 +108,10 @@ class _AppShellState extends State<AppShell> {
                     items: items,
                     selectedIndex: safeIndex,
                     closeOnSelect: true,
-                    onSelected: (i) => setState(() => index = i),
+                    onSelected: (i) => setState(() {
+                      index = i;
+                      _overrideDirectorySegments = null;
+                    }),
                     profileName: (u['name'] ?? 'User').toString(),
                     division: (u['division'] ?? 'MIMAROPA').toString(),
                   ),
@@ -98,9 +133,14 @@ class _AppShellState extends State<AppShell> {
                     items: items,
                     selectedIndex: safeIndex,
                     compact: !navExpanded,
-                    onToggleCompact: () =>
-                        setState(() => navExpanded = !navExpanded),
-                    onSelected: (i) => setState(() => index = i),
+                    onToggleCompact: () => setState(() {
+                      navExpanded = !navExpanded;
+                      NavUiState.setExpanded(navExpanded);
+                    }),
+                    onSelected: (i) => setState(() {
+                      index = i;
+                      _overrideDirectorySegments = null;
+                    }),
                     profileName: (u['name'] ?? 'User').toString(),
                     division: (u['division'] ?? 'MIMAROPA').toString(),
                   ),
@@ -140,7 +180,7 @@ class _AppShellState extends State<AppShell> {
                               ),
                             Expanded(
                               child: Text(
-                                'Early Childhood Development Checklist',
+                                'Early Childhood Development (ECD)',
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -155,6 +195,10 @@ class _AppShellState extends State<AppShell> {
                         );
                       },
                     ),
+                  ),
+                  PageDirectoryLine(
+                    segments: directorySegments,
+                    padding: const EdgeInsets.fromLTRB(18, 0, 18, 10),
                   ),
                   Expanded(child: body),
                 ],

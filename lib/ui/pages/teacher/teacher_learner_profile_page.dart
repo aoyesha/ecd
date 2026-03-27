@@ -6,6 +6,7 @@ import '../../../core/ui_feedback.dart';
 import '../../../core/unsaved_guard.dart';
 import '../../../db/schema.dart';
 import '../../../services/learner_service.dart';
+import '../../widgets/subpage_shell.dart';
 
 class TeacherLearnerProfilePage extends StatefulWidget {
   final int learnerId;
@@ -203,10 +204,10 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
     }
 
     final age = _derivedAgeYears;
-    if (age < 3 || age > 5) {
+    if (age < 3) {
       AppFeedback.showSnackBar(
         context,
-        'Derived age must be between 3 and 5.',
+        'Derived age must be at least 3.',
         tone: AppFeedbackTone.error,
       );
       return;
@@ -287,13 +288,11 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
   @override
   Widget build(BuildContext context) {
     if (loading) {
-      return Scaffold(
-        appBar: AppBar(
-          backgroundColor: AppColors.maroon,
-          foregroundColor: Colors.white,
-          title: const Text('Pupil Profile'),
-        ),
-        body: const Center(child: CircularProgressIndicator()),
+      return const SubpageShell(
+        title: 'Pupil Profile',
+        directorySegments: ['Dashboard', 'My Classes', 'Pupil Profile'],
+        navIndex: 0,
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -303,13 +302,10 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
 
     return UnsavedGuard(
       hasUnsavedChanges: dirty,
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF7F4F4),
-        appBar: AppBar(
-          backgroundColor: AppColors.maroon,
-          foregroundColor: Colors.white,
-          title: const Text('Pupil Profile'),
-        ),
+      child: SubpageShell(
+        title: 'Pupil Profile',
+        directorySegments: const ['Dashboard', 'My Classes', 'Pupil Profile'],
+        navIndex: 0,
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Center(

@@ -12,7 +12,9 @@ import '../../widgets/section_title.dart';
 import 'admin_data_sources_page.dart';
 
 class AdminDashboardPage extends StatefulWidget {
-  const AdminDashboardPage({super.key});
+  final ValueChanged<List<String>>? onDirectoryChanged;
+
+  const AdminDashboardPage({super.key, this.onDirectoryChanged});
 
   @override
   State<AdminDashboardPage> createState() => _AdminDashboardPageState();
@@ -21,6 +23,21 @@ class AdminDashboardPage extends StatefulWidget {
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
   int tab = 0;
   int _summaryRefreshKey = 0;
+
+  List<String> get _directorySegments => switch (tab) {
+    0 => const ['Dashboard', 'My Data Sources'],
+    1 => const ['Dashboard', 'My Summary'],
+    _ => const ['Dashboard'],
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      widget.onDirectoryChanged?.call(_directorySegments);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +48,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             tab = 1;
             _summaryRefreshKey++;
           });
+          widget.onDirectoryChanged?.call(_directorySegments);
         },
       ),
       _AdminSummaryTab(key: ValueKey(_summaryRefreshKey)),
@@ -49,7 +67,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   ButtonSegment(value: 1, label: Text('My Summary')),
                 ],
                 selected: {tab},
-                onSelectionChanged: (v) => setState(() => tab = v.first),
+                onSelectionChanged: (v) {
+                  setState(() => tab = v.first);
+                  widget.onDirectoryChanged?.call(_directorySegments);
+                },
               );
               if (!compact) {
                 return Row(

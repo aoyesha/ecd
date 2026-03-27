@@ -11,6 +11,7 @@ import '../../../core/validators.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/class_service.dart';
 import '../../../services/learner_service.dart';
+import '../../widgets/subpage_shell.dart';
 import '../../widgets/section_title.dart';
 
 class TeacherAddClassPage extends StatefulWidget {
@@ -30,7 +31,6 @@ class _TeacherAddClassPageState extends State<TeacherAddClassPage> {
     super.initState();
     gradeCtrl.text = 'Kindergarten';
   }
-
 
   String? schoolYear;
   bool dirty = false;
@@ -208,7 +208,7 @@ class _TeacherAddClassPageState extends State<TeacherAddClassPage> {
       if (parsedGender == null || birthDate == null) continue;
 
       final age = _deriveAge(birthDate);
-      if (age < 3 || age > 5) continue;
+      if (age < 3) continue;
 
       final parsed = _splitName(nameText);
       await _learnerService.addLearner(
@@ -247,12 +247,10 @@ class _TeacherAddClassPageState extends State<TeacherAddClassPage> {
   Widget build(BuildContext context) {
     return UnsavedGuard(
       hasUnsavedChanges: dirty,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Add Class'),
-          backgroundColor: AppColors.maroon,
-          foregroundColor: Colors.white,
-        ),
+      child: SubpageShell(
+        title: 'Add Class',
+        directorySegments: const ['Dashboard', 'My Classes', 'Add Class'],
+        navIndex: 0,
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Center(
@@ -390,7 +388,7 @@ class _TeacherAddClassPageState extends State<TeacherAddClassPage> {
     final currentSY = '$startYear-${startYear + 1}';
     final nextSY = '${startYear + 1}-${startYear + 2}';
 
-    return [currentSY, nextSY];
+    return [nextSY, currentSY];
   }
 
   String? _normalizeGender(String raw) {
