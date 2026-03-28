@@ -84,6 +84,14 @@ class _TeacherAddClassPageState extends State<TeacherAddClassPage> {
     }
 
     if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'Class created successfully',
+          style: TextStyle(color: Colors.black),
+        ),
+      ),
+    );
     setState(() => dirty = false);
     Navigator.pop(context);
   }
@@ -110,6 +118,9 @@ class _TeacherAddClassPageState extends State<TeacherAddClassPage> {
       }
       return '';
     }
+
+    final errors = <String>[];
+    int importedCount = 0;
 
     for (int i = 1; i < rows.length; i++) {
       final row = rows[i];
@@ -201,46 +212,75 @@ class _TeacherAddClassPageState extends State<TeacherAddClassPage> {
               given,
               middle,
             ].where((e) => e.isNotEmpty).join(' ').trim();
-      if (nameText.isEmpty || genderRaw.isEmpty || birthRaw.isEmpty) continue;
+      if (nameText.isEmpty || genderRaw.isEmpty || birthRaw.isEmpty) {
+        errors.add(
+          'Row ${i + 1}: Missing required fields (name, gender, birthdate)',
+        );
+        continue;
+      }
 
       final parsedGender = _normalizeGender(genderRaw);
       final birthDate = _parseDateFlexible(birthRaw);
-      if (parsedGender == null || birthDate == null) continue;
+      if (parsedGender == null || birthDate == null) {
+        errors.add('Row ${i + 1}: Invalid gender or birthdate format');
+        continue;
+      }
 
       final age = _deriveAge(birthDate);
-      if (age < 3) continue;
+      if (age < 3) {
+        errors.add('Row ${i + 1}: Age must be at least 3 years');
+        continue;
+      }
+
+      // Check for duplicate LRN
+      if (lrn.isNotEmpty) {
+        final exists = await _learnerService.lrnExists(lrn);
+        if (exists) {
+          errors.add(
+            'Row ${i + 1}: The LRN "$lrn" is already registered in the system.',
+          );
+          continue;
+        }
+      }
 
       final parsed = _splitName(nameText);
-      await _learnerService.addLearner(
-        classId: classId,
-        firstName: parsed.$1,
-        lastName: parsed.$2,
-        gender: parsedGender,
-        age: age,
-        middleName: middle,
-        lrn: lrn,
-        birthDate:
-            '${birthDate.year.toString().padLeft(4, '0')}-'
-            '${birthDate.month.toString().padLeft(2, '0')}-'
-            '${birthDate.day.toString().padLeft(2, '0')}',
-        birthOrder: birthOrder,
-        numberOfSiblings: numberOfSiblings,
-        province: province,
-        city: city,
-        barangay: barangay,
-        parentName: parentName,
-        parentOccupation: parentOccupation,
-        parentEducation: parentEducation,
-        motherName: motherName,
-        motherOccupation: motherOccupation,
-        motherEducation: motherEducation,
-        fatherName: fatherName,
-        fatherOccupation: fatherOccupation,
-        fatherEducation: fatherEducation,
-        ageMotherAtBirth: ageMotherAtBirth,
-        spouseOccupation: spouseOccupation,
-      );
+      try {
+        await _learnerService.addLearner(
+          classId: classId,
+          firstName: parsed.$1,
+          lastName: parsed.$2,
+          gender: parsedGender,
+          age: age,
+          middleName: middle,
+          lrn: lrn,
+          birthDate:
+              '${birthDate.year.toString().padLeft(4, '0')}-'
+              '${birthDate.month.toString().padLeft(2, '0')}-'
+              '${birthDate.day.toString().padLeft(2, '0')}',
+          birthOrder: birthOrder,
+          numberOfSiblings: numberOfSiblings,
+          province: province,
+          city: city,
+          barangay: barangay,
+          parentName: parentName,
+          parentOccupation: parentOccupation,
+          parentEducation: parentEducation,
+          motherName: motherName,
+          motherOccupation: motherOccupation,
+          motherEducation: motherEducation,
+          fatherName: fatherName,
+          fatherOccupation: fatherOccupation,
+          fatherEducation: fatherEducation,
+          ageMotherAtBirth: ageMotherAtBirth,
+          spouseOccupation: spouseOccupation,
+        );
+        importedCount++;
+      } catch (e) {
+        errors.add('Row ${i + 1}: Failed to import - $e');
+      }
     }
+
+    if (!mounted) return;
   }
 
   @override
@@ -251,130 +291,145 @@ class _TeacherAddClassPageState extends State<TeacherAddClassPage> {
         title: 'Add Class',
         directorySegments: const ['Dashboard', 'My Classes', 'Add Class'],
         navIndex: 0,
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 820),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SectionTitle(title: 'Class Details'),
-                  const SizedBox(height: 12),
-                  Form(
-                    key: formKey,
-                    onChanged: () => setState(() => dirty = true),
-                    child: Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: [
-                        SizedBox(
-                          width: 260,
-                          child: TextFormField(
-                            controller: gradeCtrl,
-                            enabled: false,
-                            decoration: const InputDecoration(
-                              labelText: 'Grade',
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (v) =>
-                                Validators.required(v, label: 'Grade'),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 260,
-                          child: TextFormField(
-                            controller: sectionCtrl,
-                            decoration: const InputDecoration(
-                              labelText: 'Section',
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (v) =>
-                                Validators.required(v, label: 'Section'),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 260,
-                          child: DropdownButtonFormField<String>(
-                            initialValue: schoolYear,
-                            items: _schoolYearOptions()
-                                .map(
-                                  (sy) => DropdownMenuItem(
-                                    value: sy,
-                                    child: Text(sy),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (v) => setState(() {
-                              schoolYear = v;
-                              dirty = true;
-                            }),
-                            decoration: const InputDecoration(
-                              labelText: 'School Year',
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (v) =>
-                                v == null ? 'School Year is required' : null,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Card(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: const BorderSide(color: Color(0xFFE6E6E6)),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 32,
+                  maxWidth: 820,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SectionTitle(title: 'Class Details'),
+                    const SizedBox(height: 12),
+                    Form(
+                      key: formKey,
+                      onChanged: () => setState(() => dirty = true),
+                      child: Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        alignment: WrapAlignment.center,
                         children: [
-                          const Text(
-                            'Optional: Import Learners CSV',
-                            style: TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Required fields: Full Name (or Surname + Given Name), Gender/Sex, Birthdate/Birthday.\n'
-                            'Age is auto-derived from birthdate. Other columns are optional.',
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              ElevatedButton.icon(
-                                onPressed: _pickCsv,
-                                icon: const Icon(Icons.upload_file),
-                                label: const Text('Choose CSV'),
+                          SizedBox(
+                            width: 260,
+                            child: TextFormField(
+                              controller: gradeCtrl,
+                              enabled: false,
+                              decoration: const InputDecoration(
+                                labelText: 'Grade',
+                                border: OutlineInputBorder(),
                               ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  csvFile?.name ?? 'No file selected',
-                                ),
+                              validator: (v) =>
+                                  Validators.required(v, label: 'Grade'),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 260,
+                            child: TextFormField(
+                              controller: sectionCtrl,
+                              decoration: const InputDecoration(
+                                labelText: 'Section',
+                                border: OutlineInputBorder(),
                               ),
-                            ],
+                              validator: (v) =>
+                                  Validators.required(v, label: 'Section'),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 260,
+                            child: DropdownButtonFormField<String>(
+                              initialValue: schoolYear,
+                              items: _schoolYearOptions()
+                                  .map(
+                                    (sy) => DropdownMenuItem(
+                                      value: sy,
+                                      child: Text(sy),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (v) => setState(() {
+                                schoolYear = v;
+                                dirty = true;
+                              }),
+                              decoration: const InputDecoration(
+                                labelText: 'School Year',
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: (v) =>
+                                  v == null ? 'School Year is required' : null,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 14),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.maroon,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    const SizedBox(height: 16),
+                    Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: const BorderSide(color: Color(0xFFE6E6E6)),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Optional: Import Learners CSV',
+                              style: TextStyle(fontWeight: FontWeight.w800),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Required fields: Full Name (or Surname + Given Name), Gender/Sex, Birthdate/Birthday.\n'
+                              'Age is auto-derived from birthdate. Other columns are optional.',
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                ElevatedButton.icon(
+                                  onPressed: _pickCsv,
+                                  icon: const Icon(Icons.upload_file),
+                                  label: const Text('Choose CSV'),
+                                  style: ElevatedButton.styleFrom(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    csvFile?.name ?? 'No file selected',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    onPressed: _save,
-                    child: const Text('Save Class'),
-                  ),
-                ],
+                    const SizedBox(height: 14),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.maroon,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      onPressed: _save,
+                      child: const Text('Save Class'),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );

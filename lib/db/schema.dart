@@ -1,6 +1,6 @@
 class DbSchema {
-  // V11: add monthly login OTP verification timestamp for users.
-  static const int dbVersion = 11;
+  // V12: enforce unique LRN for learners.
+  static const int dbVersion = 12;
 
   // USERS
   static const String tUsers = 'users';

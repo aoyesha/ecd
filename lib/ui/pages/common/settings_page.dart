@@ -31,7 +31,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _hasLowercase(String v) => RegExp(r'[a-z]').hasMatch(v);
   bool _hasNumber(String v) => RegExp(r'[0-9]').hasMatch(v);
   bool _hasSpecialChar(String v) =>
-      RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(v);
+      RegExp(r'[!@#$%^&*(),.?":{}|<>_]').hasMatch(v);
 
   bool _editingProfile = false;
   bool _obscureCurrentPw = true;

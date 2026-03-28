@@ -43,11 +43,13 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
   String assessmentUi = 'Pre-Test'; // Pre-Test|Post-Test|Conditional Test
   bool dirty = false;
   bool saving = false;
+  bool showMidYear = false;
 
   int _fallbackAge = 4;
   DateTime? _birthDate;
 
   late Map<String, List<int>> answers; // 0/1 per question
+  String learnerName = ''; // ⭐ ADD
 
   @override
   void initState() {
@@ -57,11 +59,57 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
         d: List<int>.filled(EccdQuestions.get(d, language).length, 0),
     };
     _loadInitialData();
+    _checkMidYearAvailability(); // ⭐ ADD
   }
 
   Future<void> _loadInitialData() async {
     await _loadLearnerMeta();
     await _loadSavedAssessment();
+  }
+
+  Future<void> _checkMidYearAvailability() async {
+    final hasPre = await _svc.hasCompletedAssessment(
+      learnerId: widget.learnerId,
+      classId: widget.classId,
+      assessmentType: 'pre',
+    );
+
+    if (!hasPre) {
+      setState(() => showMidYear = true);
+      return;
+    }
+
+    final header = await _svc.getAssessmentHeader(
+      learnerId: widget.learnerId,
+      classId: widget.classId,
+      assessmentType: 'pre',
+    );
+
+    if (header == null) {
+      setState(() => showMidYear = true);
+      return;
+    }
+
+    final id = header['id'];
+    if (id is! int) return;
+
+    final loaded = await _svc.loadAnswers(assessmentId: id);
+
+    bool isPerfect = true;
+
+    for (final domain in loaded.values) {
+      for (final v in domain) {
+        if (v != 1) {
+          isPerfect = false;
+          break;
+        }
+      }
+      if (!isPerfect) break;
+    }
+
+    setState(() {
+      showMidYear = !isPerfect; // show if NOT perfect
+    });
   }
 
   Future<void> _loadLearnerMeta() async {
@@ -72,6 +120,10 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
     setState(() {
       _fallbackAge = age is int ? age : int.tryParse('$age') ?? 4;
       _birthDate = _parseDateFlexible(birthRaw);
+
+      final first = (row['first_name'] ?? '').toString();
+      final last = (row['last_name'] ?? '').toString();
+      learnerName = '$last, $first'; // ⭐ ADD
     });
   }
 
@@ -113,7 +165,7 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
 
   String get _effectiveType {
     if (assessmentUi == 'Post-Test') return 'post';
-    if (assessmentUi == 'Conditional Test') return 'conditional';
+    if (assessmentUi == 'Mid Year Test') return 'conditional';
     return 'pre';
   }
 
@@ -237,6 +289,19 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
         body: Column(
           children: [
             Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  learnerName.isEmpty ? 'Learner' : learnerName,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+            Padding(
               padding: const EdgeInsets.all(12),
               child: LayoutBuilder(
                 builder: (context, c) {
@@ -266,19 +331,21 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
                       ),
                       DropdownButton<String>(
                         value: assessmentUi,
-                        items: const [
-                          DropdownMenuItem(
+                        items: [
+                          const DropdownMenuItem(
                             value: 'Pre-Test',
                             child: Text('Pre-Test'),
                           ),
-                          DropdownMenuItem(
+                          const DropdownMenuItem(
                             value: 'Post-Test',
                             child: Text('Post-Test'),
                           ),
-                          DropdownMenuItem(
-                            value: 'Conditional Test',
-                            child: Text('Conditional Test'),
-                          ),
+
+                          if (showMidYear)
+                            const DropdownMenuItem(
+                              value: 'Mid Year Test',
+                              child: Text('Mid Year Test'),
+                            ),
                         ],
                         onChanged: (v) async {
                           if (v == null) return;
@@ -377,6 +444,42 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
                         style: const TextStyle(fontWeight: FontWeight.w800),
                       ),
                       children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          child: Row(
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    for (int i = 0; i < a.length; i++) {
+                                      a[i] = 1;
+                                    }
+                                    answers[domain] = a;
+                                    dirty = true;
+                                  });
+                                },
+                                child: const Text('Select All'),
+                              ),
+                              const SizedBox(width: 8),
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    for (int i = 0; i < a.length; i++) {
+                                      a[i] = 0;
+                                    }
+                                    answers[domain] = a;
+                                    dirty = true;
+                                  });
+                                },
+                                child: const Text('Unselect All'),
+                              ),
+                            ],
+                          ),
+                        ),
+
                         if (domain == 'Self Help') ...[
                           ..._selfHelpSectionTiles(a),
                         ] else ...[

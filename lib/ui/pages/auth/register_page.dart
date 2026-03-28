@@ -74,7 +74,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _hasLowercase(String v) => RegExp(r'[a-z]').hasMatch(v);
   bool _hasNumber(String v) => RegExp(r'[0-9]').hasMatch(v);
   bool _hasSpecialChar(String v) =>
-      RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(v);
+      RegExp(r'[!@#$%^&*(),.?":{}|<>_]').hasMatch(v);
 
   int step = 1;
   String? selectedRegion = 'MIMAROPA';
@@ -195,7 +195,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }) async {
     final otpCtrl = TextEditingController();
     var errorText = '';
-    var helperText = 'A 6-digit OTP was sent to $email.';
+    var successText = '';
     var challenge = initialChallenge;
     var sending = false;
 
@@ -206,102 +206,292 @@ class _RegisterPageState extends State<RegisterPage> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('Verify Your Email'),
+              backgroundColor: const Color(0xFFFAFAFA),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Text(
+                'Verify Your Email',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1A1A1A),
+                ),
+              ),
+              titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+              contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '$helperText Enter it below to finish creating your account.',
+                    'A 6-digit code was sent to:',
+                    style: const TextStyle(
+                      color: Color(0xFF666666),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      email,
+                      style: const TextStyle(
+                        color: Color(0xFF1A1A1A),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Enter OTP Code',
+                    style: TextStyle(
+                      color: Color(0xFF424242),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   TextField(
                     controller: otpCtrl,
                     autofocus: true,
+                    textAlign: TextAlign.center,
                     keyboardType: TextInputType.number,
                     maxLength: 6,
+                    style: const TextStyle(
+                      color: Color(0xFF1A1A1A),
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 8,
+                    ),
                     decoration: InputDecoration(
-                      labelText: 'OTP code',
-                      errorText: errorText.isEmpty ? null : errorText,
+                      counterText: '',
+                      hintText: '000000',
+                      hintStyle: const TextStyle(
+                        color: Color(0xFFBDBDBD),
+                        letterSpacing: 8,
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFE0E0E0),
+                          width: 1.5,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFE0E0E0),
+                          width: 1.5,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFD32F2F),
+                          width: 2,
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'This code expires at ${TimeOfDay.fromDateTime(challenge.expiresAt).format(context)}.',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton.icon(
-                      onPressed: sending
-                          ? null
-                          : () async {
-                              setDialogState(() {
-                                sending = true;
-                                errorText = '';
-                              });
+                  if (errorText.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFEBEE),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFFEF9A9A),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: Color(0xFFD32F2F),
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              errorText,
+                              style: const TextStyle(
+                                color: Color(0xFFD32F2F),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else if (successText.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F5E9),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFFC8E6C9),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.check_circle_outline,
+                            color: Color(0xFF2E7D32),
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              successText,
+                              style: const TextStyle(
+                                color: Color(0xFF2E7D32),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Expires: ${TimeOfDay.fromDateTime(challenge.expiresAt).format(context)}',
+                        style: const TextStyle(
+                          color: Color(0xFF999999),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: sending
+                            ? null
+                            : () async {
+                                setDialogState(() {
+                                  sending = true;
+                                  errorText = '';
+                                  successText = '';
+                                });
 
-                              try {
-                                final nextChallenge = _emailOtpService
-                                    .createChallenge();
-                                await _emailOtpService.sendOtp(
-                                  email: email,
-                                  challenge: nextChallenge,
-                                );
-                                setDialogState(() {
-                                  challenge = nextChallenge;
-                                  helperText = 'A new OTP was sent to $email.';
-                                });
-                              } catch (e) {
-                                setDialogState(() {
-                                  errorText =
-                                      'Failed to send OTP. Please try again.';
-                                });
-                              } finally {
-                                setDialogState(() => sending = false);
-                              }
-                            },
-                      icon: sending
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.refresh_rounded),
-                      label: const Text('Resend code'),
-                    ),
+                                try {
+                                  final nextChallenge = _emailOtpService
+                                      .createChallenge();
+                                  await _emailOtpService.sendOtp(
+                                    email: email,
+                                    challenge: nextChallenge,
+                                  );
+                                  setDialogState(() {
+                                    challenge = nextChallenge;
+                                    successText = 'New code sent.';
+                                  });
+                                } catch (e) {
+                                  setDialogState(() {
+                                    errorText = 'Failed to send code.';
+                                  });
+                                } finally {
+                                  setDialogState(() => sending = false);
+                                }
+                              },
+                        icon: sending
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color(0xFFD32F2F),
+                                  ),
+                                ),
+                              )
+                            : const Icon(Icons.refresh_rounded),
+                        label: Text(
+                          sending ? 'Sending...' : 'Resend',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancel'),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: Color(0xFF757575),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
                 FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFD32F2F),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                   onPressed: () {
                     final enteredCode = otpCtrl.text.trim();
                     if (challenge.isExpired) {
                       setDialogState(() {
-                        errorText =
-                            'This OTP has expired. Please register again.';
+                        errorText = 'Code expired. Request a new one.';
+                      });
+                      return;
+                    }
+
+                    if (enteredCode.length != 6) {
+                      setDialogState(() {
+                        errorText = 'Please enter all 6 digits.';
                       });
                       return;
                     }
 
                     if (enteredCode != challenge.code) {
                       setDialogState(() {
-                        errorText = 'The OTP you entered is incorrect.';
+                        errorText = 'Incorrect code. Try again.';
                       });
                       return;
                     }
 
                     Navigator.of(context).pop(true);
                   },
-                  child: const Text('Verify'),
+                  child: const Text(
+                    'Verify',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ],
+              actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
             );
           },
         );

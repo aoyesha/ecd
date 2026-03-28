@@ -56,4 +56,23 @@ class ClassService {
     await db.update(DbSchema.tClasses, {DbSchema.cClassStatus: 'active'},
         where: '${DbSchema.cClassId}=?', whereArgs: [classId]);
   }
+
+  Future<void> updateClass({
+    required int classId,
+    String? grade,
+    String? section,
+  }) async {
+    final db = AppDb.instance.db;
+    final updates = <String, Object?>{};
+    if (grade != null) {
+      updates[DbSchema.cClassGrade] = grade.trim();
+    }
+    if (section != null) {
+      updates[DbSchema.cClassSection] = section.trim();
+    }
+    if (updates.isNotEmpty) {
+      await db.update(DbSchema.tClasses, updates,
+          where: '${DbSchema.cClassId}=?', whereArgs: [classId]);
+    }
+  }
 }

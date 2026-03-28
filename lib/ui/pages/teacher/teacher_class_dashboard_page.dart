@@ -309,19 +309,22 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                           side: const BorderSide(color: Color(0xFFE6E6E6)),
                         ),
                         child: ListTile(
-                          title: Text(
-                            name,
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
+                          title: Row(
                             children: [
-                              Text('Gender: $gender - Age: $age'),
-                              const SizedBox(height: 6),
-                              _AssessmentProgressBars(progress: progress),
+                              Expanded(
+                                child: Text(
+                                  name,
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              SizedBox(
+                                width: 350,
+                                child: _AssessmentProgressBars(progress: progress),
+                              ),
                             ],
                           ),
+                          subtitle: Text('Gender: $gender - Age: $age'),
                           trailing: FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Wrap(
@@ -1537,7 +1540,6 @@ class _AssessmentProgressBars extends StatelessWidget {
           child: _ProgressPill(
             label: 'Pre',
             complete: progress.hasPre,
-            activeColor: const Color(0xFF2E7D4F),
           ),
         ),
         const SizedBox(width: 8),
@@ -1545,7 +1547,6 @@ class _AssessmentProgressBars extends StatelessWidget {
           child: _ProgressPill(
             label: 'Post',
             complete: progress.hasPost,
-            activeColor: const Color(0xFF2E7D4F),
           ),
         ),
       ],
@@ -1556,58 +1557,57 @@ class _AssessmentProgressBars extends StatelessWidget {
 class _ProgressPill extends StatelessWidget {
   final String label;
   final bool complete;
-  final Color activeColor;
 
   const _ProgressPill({
     required this.label,
     required this.complete,
-    required this.activeColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final textColor = complete ? activeColor : Colors.black45;
+    final activeColor = complete
+        ? const Color(0xFF2E7D4F) // Green for complete
+        : const Color(0xFFFF9800); // Orange for pending
+
+    final backgroundColor = activeColor.withOpacity(0.12);
+    final borderColor = activeColor.withOpacity(0.28);
+    final textColor = activeColor;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: complete
-            ? activeColor.withValues(alpha: 0.12)
-            : const Color(0xFFF3ECEC),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: complete
-              ? activeColor.withValues(alpha: 0.28)
-              : const Color(0xFFE5DCDC),
-        ),
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         children: [
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: textColor,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Expanded(
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: BorderRadius.circular(10),
               child: LinearProgressIndicator(
-                value: complete ? 1 : 0,
-                minHeight: 6,
-                backgroundColor: Colors.white,
+                value: complete ? 1.0 : 0.0,
+                minHeight: 8,
+                backgroundColor: Colors.white.withOpacity(0.5),
                 valueColor: AlwaysStoppedAnimation<Color>(activeColor),
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Text(
-            complete ? 'Accomplished' : 'Pending',
+            complete ? 'Done' : 'Pending',
             style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
               color: textColor,
             ),
           ),

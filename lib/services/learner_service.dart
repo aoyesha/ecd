@@ -1,3 +1,5 @@
+import 'package:sqflite/sqflite.dart';
+
 import '../db/app_db.dart';
 import '../db/schema.dart';
 
@@ -82,7 +84,36 @@ class LearnerService {
       DbSchema.cLearnerCreatedAt: DateTime.now().toIso8601String(),
     };
     final filtered = await _filterExistingLearnerColumns(values);
-    return db.insert(DbSchema.tLearners, filtered);
+    try {
+      return await db.insert(DbSchema.tLearners, filtered);
+    } on DatabaseException catch (e) {
+      final message = e.toString();
+      if (message.contains('UNIQUE') || message.contains('constraint failed')) {
+        if (lrn != null && lrn.isNotEmpty) {
+          throw Exception(
+            'The LRN "${lrn.trim()}" is already registered in the system. '
+            'Please enter a unique Learner Reference Number.',
+          );
+        }
+        throw Exception(
+          'A learner with this information already exists. '
+          'Please verify the details and try again.',
+        );
+      }
+      rethrow;
+    }
+  }
+
+  Future<bool> lrnExists(String lrn) async {
+    final db = AppDb.instance.db;
+    final rows = await db.query(
+      DbSchema.tLearners,
+      where:
+          '${DbSchema.cLearnerLrn} IS NOT NULL AND TRIM(${DbSchema.cLearnerLrn}) = ?',
+      whereArgs: [lrn.trim()],
+      limit: 1,
+    );
+    return rows.isNotEmpty;
   }
 
   Future<void> updateLearner({

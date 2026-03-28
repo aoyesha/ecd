@@ -557,10 +557,11 @@ class _LoginPageState extends State<LoginPage> {
       heading: 'Log in',
       form: Form(
         key: formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AuthFormParts.label('Your Email'),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AuthFormParts.label('Your Email'),
             TextFormField(
               controller: emailCtrl,
               style: const TextStyle(
@@ -647,6 +648,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

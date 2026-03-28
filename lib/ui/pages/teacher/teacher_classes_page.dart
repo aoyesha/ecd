@@ -96,6 +96,7 @@ class _TeacherClassesPageState extends State<TeacherClassesPage> {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 14),
                         child: _NotebookCard(
+                          classId: classId,
                           width: cardWidth,
                           height: cardHeight,
                           color: _pastelForClassId(classId),
@@ -103,6 +104,7 @@ class _TeacherClassesPageState extends State<TeacherClassesPage> {
                           grade: grade,
                           section: section,
                           onOpen: () => _openClass(c),
+                          onUpdated: () => setState(() => _reloadTick++),
                         ),
                       );
                     }),
@@ -123,6 +125,7 @@ class _TeacherClassesPageState extends State<TeacherClassesPage> {
                   final section = c['section'] as String;
                   final sy = c['school_year'] as String;
                   return _NotebookCard(
+                    classId: classId,
                     width: cardWidth,
                     height: cardHeight,
                     color: _pastelForClassId(classId),
@@ -130,6 +133,7 @@ class _TeacherClassesPageState extends State<TeacherClassesPage> {
                     grade: grade,
                     section: section,
                     onOpen: () => _openClass(c),
+                    onUpdated: () => setState(() => _reloadTick++),
                   );
                 }),
                 _AddClassCard(
@@ -216,7 +220,8 @@ class _AddClassCard extends StatelessWidget {
   }
 }
 
-class _NotebookCard extends StatelessWidget {
+class _NotebookCard extends StatefulWidget {
+  final int classId;
   final double width;
   final double height;
   final Color color;
@@ -224,8 +229,10 @@ class _NotebookCard extends StatelessWidget {
   final String grade;
   final String section;
   final VoidCallback onOpen;
+  final VoidCallback? onUpdated;
 
   const _NotebookCard({
+    required this.classId,
     required this.width,
     required this.height,
     required this.color,
@@ -233,13 +240,213 @@ class _NotebookCard extends StatelessWidget {
     required this.grade,
     required this.section,
     required this.onOpen,
+    this.onUpdated,
   });
+
+  @override
+  State<_NotebookCard> createState() => _NotebookCardState();
+}
+
+class _NotebookCardState extends State<_NotebookCard> {
+  final _classService = ClassService();
+  late TextEditingController _gradeCtrl;
+  late TextEditingController _sectionCtrl;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _gradeCtrl = TextEditingController(text: 'Kindergarten');
+    _sectionCtrl = TextEditingController(text: widget.section);
+  }
+
+  @override
+  void dispose() {
+    _gradeCtrl.dispose();
+    _sectionCtrl.dispose();
+    super.dispose();
+  }
+
+  void _enterEditMode() {
+    _showEditDialog();
+  }
+
+  void _showEditDialog() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: SizedBox(
+          width: 380,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Edit Class Details',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                  color: Color(0xFF272727),
+                ),
+              ),
+              const SizedBox(height: 24),
+              TextFormField(
+                controller: _gradeCtrl,
+                enabled: false,
+                decoration: InputDecoration(
+                  labelText: 'Grade',
+                  prefixIcon: const Icon(Icons.school),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  filled: true,
+                  fillColor: const Color(0xFFF5F5F5),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: _sectionCtrl,
+                enabled: !_isSaving,
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  labelText: 'Section',
+                  prefixIcon: const Icon(Icons.group),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _isSaving ? null : () => _saveEdit(dialogContext),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.maroon,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: _isSaving
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text(
+                        'Save Changes',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton(
+                onPressed: _isSaving ? null : () => Navigator.pop(dialogContext),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.maroon,
+                  side: const BorderSide(color: AppColors.maroon),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _saveEdit(BuildContext dialogContext) async {
+    final section = _sectionCtrl.text.trim();
+
+    if (section.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Section cannot be empty',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          elevation: 4,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    try {
+      await _classService.updateClass(
+        classId: widget.classId,
+        grade: 'Kindergarten',
+        section: section,
+      );
+      if (!mounted) return;
+      Navigator.pop(dialogContext);
+      setState(() => _isSaving = false);
+      widget.onUpdated?.call();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Class updated successfully',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.green.shade600,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          elevation: 4,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Error: $e',
+            style: const TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          elevation: 4,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: width,
-      height: height,
+      width: widget.width,
+      height: widget.height,
       child: Stack(
         children: [
           Positioned(
@@ -260,46 +467,75 @@ class _NotebookCard extends StatelessWidget {
           Positioned.fill(
             left: 18,
             child: Card(
-              color: color,
-              child: InkWell(
-                onTap: onOpen,
-                borderRadius: BorderRadius.circular(16),
-                child: Padding(
-                  padding: const EdgeInsets.all(18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        schoolYear,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black54,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        'Grade $grade',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        section,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              color: widget.color,
+              child: _buildViewMode(),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildViewMode() {
+    return Stack(
+      children: [
+        InkWell(
+          onTap: widget.onOpen,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.schoolYear,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black54,
+                  ),
+                ),
+                const Spacer(),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Grade ${widget.grade}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.section,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: Material(
+            color: Colors.transparent,
+            child: IconButton(
+              icon: const Icon(Icons.edit, size: 20),
+              onPressed: _enterEditMode,
+              color: AppColors.maroon,
+              tooltip: 'Edit class details',
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.white.withOpacity(0.9),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

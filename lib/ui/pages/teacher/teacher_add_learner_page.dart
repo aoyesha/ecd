@@ -189,46 +189,70 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
       return;
     }
 
-    await _learners.addLearner(
-      classId: widget.classId,
-      firstName: firstNameCtrl.text,
-      lastName: lastNameCtrl.text,
-      middleName: middleNameCtrl.text,
-      gender: gender,
-      age: age,
-      lrn: lrnCtrl.text,
-      birthDate: birthDateStr,
-      birthOrder: birthOrderCtrl.text,
-      numberOfSiblings: siblingsCtrl.text,
-      province: provinceCtrl.text,
-      city: cityCtrl.text,
-      barangay: barangayCtrl.text,
-      motherName: motherNameCtrl.text,
-      motherOccupation: motherOccupationCtrl.text,
-      motherEducation: motherEducationCtrl.text,
-      fatherName: fatherNameCtrl.text,
-      fatherOccupation: fatherOccupationCtrl.text,
-      fatherEducation: fatherEducationCtrl.text,
-      dominantHand: dominantHand,
-      parentName: _derivedParentName(),
-      parentEducation: _derivedParentEducation(),
-      guardianName: guardianSameAsParent
-          ? _derivedParentName()
-          : guardianNameCtrl.text,
-      guardianOccupation: guardianSameAsParent
-          ? (motherOccupationCtrl.text.trim().isNotEmpty
-                ? motherOccupationCtrl.text
-                : fatherOccupationCtrl.text)
-          : guardianOccupationCtrl.text,
-      guardianEducation: guardianSameAsParent
-          ? _derivedParentEducation()
-          : guardianEducationCtrl.text,
-      ageMotherAtBirth: ageMotherAtBirthCtrl.text,
-    );
+    final enteredLrn = lrnCtrl.text.trim();
+    if (enteredLrn.isNotEmpty) {
+      final lrnExists = await _learners.lrnExists(enteredLrn);
+      if (lrnExists) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'The LRN "$enteredLrn" is already registered in the system. '
+              'Please enter a unique Learner Reference Number.',
+            ),
+          ),
+        );
+        return;
+      }
+    }
 
-    if (!mounted) return;
-    setState(() => dirty = false);
-    Navigator.pop(context);
+    try {
+      await _learners.addLearner(
+        classId: widget.classId,
+        firstName: firstNameCtrl.text,
+        lastName: lastNameCtrl.text,
+        middleName: middleNameCtrl.text,
+        gender: gender,
+        age: age,
+        lrn: lrnCtrl.text,
+        birthDate: birthDateStr,
+        birthOrder: birthOrderCtrl.text,
+        numberOfSiblings: siblingsCtrl.text,
+        province: provinceCtrl.text,
+        city: cityCtrl.text,
+        barangay: barangayCtrl.text,
+        motherName: motherNameCtrl.text,
+        motherOccupation: motherOccupationCtrl.text,
+        motherEducation: motherEducationCtrl.text,
+        fatherName: fatherNameCtrl.text,
+        fatherOccupation: fatherOccupationCtrl.text,
+        fatherEducation: fatherEducationCtrl.text,
+        dominantHand: dominantHand,
+        parentName: _derivedParentName(),
+        parentEducation: _derivedParentEducation(),
+        guardianName: guardianSameAsParent
+            ? _derivedParentName()
+            : guardianNameCtrl.text,
+        guardianOccupation: guardianSameAsParent
+            ? (motherOccupationCtrl.text.trim().isNotEmpty
+                  ? motherOccupationCtrl.text
+                  : fatherOccupationCtrl.text)
+            : guardianOccupationCtrl.text,
+        guardianEducation: guardianSameAsParent
+            ? _derivedParentEducation()
+            : guardianEducationCtrl.text,
+        ageMotherAtBirth: ageMotherAtBirthCtrl.text,
+      );
+
+      if (!mounted) return;
+      setState(() => dirty = false);
+      Navigator.pop(context);
+    } on Exception catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
   }
 
   @override
@@ -816,10 +840,10 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                               child: _field(
                                                 guardianNameCtrl,
                                                 "Guardian's Name",
-                                                (v) => _parentNameValidator(
-                                                  v,
-                                                  "Guardian's Name",
-                                                ),
+                                                (v) {
+                                                  if (guardianSameAsParent) return null;
+                                                  return _parentNameValidator(v, "Guardian's Name");
+                                                    },
                                                 width: double.infinity,
                                                 readOnly: guardianSameAsParent,
                                                 inputFormatters: [
@@ -834,10 +858,10 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                               child: _field(
                                                 guardianOccupationCtrl,
                                                 "Guardian's Occupation",
-                                                (v) => _occupationValidator(
-                                                  v,
-                                                  "Guardian's Occupation",
-                                                ),
+                                               (v) {
+                                                if (guardianSameAsParent) return null;
+                                                return _occupationValidator(v, "Guardian's Occupation");
+                                                },
                                                 width: double.infinity,
                                                 readOnly: guardianSameAsParent,
                                                 inputFormatters: [

@@ -97,6 +97,7 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
   bool dirty = false;
   bool loading = true;
   bool guardianSameAsParent = false;
+  String originalLrn = '';
 
   @override
   void initState() {
@@ -140,7 +141,9 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
     firstNameCtrl.text = (row['first_name'] ?? '').toString();
     middleNameCtrl.text = (row['middle_name'] ?? '').toString();
 
-    lrnCtrl.text = (row['lrn'] ?? '').toString();
+    final loadedLrn = (row['lrn'] ?? '').toString();
+    lrnCtrl.text = loadedLrn;
+    originalLrn = loadedLrn;
     birthOrderCtrl.text = (row['birth_order'] ?? '').toString();
     siblingsCtrl.text = (row['number_of_siblings'] ?? '').toString();
     provinceCtrl.text = (row['province'] ?? '').toString();
@@ -227,6 +230,23 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
         return;
       }
     }
+
+    // Check for duplicate LRN if it has changed
+    final enteredLrn = lrnCtrl.text.trim();
+    if (enteredLrn.isNotEmpty && enteredLrn != originalLrn) {
+      final lrnExists = await _learners.lrnExists(enteredLrn);
+      if (lrnExists) {
+        if (!mounted) return;
+        AppFeedback.showSnackBar(
+          context,
+          'The LRN "$enteredLrn" is already registered in the system. '
+          'Please enter a unique Learner Reference Number.',
+          tone: AppFeedbackTone.error,
+        );
+        return;
+      }
+    }
+
     try {
       await _learners.updateLearner(
         learnerId: widget.learnerId,
@@ -265,11 +285,11 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
             : guardianEducationCtrl.text,
         ageMotherAtBirth: ageMotherAtBirthCtrl.text,
       );
-    } catch (e) {
+    } on Exception catch (e) {
       if (!mounted) return;
       AppFeedback.showSnackBar(
         context,
-        'Failed to save learner profile. Please review the information and try again.',
+        e.toString(),
         tone: AppFeedbackTone.error,
       );
       return;
@@ -879,10 +899,14 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
                                               child: _field(
                                                 guardianNameCtrl,
                                                 "Guardian's Name",
-                                                (v) => _parentNameValidator(
-                                                  v,
-                                                  "Guardian's Name",
-                                                ),
+                                                (v) {
+                                                  if (guardianSameAsParent)
+                                                    return null;
+                                                  return _parentNameValidator(
+                                                    v,
+                                                    "Guardian's Name",
+                                                  );
+                                                },
                                                 width: double.infinity,
                                                 readOnly: guardianSameAsParent,
                                                 inputFormatters: [
@@ -897,10 +921,14 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
                                               child: _field(
                                                 guardianOccupationCtrl,
                                                 "Guardian's Occupation",
-                                                (v) => _occupationValidator(
-                                                  v,
-                                                  "Guardian's Occupation",
-                                                ),
+                                                (v) {
+                                                  if (guardianSameAsParent)
+                                                    return null;
+                                                  return _occupationValidator(
+                                                    v,
+                                                    "Guardian's Occupation",
+                                                  );
+                                                },
                                                 width: double.infinity,
                                                 readOnly: guardianSameAsParent,
                                                 inputFormatters: [

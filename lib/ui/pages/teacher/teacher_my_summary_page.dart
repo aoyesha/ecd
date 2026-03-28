@@ -122,7 +122,7 @@ class _TeacherMySummaryPageState extends State<TeacherMySummaryPage> {
         language: language,
       );
       for (final d in _domains) {
-        final all = [...map[d]!['most']!, ...map[d]!['least']!];
+        final all = map[d]!['most']!;
         for (final s in all) {
           final key = '${s.skillIndex}|${s.skillText}';
           final prev = sum[d]![key];
@@ -148,14 +148,28 @@ class _TeacherMySummaryPageState extends State<TeacherMySummaryPage> {
     }
 
     final out = <String, Map<String, List<TopSkill>>>{};
-    for (final d in _domains) {
-      final list = sum[d]!.values.toList();
-      list.sort((a, b) => b.pct.compareTo(a.pct));
-      final most = list.take(3).toList();
-      final least = [...list]..sort((a, b) => a.pct.compareTo(b.pct));
-      out[d] = {'most': most, 'least': least.take(3).toList()};
-    }
-    return out;
+
+for (final d in _domains) {
+  final list = sum[d]!.values.toList();
+
+  // 🔽 MOST (highest percentage first)
+  list.sort((a, b) => b.pct.compareTo(a.pct));
+  final most = list.take(3).toList();
+
+  // 🔽 REMOVE overlap from MOST
+  final remaining = list.where((e) => !most.contains(e)).toList();
+
+  // 🔽 LEAST (lowest percentage from remaining only)
+  remaining.sort((a, b) => a.pct.compareTo(b.pct));
+  final least = remaining.take(3).toList();
+
+  out[d] = {
+    'most': most,
+    'least': least,
+  };
+}
+
+return out;
   }
 
   @override

@@ -124,7 +124,7 @@ class AnalyticsService {
       columns: [DbSchema.cClassSchoolYear],
       where: '${DbSchema.cClassTeacherId}=?',
       whereArgs: [teacherId],
-      orderBy: '${DbSchema.cClassSchoolYear} DESC',
+      orderBy: '${DbSchema.cClassSchoolYear} ASC',
     );
 
     final seen = <String>{};
@@ -158,8 +158,13 @@ class AnalyticsService {
     final classes = await db.query(
       DbSchema.tClasses,
       columns: [DbSchema.cClassId],
-      where: '${DbSchema.cClassTeacherId}=? AND ${DbSchema.cClassSchoolYear}=?',
-      whereArgs: [teacherId, schoolYear],
+      where:
+          '''
+${DbSchema.cClassTeacherId}=? 
+AND ${DbSchema.cClassSchoolYear}=? 
+AND ${DbSchema.cClassStatus}=?
+''',
+      whereArgs: [teacherId, schoolYear, 'active'],
     );
 
     final classIds = classes.map((e) => e[DbSchema.cClassId] as int).toList();
@@ -279,21 +284,28 @@ class AnalyticsService {
         if (assess.isEmpty) continue;
         final assessId = assess.first[DbSchema.cAssessId] as int;
 
-        for (final d in _domains) {
-          totalLearners[d] = (totalLearners[d] ?? 0) + 1;
-        }
-
         final ans = await db.query(
           DbSchema.tAnswers,
           where: '${DbSchema.cAnsAssessId}=?',
           whereArgs: [assessId],
         );
 
+        final countedDomains = <String>{};
+
         for (final a in ans) {
           final domain = _normalizeDomain(a[DbSchema.cAnsDomain] as String);
+
           if (!_domains.contains(domain)) continue;
+
+          // ✅ count learner ONCE per domain
+          if (!countedDomains.contains(domain)) {
+            totalLearners[domain] = (totalLearners[domain] ?? 0) + 1;
+            countedDomains.add(domain);
+          }
+
           final idx = a[DbSchema.cAnsIndex] as int;
           final val = a[DbSchema.cAnsValue] as int;
+
           if (val == 1) {
             checked[domain]![idx] = (checked[domain]![idx] ?? 0) + 1;
           }
@@ -318,9 +330,13 @@ class AnalyticsService {
       }
 
       list.sort((a, b) => b.pct.compareTo(a.pct));
+      list.sort((a, b) => b.pct.compareTo(a.pct));
       final most = list.take(3).toList();
-      final leastList = [...list]..sort((a, b) => a.pct.compareTo(b.pct));
-      final least = leastList.take(3).toList();
+
+      final remaining = list.where((e) => !most.contains(e)).toList();
+
+      remaining.sort((a, b) => a.pct.compareTo(b.pct));
+      final least = remaining.take(3).toList();
 
       out[domain] = {'most': most, 'least': least};
     }
@@ -429,20 +445,25 @@ class AnalyticsService {
       if (assess.isEmpty) continue;
       final assessId = assess.first[DbSchema.cAssessId] as int;
 
-      // count this learner towards total for each domain if they have answers
-      for (final d in _domains) {
-        totalLearners[d] = (totalLearners[d] ?? 0) + 1;
-      }
-
       final ans = await db.query(
         DbSchema.tAnswers,
         where: '${DbSchema.cAnsAssessId}=?',
         whereArgs: [assessId],
       );
 
+      // Count this learner ONCE per domain (deduplicate)
+      final countedDomains = <String>{};
+
       for (final a in ans) {
         final domain = _normalizeDomain(a[DbSchema.cAnsDomain] as String);
         if (!_domains.contains(domain)) continue;
+
+        // Count learner once per domain
+        if (!countedDomains.contains(domain)) {
+          totalLearners[domain] = (totalLearners[domain] ?? 0) + 1;
+          countedDomains.add(domain);
+        }
+
         final idx = a[DbSchema.cAnsIndex] as int;
         final val = a[DbSchema.cAnsValue] as int;
         if (val == 1) {
@@ -465,7 +486,9 @@ class AnalyticsService {
             skillIndex: i,
             skillText: questions[i],
             checkedCount: checked[domain]![i] ?? 0,
-            totalLearners: totalLearners[domain] ?? 0,
+            totalLearners: (totalLearners[domain] ?? 0) == 0
+                ? 1
+                : totalLearners[domain]!,
           ),
         );
       }
@@ -473,8 +496,10 @@ class AnalyticsService {
       list.sort((a, b) => b.pct.compareTo(a.pct)); // high -> low
       final most = list.take(3).toList();
 
-      final leastList = [...list]..sort((a, b) => a.pct.compareTo(b.pct));
-      final least = leastList.take(3).toList();
+      // Exclude items from most before getting least
+      final remaining = list.where((e) => !most.contains(e)).toList();
+      remaining.sort((a, b) => a.pct.compareTo(b.pct));
+      final least = remaining.take(3).toList();
 
       out[domain] = {'most': most, 'least': least};
     }
