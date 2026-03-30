@@ -252,7 +252,7 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
       );
       setState(() => dirty = false);
       Navigator.pop(context);
-    } on Exception catch (e) {
+    } on Exception {
       if (!mounted) return;
       AppFeedback.showSnackBar(
         context,
