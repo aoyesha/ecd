@@ -47,6 +47,9 @@ class AppDb {
         if (oldVersion < 11) {
           await _upgradeToV11(db);
         }
+        if (oldVersion < 12) {
+          await _upgradeToV12(db);
+        }
       },
     );
   }
@@ -474,6 +477,17 @@ FROM ${DbSchema.tUsers}
       DbSchema.cUserLastMonthlyOtpAt,
       'TEXT',
     );
+  }
+
+  Future<void> _upgradeToV12(Database db) async {
+    // Enforce unique LRN for learners by creating a unique index
+    try {
+      await db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_learner_lrn ON ${DbSchema.tLearners}(${DbSchema.cLearnerLrn}) WHERE ${DbSchema.cLearnerLrn} IS NOT NULL AND ${DbSchema.cLearnerLrn} != ""',
+      );
+    } catch (e) {
+      // Index may already exist or LRN values may not be unique
+    }
   }
 
   Future<void> _addColumnIfMissing(

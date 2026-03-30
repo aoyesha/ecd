@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants.dart';
+import '../../../core/ui_feedback.dart';
 import '../../../core/unsaved_guard.dart';
 import '../../../core/validators.dart';
 import '../../../services/auth_service.dart';
@@ -63,9 +64,11 @@ class _TeacherAddClassPageState extends State<TeacherAddClassPage> {
   Future<void> _save() async {
     if (!formKey.currentState!.validate()) return;
     if (schoolYear == null) {
-      ScaffoldMessenger.of(
+      AppFeedback.showSnackBar(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Select a School Year')));
+        'School Year is required',
+        tone: AppFeedbackTone.warning,
+      );
       return;
     }
 
@@ -79,28 +82,78 @@ class _TeacherAddClassPageState extends State<TeacherAddClassPage> {
     );
 
     if (csvFile != null && csvFile!.path != null) {
-      final text = await File(csvFile!.path!).readAsString();
-      await _importLearnersFromCsv(classId, text);
+      try {
+        final text = await File(csvFile!.path!).readAsString();
+        final importResult = await _importLearnersFromCsv(classId, text);
+        if (!importResult) return;
+      } catch (e) {
+        if (!mounted) return;
+        AppFeedback.showSnackBar(
+          context,
+          'Failed to read CSV file',
+          tone: AppFeedbackTone.error,
+          duration: const Duration(seconds: 5),
+        );
+        return;
+      }
     }
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text(
-          'Class created successfully',
-          style: TextStyle(color: Colors.black),
-        ),
-      ),
+    AppFeedback.showSnackBar(
+      context,
+      'Class created successfully',
+      tone: AppFeedbackTone.success,
     );
     setState(() => dirty = false);
     Navigator.pop(context);
   }
 
-  Future<void> _importLearnersFromCsv(int classId, String csvText) async {
-    final rows = const CsvToListConverter(
-      shouldParseNumbers: false,
-    ).convert(csvText);
-    if (rows.isEmpty) return;
+  Future<bool> _importLearnersFromCsv(int classId, String csvText) async {
+    if (csvText.trim().isEmpty) {
+      if (!mounted) return false;
+      AppFeedback.showSnackBar(
+        context,
+        'CSV file is empty',
+        tone: AppFeedbackTone.error,
+      );
+      return false;
+    }
+
+    List<List<dynamic>> rows;
+    try {
+      rows = const CsvToListConverter(
+        shouldParseNumbers: false,
+      ).convert(csvText);
+    } catch (e) {
+      if (!mounted) return false;
+      AppFeedback.showSnackBar(
+        context,
+        'Invalid CSV format. Please use a valid CSV file',
+        tone: AppFeedbackTone.error,
+      );
+      return false;
+    }
+
+    if (rows.isEmpty) {
+      if (!mounted) return false;
+      AppFeedback.showSnackBar(
+        context,
+        'CSV file has no data rows',
+        tone: AppFeedbackTone.error,
+      );
+      return false;
+    }
+
+    // Validate that header row has at least some content
+    if (rows.first.isEmpty) {
+      if (!mounted) return false;
+      AppFeedback.showSnackBar(
+        context,
+        'CSV header row is empty',
+        tone: AppFeedbackTone.error,
+      );
+      return false;
+    }
 
     final header = rows.first
         .map((e) => e.toString().trim().toLowerCase())
@@ -108,6 +161,35 @@ class _TeacherAddClassPageState extends State<TeacherAddClassPage> {
     final col = <String, int>{
       for (int i = 0; i < header.length; i++) header[i]: i,
     };
+
+    // Check if file has any recognizable columns
+    final requiredColumnPatterns = [
+      'name',
+      'gender',
+      'sex',
+      'birthdate',
+      'birthday',
+      'birth',
+      'dob',
+      'given',
+      'surname',
+      'first',
+      'last',
+    ];
+    final hasRecognizedColumns = header.any(
+      (h) => requiredColumnPatterns.any(
+        (pattern) => h.contains(pattern.toLowerCase()),
+      ),
+    );
+    if (!hasRecognizedColumns) {
+      if (!mounted) return false;
+      AppFeedback.showSnackBar(
+        context,
+        'Expected columns like: Name, Gender, Birthdate, etc.',
+        tone: AppFeedbackTone.error,
+      );
+      return false;
+    }
 
     String cell(List<dynamic> row, List<String> keys) {
       for (final k in keys) {
@@ -280,7 +362,30 @@ class _TeacherAddClassPageState extends State<TeacherAddClassPage> {
       }
     }
 
-    if (!mounted) return;
+    if (!mounted) return true;
+
+    if (importedCount == 0 && errors.isNotEmpty) {
+      AppFeedback.showSnackBar(
+        context,
+        'No learners imported. Check the errors and try again.',
+        tone: AppFeedbackTone.error,
+        duration: const Duration(seconds: 6),
+      );
+      return false;
+    }
+
+    if (errors.isNotEmpty) {
+      final errorSummary = errors.isEmpty
+          ? 'Import completed but with errors.'
+          : 'Import completed with ${errors.length} error(s).';
+      AppFeedback.showSnackBar(
+        context,
+        '$errorSummary Imported $importedCount learner(s).',
+        tone: AppFeedbackTone.warning,
+        duration: const Duration(seconds: 10),
+      );
+    }
+    return true;
   }
 
   @override
@@ -384,8 +489,9 @@ class _TeacherAddClassPageState extends State<TeacherAddClassPage> {
                             ),
                             const SizedBox(height: 8),
                             const Text(
-                              'Required fields: Full Name (or Surname + Given Name), Gender/Sex, Birthdate/Birthday.\n'
-                              'Age is auto-derived from birthdate. Other columns are optional.',
+                              'Required columns: Name (or Surname + Given), Gender/Sex, Birthdate/Birthday.\n'
+                              'Age is auto-calculated from birthdate. Other columns are optional.\n'
+                              'Ensure the file is a valid CSV with a header row.',
                             ),
                             const SizedBox(height: 10),
                             Row(

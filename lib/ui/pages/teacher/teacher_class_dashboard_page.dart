@@ -407,7 +407,7 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
   final _file = FileExportService();
   final _pdf = PdfExportService();
 
-  String assessmentType = 'pre'; // pre|post
+  String assessmentType = 'pre'; // pre|post|all
   EccdLanguage language = EccdLanguage.english;
   String topDomainFilter = 'Gross Motor';
 
@@ -433,41 +433,57 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
     );
     if (!mounted || fmt == null) return;
 
-    final name =
-        'teacher_class_${widget.grade}_${widget.section}_${widget.schoolYear}_$assessmentType';
+    // If exporting 'all' assessment types, export both pre and post
+    final typesToExport = assessmentType == 'all'
+        ? ['pre', 'post']
+        : [assessmentType];
 
     try {
-      if (fmt == 'xlsx') {
-        final bytes = await _xlsx.exportTeacherClassRollupXlsx(
-          teacherId: teacherId,
-          classId: widget.classId,
-          assessmentType: assessmentType,
-          languageForSkills: language,
-        );
-        final saved = await _file.saveXlsx(filename: name, xlsxBytes: bytes);
-        if (!mounted) return;
-        _showActionMessage(
-          saved
-              ? 'Class summary exported successfully.'
-              : 'Class summary export cancelled.',
-          isError: !saved,
-        );
-        return;
+      for (final type in typesToExport) {
+        final name =
+            'teacher_class_${widget.grade}_${widget.section}_${widget.schoolYear}_$type';
+
+        if (fmt == 'xlsx') {
+          final bytes = await _xlsx.exportTeacherClassRollupXlsx(
+            teacherId: teacherId,
+            classId: widget.classId,
+            assessmentType: type,
+            languageForSkills: language,
+          );
+          final saved = await _file.saveXlsx(filename: name, xlsxBytes: bytes);
+          if (!mounted) return;
+          if (!saved) {
+            _showActionMessage(
+              'Class summary export cancelled.',
+              isError: true,
+            );
+            return;
+          }
+        } else {
+          final csvText = await _csv.exportTeacherClassRollupCsv(
+            teacherId: teacherId,
+            classId: widget.classId,
+            assessmentType: type,
+            languageForSkills: language,
+          );
+          final saved = await _file.saveCsv(filename: name, csvText: csvText);
+          if (!mounted) return;
+          if (!saved) {
+            _showActionMessage(
+              'Class summary export cancelled.',
+              isError: true,
+            );
+            return;
+          }
+        }
       }
 
-      final csvText = await _csv.exportTeacherClassRollupCsv(
-        teacherId: teacherId,
-        classId: widget.classId,
-        assessmentType: assessmentType,
-        languageForSkills: language,
-      );
-      final saved = await _file.saveCsv(filename: name, csvText: csvText);
       if (!mounted) return;
+      final count = typesToExport.length;
       _showActionMessage(
-        saved
-            ? 'Class summary exported successfully.'
-            : 'Class summary export cancelled.',
-        isError: !saved,
+        count > 1
+            ? '$count class summary files exported successfully.'
+            : 'Class summary exported successfully.',
       );
     } catch (e) {
       if (!mounted) return;
@@ -483,22 +499,38 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
 
   Future<void> _exportAllLearnerPdfs(int teacherId) async {
     try {
-      final bytes = await _pdf.buildClassLearnersPdf(
-        classId: widget.classId,
-        assessmentType: assessmentType,
-        language: language,
-        exportingUserId: teacherId,
-      );
-      final filename = _slug(
-        '${widget.section}_All_Learners_${assessmentTypeDisplay(assessmentType)}',
-      );
-      final saved = await _file.savePdf(filename: filename, pdfBytes: bytes);
+      // If exporting 'all' assessment types, export both pre and post
+      final typesToExport = assessmentType == 'all'
+          ? ['pre', 'post']
+          : [assessmentType];
+
+      for (final type in typesToExport) {
+        final bytes = await _pdf.buildClassLearnersPdf(
+          classId: widget.classId,
+          assessmentType: type,
+          language: language,
+          exportingUserId: teacherId,
+        );
+        final filename = _slug(
+          '${widget.section}_All_Learners_${assessmentTypeDisplay(type)}',
+        );
+        final saved = await _file.savePdf(filename: filename, pdfBytes: bytes);
+        if (!mounted) return;
+        if (!saved) {
+          _showActionMessage(
+            'Bulk learner export cancelled.',
+            isError: true,
+          );
+          return;
+        }
+      }
+
       if (!mounted) return;
+      final count = typesToExport.length;
       _showActionMessage(
-        saved
-            ? 'All learner PDFs were exported successfully.'
-            : 'Bulk learner export cancelled.',
-        isError: !saved,
+        count > 1
+            ? '$count learner PDF files were exported successfully.'
+            : 'All learner PDFs were exported successfully.',
       );
     } catch (e) {
       if (!mounted) return;
@@ -542,6 +574,7 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
                   items: const [
                     DropdownMenuItem(value: 'pre', child: Text('Pre-Test')),
                     DropdownMenuItem(value: 'post', child: Text('Post-Test')),
+                    DropdownMenuItem(value: 'all', child: Text('All Tests')),
                   ],
                   onChanged: (v) => setState(() => assessmentType = v ?? 'pre'),
                 ),
@@ -607,6 +640,8 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
   }
 
   Widget _matrixCard() {
+    // Use pre-test for display when 'all' is selected
+    final displayType = assessmentType == 'all' ? 'pre' : assessmentType;
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -619,11 +654,11 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
           future: Future.wait<Object>([
             _analytics.buildClassLevelMatrix(
               classId: widget.classId,
-              assessmentType: assessmentType,
+              assessmentType: displayType,
             ),
             _analytics.buildClassOverallLevelCounts(
               classId: widget.classId,
-              assessmentType: assessmentType,
+              assessmentType: displayType,
             ),
           ]),
           builder: (context, snapshot) {
@@ -923,6 +958,8 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
   }
 
   Widget _top3Card() {
+    // Use pre-test for display when 'all' is selected
+    final displayType = assessmentType == 'all' ? 'pre' : assessmentType;
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -934,7 +971,7 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
         child: FutureBuilder(
           future: _analytics.top3MostLeastByDomainForClass(
             classId: widget.classId,
-            assessmentType: assessmentType,
+            assessmentType: displayType,
             language: language,
           ),
           builder: (context, snapshot) {

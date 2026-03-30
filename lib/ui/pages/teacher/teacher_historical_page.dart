@@ -24,6 +24,8 @@ class _TeacherHistoricalPageState extends State<TeacherHistoricalPage> {
   String? leftYear;
   String? rightYear;
   String topDomain = 'Gross Motor';
+  String? leftAssessment;
+  String? rightAssessment;
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +79,7 @@ class _TeacherHistoricalPageState extends State<TeacherHistoricalPage> {
                     runSpacing: 8,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      DropdownButton<String>(
+            DropdownButton<String>(
                         value: assessmentType,
                         items: const [
                           DropdownMenuItem(
@@ -137,21 +139,21 @@ class _TeacherHistoricalPageState extends State<TeacherHistoricalPage> {
                 child: sideBySide
                     ? Row(
                         children: [
-                          Expanded(child: _yearPanel(teacherId, years, true)),
+                          Expanded(child: _yearPanel(teacherId, years, true, leftAssessment ?? assessmentType)),
                           const SizedBox(width: 12),
-                          Expanded(child: _yearPanel(teacherId, years, false)),
+                          Expanded(child: _yearPanel(teacherId, years, false, rightAssessment ?? assessmentType)),
                         ],
                       )
                     : ListView(
                         children: [
                           SizedBox(
                             height: 640,
-                            child: _yearPanel(teacherId, years, true),
+                            child: _yearPanel(teacherId, years, true, leftAssessment ?? assessmentType),
                           ),
                           const SizedBox(height: 12),
                           SizedBox(
                             height: 640,
-                            child: _yearPanel(teacherId, years, false),
+                            child: _yearPanel(teacherId, years, false, rightAssessment ?? assessmentType),
                           ),
                         ],
                       ),
@@ -163,7 +165,7 @@ class _TeacherHistoricalPageState extends State<TeacherHistoricalPage> {
     );
   }
 
-  Widget _yearPanel(int teacherId, List<String> years, bool left) {
+  Widget _yearPanel(int teacherId, List<String> years, bool left, String selectedAssessment) {
     final selectedYear = left ? leftYear! : rightYear!;
 
     return Card(
@@ -186,14 +188,44 @@ class _TeacherHistoricalPageState extends State<TeacherHistoricalPage> {
                 const Spacer(),
                 DropdownButton<String>(
                   value: selectedYear,
-                  items: years
-                      .map((y) => DropdownMenuItem(value: y, child: Text(y)))
-                      .toList(),
+                  items: [
+                    const DropdownMenuItem(
+                      value: 'all',
+                      child: Text('All Years'),
+                    ),
+                    ...years.map((y) => DropdownMenuItem(value: y, child: Text(y))),
+                  ],
                   onChanged: (v) => setState(() {
                     if (left) {
                       leftYear = v ?? selectedYear;
                     } else {
                       rightYear = v ?? selectedYear;
+                    }
+                  }),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                const Text('Assessment Type:'),
+                const SizedBox(width: 8),
+                DropdownButton<String>(
+                  value: selectedAssessment,
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'pre',
+                      child: Text('Pre-Test'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'post',
+                      child: Text('Post-Test'),
+                    ),
+                  ],
+                  onChanged: (v) => setState(() {
+                    if (left) {
+                      leftAssessment = v;
+                    } else {
+                      rightAssessment = v;
                     }
                   }),
                 ),
@@ -205,7 +237,7 @@ class _TeacherHistoricalPageState extends State<TeacherHistoricalPage> {
                 future: _analytics.buildTeacherHistoricalSnapshot(
                   teacherId: teacherId,
                   schoolYear: selectedYear,
-                  assessmentType: assessmentType,
+                  assessmentType: selectedAssessment,
                 ),
                 builder: (context, snap) {
                   if (!snap.hasData) {
@@ -217,8 +249,12 @@ class _TeacherHistoricalPageState extends State<TeacherHistoricalPage> {
 
                   return ListView(
                     children: [
-                      _metricRow('School Year', selectedYear),
-                      _metricRow('Classes', '${s.classCount}'),
+                      _metricRow('School Year', selectedYear == 'all' ? 'All Years Combined' : selectedYear),
+                      _metricRow('Assessment Type', selectedAssessment == 'pre' ? 'Pre-Test' : 'Post-Test'),
+                      _metricRow(
+                        'Classes',
+                        '${s.classCount}',
+                      ),
                       _metricRow(
                         'Assessed Learners',
                         '${s.assessedLearnerCount}',
@@ -263,7 +299,7 @@ class _TeacherHistoricalPageState extends State<TeacherHistoricalPage> {
                             .top3MostLeastByDomainForTeacherSchoolYear(
                               teacherId: teacherId,
                               schoolYear: selectedYear,
-                              assessmentType: assessmentType,
+                              assessmentType: selectedAssessment,
                               language: language,
                             ),
                         builder: (context, skillSnap) {

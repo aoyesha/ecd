@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants.dart';
 import '../../../core/nav_no_transition.dart';
+import '../../../core/ui_feedback.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/class_service.dart';
 import 'teacher_add_class_page.dart';
@@ -386,17 +387,10 @@ class _NotebookCardState extends State<_NotebookCard> {
     final section = _sectionCtrl.text.trim();
 
     if (section.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Section cannot be empty',
-            style: TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(16),
-          elevation: 4,
-        ),
+      AppFeedback.showSnackBar(
+        context,
+        'Section cannot be empty',
+        tone: AppFeedbackTone.warning,
       );
       return;
     }
@@ -412,32 +406,18 @@ class _NotebookCardState extends State<_NotebookCard> {
       Navigator.pop(dialogContext);
       setState(() => _isSaving = false);
       widget.onUpdated?.call();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Class updated successfully',
-            style: TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.green.shade600,
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(16),
-          elevation: 4,
-        ),
+      AppFeedback.showSnackBar(
+        context,
+        'Class updated successfully',
+        tone: AppFeedbackTone.success,
       );
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSaving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Error: $e',
-            style: const TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(16),
-          elevation: 4,
-        ),
+      AppFeedback.showSnackBar(
+        context,
+        'Failed to update class. Please try again',
+        tone: AppFeedbackTone.error,
       );
     }
   }

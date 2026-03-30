@@ -9,6 +9,7 @@ class AppFeedback {
     BuildContext context,
     String message, {
     AppFeedbackTone tone = AppFeedbackTone.info,
+    Duration duration = const Duration(seconds: 4),
   }) {
     final messenger = ScaffoldMessenger.of(context);
     final colors = _colorsFor(tone);
@@ -20,6 +21,7 @@ class AppFeedback {
         behavior: SnackBarBehavior.floating,
         backgroundColor: colors.background,
         margin: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        duration: duration,
         content: Row(
           children: [
             Icon(icon, color: colors.foreground, size: 20),

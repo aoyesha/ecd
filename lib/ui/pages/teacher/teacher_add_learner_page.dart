@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/constants.dart';
+import '../../../core/ui_feedback.dart';
 import '../../../core/unsaved_guard.dart';
 import '../../../services/learner_service.dart';
 import '../../widgets/subpage_shell.dart';
@@ -141,16 +142,20 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
   Future<void> _save() async {
     if (!formKey.currentState!.validate()) return;
     if (birthDate == null) {
-      ScaffoldMessenger.of(
+      AppFeedback.showSnackBar(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Birthdate is required')));
+        'Birthdate is required',
+        tone: AppFeedbackTone.warning,
+      );
       return;
     }
 
     final age = _derivedAgeYears;
     if (age < 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Derived age must be at least 3.')),
+      AppFeedback.showSnackBar(
+        context,
+        'Pupil age must be at least 3 years old',
+        tone: AppFeedbackTone.warning,
       );
       return;
     }
@@ -161,12 +166,10 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
       final totalChildren = siblings + 1;
 
       if (birthOrder > totalChildren) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Birth order cannot exceed total children ($totalChildren).',
-            ),
-          ),
+        AppFeedback.showSnackBar(
+          context,
+          'Birth order cannot exceed total children ($totalChildren)',
+          tone: AppFeedbackTone.warning,
         );
         return;
       }
@@ -181,10 +184,10 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
     );
     if (exists) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('This pupil already exists in this class.'),
-        ),
+      AppFeedback.showSnackBar(
+        context,
+        'This pupil already exists in this class',
+        tone: AppFeedbackTone.warning,
       );
       return;
     }
@@ -194,13 +197,10 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
       final lrnExists = await _learners.lrnExists(enteredLrn);
       if (lrnExists) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'The LRN "$enteredLrn" is already registered in the system. '
-              'Please enter a unique Learner Reference Number.',
-            ),
-          ),
+        AppFeedback.showSnackBar(
+          context,
+          'This LRN is already registered. Please use a unique number',
+          tone: AppFeedbackTone.error,
         );
         return;
       }
@@ -245,13 +245,20 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
       );
 
       if (!mounted) return;
+      AppFeedback.showSnackBar(
+        context,
+        'Pupil added successfully',
+        tone: AppFeedbackTone.success,
+      );
       setState(() => dirty = false);
       Navigator.pop(context);
     } on Exception catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
+      AppFeedback.showSnackBar(
         context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+        'Failed to add pupil. Please try again',
+        tone: AppFeedbackTone.error,
+      );
     }
   }
 

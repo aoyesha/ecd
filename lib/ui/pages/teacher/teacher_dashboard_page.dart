@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/app_dialogs.dart';
+import '../../../core/constants.dart';
 import '../../widgets/section_title.dart';
 import 'teacher_classes_page.dart';
 import 'teacher_my_summary_page.dart';
@@ -43,49 +45,75 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
       TeacherMySummaryPage(teacherId: widget.teacherId),
     ];
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final compact = constraints.maxWidth < 760;
-              final segmented = SegmentedButton<int>(
-                segments: const [
-                  ButtonSegment(value: 0, label: Text('My Classes')),
-                  ButtonSegment(value: 1, label: Text('My Summary')),
-                ],
-                selected: {tab},
-                onSelectionChanged: (v) {
-                  setState(() => tab = v.first);
-                  widget.onDirectoryChanged?.call(_directorySegments);
+    return Stack(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final compact = constraints.maxWidth < 760;
+                  final segmented = SegmentedButton<int>(
+                    segments: const [
+                      ButtonSegment(value: 0, label: Text('My Classes')),
+                      ButtonSegment(value: 1, label: Text('My Summary')),
+                    ],
+                    selected: {tab},
+                    onSelectionChanged: (v) {
+                      setState(() => tab = v.first);
+                      widget.onDirectoryChanged?.call(_directorySegments);
+                    },
+                  );
+                  if (!compact) {
+                    return Row(
+                      children: [
+                        const Expanded(child: SectionTitle(title: 'Dashboard')),
+                        segmented,
+                      ],
+                    );
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SectionTitle(title: 'Dashboard'),
+                      const SizedBox(height: 10),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: segmented,
+                      ),
+                    ],
+                  );
                 },
-              );
-              if (!compact) {
-                return Row(
-                  children: [
-                    const Expanded(child: SectionTitle(title: 'Dashboard')),
-                    segmented,
-                  ],
-                );
-              }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SectionTitle(title: 'Dashboard'),
-                  const SizedBox(height: 10),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: segmented,
-                  ),
-                ],
-              );
-            },
+              ),
+              const SizedBox(height: 12),
+              Expanded(child: tabs[tab]),
+            ],
           ),
-          const SizedBox(height: 12),
-          Expanded(child: tabs[tab]),
-        ],
-      ),
+        ),
+        Positioned(
+          bottom: 24,
+          right: 24,
+          child: FloatingActionButton(
+            onPressed: () {
+              AppDialogs.showHelpDialog(context);
+            },
+            backgroundColor: AppColors.maroon,
+            foregroundColor: Colors.white,
+            elevation: 6,
+            highlightElevation: 10,
+            shape: const CircleBorder(),
+            child: const Text(
+              '?',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

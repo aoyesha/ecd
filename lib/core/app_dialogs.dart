@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:io';
 
 import 'constants.dart';
 
@@ -62,6 +64,147 @@ class AppDialogs {
               child: const Text('Cancel'),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  static Future<void> showHelpDialog(BuildContext context) {
+    const demoVideoUrl = 'https://drive.google.com/drive/u/0/folders/14avfolE2EkJXUq-T4cE_FfdKIyZT7Vzt';
+    
+    Future<void> openUrl() async {
+      try {
+        if (Platform.isWindows) {
+          // Windows: use start command
+          await Process.run('cmd', ['/c', 'start', demoVideoUrl], runInShell: true);
+        } else if (Platform.isMacOS) {
+          // macOS: use open command
+          await Process.run('open', [demoVideoUrl]);
+        } else if (Platform.isLinux) {
+          // Linux: try xdg-open
+          await Process.run('xdg-open', [demoVideoUrl]);
+        } else {
+          // Fallback: use url_launcher
+          final Uri url = Uri.parse(demoVideoUrl);
+          if (await canLaunchUrl(url)) {
+            await launchUrl(url, mode: LaunchMode.externalApplication);
+          }
+        }
+      } catch (e) {
+        // Silently handle error
+      }
+    }
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 380),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.maroon.withValues(alpha: 0.15),
+                          AppColors.maroon.withValues(alpha: 0.08),
+                        ],
+                      ),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.maroon.withValues(alpha: 0.25),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        '?',
+                        style: TextStyle(
+                          color: AppColors.maroon,
+                          fontSize: 36,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Need Help?',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Watch our demo videos to learn how to use this dashboard.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.grey[600],
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.maroon,
+                      foregroundColor: Colors.white,
+                      elevation: 4,
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () {
+                      openUrl();
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.play_circle_filled_rounded, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'View Demo Videos',
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    child: Text(
+                      'Close',
+                      style: TextStyle(
+                        color: AppColors.maroon,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );

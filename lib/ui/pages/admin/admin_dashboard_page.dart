@@ -54,51 +54,77 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       _AdminSummaryTab(key: ValueKey(_summaryRefreshKey)),
     ];
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final compact = constraints.maxWidth < 820;
-              final segmented = SegmentedButton<int>(
-                segments: const [
-                  ButtonSegment(value: 0, label: Text('My Data Sources')),
-                  ButtonSegment(value: 1, label: Text('My Summary')),
-                ],
-                selected: {tab},
-                onSelectionChanged: (v) {
-                  setState(() => tab = v.first);
-                  widget.onDirectoryChanged?.call(_directorySegments);
+    return Stack(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final compact = constraints.maxWidth < 820;
+                  final segmented = SegmentedButton<int>(
+                    segments: const [
+                      ButtonSegment(value: 0, label: Text('My Data Sources')),
+                      ButtonSegment(value: 1, label: Text('My Summary')),
+                    ],
+                    selected: {tab},
+                    onSelectionChanged: (v) {
+                      setState(() => tab = v.first);
+                      widget.onDirectoryChanged?.call(_directorySegments);
+                    },
+                  );
+                  if (!compact) {
+                    return Row(
+                      children: [
+                        const Expanded(child: SectionTitle(title: 'Dashboard')),
+                        segmented,
+                      ],
+                    );
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SectionTitle(title: 'Dashboard'),
+                      const SizedBox(height: 10),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: segmented,
+                      ),
+                    ],
+                  );
                 },
-              );
-              if (!compact) {
-                return Row(
-                  children: [
-                    const Expanded(child: SectionTitle(title: 'Dashboard')),
-                    segmented,
-                  ],
-                );
-              }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SectionTitle(title: 'Dashboard'),
-                  const SizedBox(height: 10),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: segmented,
-                  ),
-                ],
-              );
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: IndexedStack(index: tab, children: tabs),
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          bottom: 24,
+          right: 24,
+          child: FloatingActionButton(
+            onPressed: () {
+              AppDialogs.showHelpDialog(context);
             },
+            backgroundColor: AppColors.maroon,
+            foregroundColor: Colors.white,
+            elevation: 6,
+            highlightElevation: 10,
+            shape: const CircleBorder(),
+            child: const Text(
+              '?',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
           ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: IndexedStack(index: tab, children: tabs),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
