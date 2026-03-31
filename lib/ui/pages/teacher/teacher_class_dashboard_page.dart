@@ -441,7 +441,8 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
     try {
       for (final type in typesToExport) {
         final name =
-            'teacher_class_${widget.grade}_${widget.section}_${widget.schoolYear}_$type';
+            'teacher_class_${widget.grade}_${widget.section}_${widget
+            .schoolYear}_$type';
 
         if (fmt == 'xlsx') {
           final bytes = await _xlsx.exportTeacherClassRollupXlsx(
@@ -489,9 +490,9 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
       if (!mounted) return;
       final message = e is StateError || e is FormatException
           ? '$e'
-                .replaceFirst('Bad state: ', '')
-                .replaceFirst('StateError: ', '')
-                .replaceFirst('FormatException: ', '')
+          .replaceFirst('Bad state: ', '')
+          .replaceFirst('StateError: ', '')
+          .replaceFirst('FormatException: ', '')
           : 'Unable to export the class summary right now.';
       _showActionMessage(message, isError: true);
     }
@@ -557,7 +558,10 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
 
   @override
   Widget build(BuildContext context) {
-    final teacherId = context.watch<AuthService>().session!.userId;
+    final teacherId = context
+        .watch<AuthService>()
+        .session!
+        .userId;
 
     return Column(
       children: [
@@ -672,7 +676,7 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
             }
             final rows = snapshot.data![0] as List<ClassSummaryRow>;
             final overallByLevel =
-                snapshot.data![1] as Map<String, DomainGenderCounts>;
+            snapshot.data![1] as Map<String, DomainGenderCounts>;
             if (rows.isEmpty) {
               return const Padding(
                 padding: EdgeInsets.all(12),
@@ -703,11 +707,11 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
 
             final totalGrandM = DevLevels.ordered.fold(
               0,
-              (a, l) => a + (overallByLevel[l]?.m ?? 0),
+                  (a, l) => a + (overallByLevel[l]?.m ?? 0),
             );
             final totalGrandF = DevLevels.ordered.fold(
               0,
-              (a, l) => a + (overallByLevel[l]?.f ?? 0),
+                  (a, l) => a + (overallByLevel[l]?.f ?? 0),
             );
             final totalGrandT = totalGrandM + totalGrandF;
 
@@ -747,39 +751,41 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
     const cellW = 72.0;
     const sepW = 12.0;
 
-    Widget headCell(String text, double w) => SizedBox(
-      width: w,
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontWeight: FontWeight.w800,
-          color: Colors.white,
-        ),
-        textAlign: TextAlign.center,
-      ),
-    );
+    Widget headCell(String text, double w) =>
+        SizedBox(
+          width: w,
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        );
 
-    Widget numCell(
-      String text,
-      double w, {
-      bool bold = false,
-      Color textColor = Colors.black87,
-    }) => SizedBox(
-      width: w,
-      child: Text(
-        text,
-        style: TextStyle(
-          fontWeight: bold ? FontWeight.w800 : FontWeight.w500,
-          color: textColor,
-        ),
-        textAlign: TextAlign.center,
-      ),
-    );
+    Widget numCell(String text,
+        double w, {
+          bool bold = false,
+          Color textColor = Colors.black87,
+        }) =>
+        SizedBox(
+          width: w,
+          child: Text(
+            text,
+            style: TextStyle(
+              fontWeight: bold ? FontWeight.w800 : FontWeight.w500,
+              color: textColor,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        );
 
-    Widget vSep({Color color = const Color(0xFFB9B9B9)}) => SizedBox(
-      width: sepW,
-      child: Center(child: Container(width: 1, height: 30, color: color)),
-    );
+    Widget vSep({Color color = const Color(0xFFB9B9B9)}) =>
+        SizedBox(
+          width: sepW,
+          child: Center(child: Container(width: 1, height: 30, color: color)),
+        );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -958,8 +964,8 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
   }
 
   Widget _top3Card() {
-    // Use pre-test for display when 'all' is selected
     final displayType = assessmentType == 'all' ? 'pre' : assessmentType;
+
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -975,20 +981,54 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
             language: language,
           ),
           builder: (context, snapshot) {
-            if (!snapshot.hasData)
+            if (!snapshot.hasData) {
               return const Center(
                 child: Padding(
                   padding: EdgeInsets.all(20),
                   child: CircularProgressIndicator(),
                 ),
               );
-            final map = snapshot.data!;
-            if (map.isEmpty) {
-              return const Text('No top/least learned data available yet.');
             }
-            final selectedDomain = map.containsKey(topDomainFilter)
+
+            final map = snapshot.data!;
+
+            // ✅ NEW: Check if this class actually has students
+            final classHasStudents = map.values.any((domainMap) {
+              final most = domainMap['most'] as List<TopSkill>;
+              final least = domainMap['least'] as List<TopSkill>;
+              return most.any((s) => s.totalLearners > 0) ||
+                  least.any((s) => s.totalLearners > 0);
+            });
+
+            // ✅ If no students → show message (no UI change)
+            if (!classHasStudents) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Text(
+                    'No data available yet.',
+                    style: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            final selectedDomain = map.isNotEmpty
+                ? (map.containsKey(topDomainFilter)
                 ? topDomainFilter
-                : map.keys.first;
+                : map.keys.first)
+                : '';
+
+            final mostList = map.isNotEmpty
+                ? map[selectedDomain]!['most']!
+                : <TopSkill>[];
+
+            final leastList = map.isNotEmpty
+                ? map[selectedDomain]!['least']!
+                : <TopSkill>[];
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1001,65 +1041,61 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
                         style: TextStyle(fontWeight: FontWeight.w800),
                       ),
                     ),
-                    Theme(
-                      data: Theme.of(context).copyWith(
-                        splashColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        hoverColor: Colors.transparent,
-                      ),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: AppColors.maroon.withOpacity(0.35),
+                    if (map.isNotEmpty)
+                      Theme(
+                        data: Theme.of(context).copyWith(
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          hoverColor: Colors.transparent,
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: AppColors.maroon.withOpacity(0.35),
+                            ),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: selectedDomain,
+                              dropdownColor: Colors.white,
+                              focusColor: Colors.transparent,
+                              items: map.keys
+                                  .map(
+                                    (d) => DropdownMenuItem(
+                                  value: d,
+                                  child: Text(d),
+                                ),
+                              )
+                                  .toList(),
+                              onChanged: (v) {
+                                if (v == null) return;
+                                setState(() => topDomainFilter = v);
+                              },
+                            ),
                           ),
                         ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: selectedDomain,
-                            dropdownColor: Colors.white,
-                            focusColor: Colors.transparent,
-                            items: map.keys
-                                .map(
-                                  (d) => DropdownMenuItem(
-                                    value: d,
-                                    child: Text(d),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (v) {
-                              if (v == null) return;
-                              setState(() => topDomainFilter = v);
-                            },
-                          ),
-                        ),
                       ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  selectedDomain,
-                  style: const TextStyle(fontWeight: FontWeight.w800),
-                ),
+                if (map.isNotEmpty)
+                  Text(
+                    selectedDomain,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
                 const SizedBox(height: 6),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: _topList(
-                        'Most Learned',
-                        map[selectedDomain]!['most']!,
-                      ),
+                      child: _topList('Most Learned', mostList),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _topList(
-                        'Least Learned',
-                        map[selectedDomain]!['least']!,
-                      ),
+                      child: _topList('Least Learned', leastList),
                     ),
                   ],
                 ),
@@ -1072,6 +1108,9 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
   }
 
   Widget _topList(String title, List<TopSkill> list) {
+    // Show "No data" if list empty OR all skills have 0 learners
+    final noData = list.isEmpty || list.every((s) => s.totalLearners == 0);
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -1090,19 +1129,32 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
             ),
           ),
           const SizedBox(height: 8),
-          for (final s in list)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                '- ${s.skillText} (${s.checkedCount}/${s.totalLearners})',
-                style: const TextStyle(height: 1.3),
+
+          // ✅ Show "No data" if no learners
+          if (noData)
+            const Text(
+              'No data available yet.',
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+                color: Colors.grey,
               ),
             ),
+
+          // ✅ Show skills only if learners exist
+          if (!noData)
+            for (final s in list)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  '- ${s.skillText} (${s.checkedCount}/${s.totalLearners})',
+                  style: const TextStyle(height: 1.3),
+                ),
+              ),
         ],
       ),
     );
   }
-}
+  }
 
 class _DroppedTab extends StatefulWidget {
   final int classId;

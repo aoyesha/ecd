@@ -88,7 +88,8 @@ class AnalyticsService {
         DbSchema.tAssessments,
         columns: [DbSchema.cAssessId],
         where:
-            '${DbSchema.cAssessLearnerId}=? AND ${DbSchema.cAssessClassId}=? AND ${DbSchema.cAssessType}=?',
+        '${DbSchema.cAssessLearnerId}=? AND ${DbSchema
+            .cAssessClassId}=? AND ${DbSchema.cAssessType}=?',
         whereArgs: [learnerId, classId, assessmentType],
         limit: 1,
       );
@@ -145,7 +146,9 @@ class AnalyticsService {
     if (match == null) return false;
     final startYear = int.tryParse(match.group(1)!);
     if (startYear == null) return false;
-    return startYear >= 2020 && startYear <= DateTime.now().year;
+    return startYear >= 2020 && startYear <= DateTime
+        .now()
+        .year;
   }
 
   Future<TeacherHistoricalSnapshot> buildTeacherHistoricalSnapshot({
@@ -159,7 +162,7 @@ class AnalyticsService {
       DbSchema.tClasses,
       columns: [DbSchema.cClassId],
       where:
-          '''
+      '''
 ${DbSchema.cClassTeacherId}=? 
 AND ${DbSchema.cClassSchoolYear}=? 
 AND ${DbSchema.cClassStatus}=?
@@ -195,7 +198,8 @@ AND ${DbSchema.cClassStatus}=?
           DbSchema.tAssessments,
           columns: [DbSchema.cAssessId],
           where:
-              '${DbSchema.cAssessLearnerId}=? AND ${DbSchema.cAssessClassId}=? AND ${DbSchema.cAssessType}=?',
+          '${DbSchema.cAssessLearnerId}=? AND ${DbSchema
+              .cAssessClassId}=? AND ${DbSchema.cAssessType}=?',
           whereArgs: [learnerId, classId, assessmentType],
           limit: 1,
         );
@@ -226,7 +230,7 @@ AND ${DbSchema.cClassStatus}=?
         );
         if (sum.isNotEmpty) {
           final overallLevel =
-              (sum.first[DbSchema.cSumOverallInterpretation] ?? '').toString();
+          (sum.first[DbSchema.cSumOverallInterpretation] ?? '').toString();
           if (levelTotals.containsKey(overallLevel)) {
             levelTotals[overallLevel] = (levelTotals[overallLevel] ?? 0) + 1;
           }
@@ -277,7 +281,8 @@ AND ${DbSchema.cClassStatus}=?
           DbSchema.tAssessments,
           columns: [DbSchema.cAssessId],
           where:
-              '${DbSchema.cAssessLearnerId}=? AND ${DbSchema.cAssessClassId}=? AND ${DbSchema.cAssessType}=?',
+          '${DbSchema.cAssessLearnerId}=? AND ${DbSchema
+              .cAssessClassId}=? AND ${DbSchema.cAssessType}=?',
           whereArgs: [learnerId, classId, assessmentType],
           limit: 1,
         );
@@ -377,7 +382,8 @@ AND ${DbSchema.cClassStatus}=?
         DbSchema.tAssessments,
         columns: [DbSchema.cAssessId],
         where:
-            '${DbSchema.cAssessLearnerId}=? AND ${DbSchema.cAssessClassId}=? AND ${DbSchema.cAssessType}=?',
+        '${DbSchema.cAssessLearnerId}=? AND ${DbSchema
+            .cAssessClassId}=? AND ${DbSchema.cAssessType}=?',
         whereArgs: [learnerId, classId, assessmentType],
         limit: 1,
       );
@@ -396,7 +402,7 @@ AND ${DbSchema.cClassStatus}=?
         if (!_domains.contains(domain)) continue;
 
         final row = rows.firstWhere(
-          (r) => r.level == level,
+              (r) => r.level == level,
           orElse: () => rows.first,
         );
         final counts = row.perDomain[domain]!;
@@ -416,7 +422,7 @@ AND ${DbSchema.cClassStatus}=?
   Future<Map<String, Map<String, List<TopSkill>>>>
   top3MostLeastByDomainForClass({
     required int classId,
-    required String assessmentType, // pre|post
+    required String assessmentType,
     required EccdLanguage language,
   }) async {
     final db = AppDb.instance.db;
@@ -427,9 +433,10 @@ AND ${DbSchema.cClassStatus}=?
       whereArgs: [classId, 'active'],
     );
 
-    // For each domain and skill index -> checked count
     final totalLearners = <String, int>{for (final d in _domains) d: 0};
     final checked = <String, Map<int, int>>{for (final d in _domains) d: {}};
+
+    bool hasAnyAssessment = false;
 
     for (final l in learners) {
       final learnerId = l[DbSchema.cLearnerId] as int;
@@ -438,11 +445,15 @@ AND ${DbSchema.cClassStatus}=?
         DbSchema.tAssessments,
         columns: [DbSchema.cAssessId],
         where:
-            '${DbSchema.cAssessLearnerId}=? AND ${DbSchema.cAssessClassId}=? AND ${DbSchema.cAssessType}=?',
+        '${DbSchema.cAssessLearnerId}=? AND ${DbSchema.cAssessClassId}=? AND ${DbSchema.cAssessType}=?',
         whereArgs: [learnerId, classId, assessmentType],
         limit: 1,
       );
+
       if (assess.isEmpty) continue;
+
+      hasAnyAssessment = true;
+
       final assessId = assess.first[DbSchema.cAssessId] as int;
 
       final ans = await db.query(
@@ -451,14 +462,12 @@ AND ${DbSchema.cClassStatus}=?
         whereArgs: [assessId],
       );
 
-      // Count this learner ONCE per domain (deduplicate)
       final countedDomains = <String>{};
 
       for (final a in ans) {
         final domain = _normalizeDomain(a[DbSchema.cAnsDomain] as String);
         if (!_domains.contains(domain)) continue;
 
-        // Count learner once per domain
         if (!countedDomains.contains(domain)) {
           totalLearners[domain] = (totalLearners[domain] ?? 0) + 1;
           countedDomains.add(domain);
@@ -466,17 +475,29 @@ AND ${DbSchema.cClassStatus}=?
 
         final idx = a[DbSchema.cAnsIndex] as int;
         final val = a[DbSchema.cAnsValue] as int;
+
         if (val == 1) {
           checked[domain]![idx] = (checked[domain]![idx] ?? 0) + 1;
         }
       }
     }
 
-    // Build TopSkill lists per domain
+    // ✅ If NO assessments at all → no data
+    if (!hasAnyAssessment) {
+      return {
+        for (final d in _domains)
+          d: {
+            'most': <TopSkill>[],
+            'least': <TopSkill>[],
+          }
+      };
+    }
+
     final out = <String, Map<String, List<TopSkill>>>{};
 
     for (final domain in _domains) {
       final questions = EccdQuestions.get(domain, language);
+
       final list = <TopSkill>[];
 
       for (int i = 0; i < questions.length; i++) {
@@ -486,22 +507,24 @@ AND ${DbSchema.cClassStatus}=?
             skillIndex: i,
             skillText: questions[i],
             checkedCount: checked[domain]![i] ?? 0,
-            totalLearners: (totalLearners[domain] ?? 0) == 0
-                ? 1
-                : totalLearners[domain]!,
+            totalLearners: totalLearners[domain] ?? 0,
           ),
         );
       }
 
-      list.sort((a, b) => b.pct.compareTo(a.pct)); // high -> low
+      // Most learned
+      list.sort((a, b) => b.pct.compareTo(a.pct));
       final most = list.take(3).toList();
 
-      // Exclude items from most before getting least
+      // Least learned
       final remaining = list.where((e) => !most.contains(e)).toList();
       remaining.sort((a, b) => a.pct.compareTo(b.pct));
       final least = remaining.take(3).toList();
 
-      out[domain] = {'most': most, 'least': least};
+      out[domain] = {
+        'most': most,
+        'least': least,
+      };
     }
 
     return out;

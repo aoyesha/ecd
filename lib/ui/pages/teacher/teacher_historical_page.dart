@@ -295,21 +295,51 @@ class _TeacherHistoricalPageState extends State<TeacherHistoricalPage> {
                       ),
                       const SizedBox(height: 10),
                       FutureBuilder<Map<String, Map<String, List<TopSkill>>>>(
-                        future: _analytics
-                            .top3MostLeastByDomainForTeacherSchoolYear(
-                              teacherId: teacherId,
-                              schoolYear: selectedYear,
-                              assessmentType: selectedAssessment,
-                              language: language,
-                            ),
+                        future: _analytics.top3MostLeastByDomainForTeacherSchoolYear(
+                          teacherId: teacherId,
+                          schoolYear: selectedYear,
+                          assessmentType: selectedAssessment,
+                          language: language,
+                        ),
                         builder: (context, skillSnap) {
-                          if (!skillSnap.hasData || skillSnap.data!.isEmpty) {
-                            return const Text('No Top 3 skill data yet.');
+                          // ✅ Match behavior with other page (centered empty state)
+                          if (s.classCount == 0 || s.assessedLearnerCount == 0) {
+                            return const Padding(
+                              padding: EdgeInsets.all(20),
+                              child: Center(
+                                child: Text(
+                                  'No data available yet.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                            );
                           }
+
+                          if (!skillSnap.hasData || skillSnap.data!.isEmpty) {
+                            return const Padding(
+                              padding: EdgeInsets.all(20),
+                              child: Center(
+                                child: Text(
+                                  'No data available yet.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+
                           final map = skillSnap.data!;
                           final selectedDomain = map.containsKey(topDomain)
                               ? topDomain
                               : map.keys.first;
+
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -318,9 +348,7 @@ class _TeacherHistoricalPageState extends State<TeacherHistoricalPage> {
                                   const Expanded(
                                     child: Text(
                                       'Top 3 Most / Least Learned',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                      ),
+                                      style: TextStyle(fontWeight: FontWeight.w800),
                                     ),
                                   ),
                                   DropdownButton<String>(
@@ -328,14 +356,13 @@ class _TeacherHistoricalPageState extends State<TeacherHistoricalPage> {
                                     items: map.keys
                                         .map(
                                           (d) => DropdownMenuItem(
-                                            value: d,
-                                            child: Text(d),
-                                          ),
-                                        )
+                                        value: d,
+                                        child: Text(d),
+                                      ),
+                                    )
                                         .toList(),
-                                    onChanged: (v) => setState(
-                                      () => topDomain = v ?? selectedDomain,
-                                    ),
+                                    onChanged: (v) =>
+                                        setState(() => topDomain = v ?? selectedDomain),
                                   ),
                                 ],
                               ),

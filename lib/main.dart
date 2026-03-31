@@ -10,25 +10,28 @@ import 'db/app_db.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize window manager for desktop
-  await windowManager.ensureInitialized();
-
-  WindowOptions windowOptions = const WindowOptions(
-    maximumSize: null,
-    minimumSize: Size(800, 600),
-  );
-  await windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.maximize();
-    await windowManager.focus();
-  });
-
-  // Desktop DB init
+  // Only run window_manager code on desktop
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    await windowManager.ensureInitialized();
+
+    WindowOptions windowOptions = const WindowOptions(
+      maximumSize: null,
+      minimumSize: Size(800, 600),
+    );
+
+    await windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.maximize();
+      await windowManager.focus();
+    });
+
+    // Initialize desktop SQLite DB
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
 
+  // Init database for all platforms (mobile will use default)
   await AppDb.instance.init();
+
   runApp(const EccdNewApp());
 }

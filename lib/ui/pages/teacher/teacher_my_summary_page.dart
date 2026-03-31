@@ -152,17 +152,17 @@ class _TeacherMySummaryPageState extends State<TeacherMySummaryPage> {
 for (final d in _domains) {
   final list = sum[d]!.values.toList();
 
-  // 🔽 MOST (highest percentage first)
   list.sort((a, b) => b.pct.compareTo(a.pct));
   final most = list.take(3).toList();
 
-  // 🔽 REMOVE overlap from MOST
-  final remaining = list.where((e) => !most.contains(e)).toList();
+  final mostIndexes = most.map((e) => e.skillIndex).toSet();
 
-  // 🔽 LEAST (lowest percentage from remaining only)
+  final remaining = list
+      .where((e) => !mostIndexes.contains(e.skillIndex))
+      .toList();
+
   remaining.sort((a, b) => a.pct.compareTo(b.pct));
   final least = remaining.take(3).toList();
-
   out[d] = {
     'most': most,
     'least': least,
@@ -573,9 +573,39 @@ return out;
         return code;
     }
   }
-
   Widget _top3Card(Map<String, Map<String, List<TopSkill>>> map) {
-    if (map.isEmpty) {
+    // Helper to check if a list has real data
+    bool hasData(List<TopSkill> list) {
+      return list.any((s) => s.totalLearners > 0 || s.checkedCount > 0);
+    }
+
+    // ✅ Remove domains with no real data
+    final validDomains = map.entries.where((entry) {
+      final most = entry.value['most'] ?? [];
+      final least = entry.value['least'] ?? [];
+
+      return hasData(most) || hasData(least);
+    }).map((e) => e.key).toList();
+
+    final selectedDomain = validDomains.contains(topDomainFilter)
+        ? topDomainFilter
+        : (validDomains.isNotEmpty ? validDomains.first : '');
+
+    // Get lists safely
+    final mostList = selectedDomain.isNotEmpty
+        ? map[selectedDomain]!['most'] ?? []
+        : <TopSkill>[];
+
+    final leastList = selectedDomain.isNotEmpty
+        ? map[selectedDomain]!['least'] ?? []
+        : <TopSkill>[];
+
+    // ✅ Check if selected domain has any meaningful data
+    final noData =
+        validDomains.isEmpty ||
+            (!hasData(mostList) && !hasData(leastList));
+
+    if (noData) {
       return Card(
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -583,14 +613,20 @@ return out;
           side: const BorderSide(color: Color(0xFFE6E6E6)),
         ),
         child: const Padding(
-          padding: EdgeInsets.all(12),
-          child: Text('No top/least learned data available yet.'),
+          padding: EdgeInsets.all(20),
+          child: Center(
+            child: Text(
+              'No data available yet.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+                color: Colors.grey,
+              ),
+            ),
+          ),
         ),
       );
     }
-    final selectedDomain = map.containsKey(topDomainFilter)
-        ? topDomainFilter
-        : map.keys.first;
 
     return Card(
       elevation: 0,
@@ -611,63 +647,64 @@ return out;
                     style: TextStyle(fontWeight: FontWeight.w800),
                   ),
                 ),
-                Theme(
-                  data: Theme.of(context).copyWith(
-                    splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                    hoverColor: Colors.transparent,
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: AppColors.maroon.withOpacity(0.35),
+                if (validDomains.isNotEmpty)
+                  Theme(
+                    data: Theme.of(context).copyWith(
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppColors.maroon.withOpacity(0.35),
+                        ),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedDomain,
+                          dropdownColor: Colors.white,
+                          focusColor: Colors.transparent,
+                          items: validDomains
+                              .map(
+                                (d) => DropdownMenuItem(
+                              value: d,
+                              child: Text(d),
+                            ),
+                          )
+                              .toList(),
+                          onChanged: (v) {
+                            if (v == null) return;
+                            setState(() => topDomainFilter = v);
+                          },
+                        ),
                       ),
                     ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: selectedDomain,
-                        dropdownColor: Colors.white,
-                        focusColor: Colors.transparent,
-                        items: _domains
-                            .where(map.containsKey)
-                            .map(
-                              (d) => DropdownMenuItem(value: d, child: Text(d)),
-                            )
-                            .toList(),
-                        onChanged: (v) {
-                          if (v == null) return;
-                          setState(() => topDomainFilter = v);
-                        },
-                      ),
-                    ),
                   ),
-                ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              selectedDomain,
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
+
+            if (selectedDomain.isNotEmpty)
+              Text(
+                selectedDomain,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+
             const SizedBox(height: 6),
+
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: _topList(
-                    'Most Learned',
-                    map[selectedDomain]!['most']!,
-                  ),
+                  child: _topList('Most Learned', mostList),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _topList(
-                    'Least Learned',
-                    map[selectedDomain]!['least']!,
-                  ),
+                  child: _topList('Least Learned', leastList),
                 ),
               ],
             ),
@@ -678,6 +715,9 @@ return out;
   }
 
   Widget _topList(String title, List<TopSkill> list) {
+    final noData = list.isEmpty ||
+        list.every((s) => s.totalLearners == 0 && s.checkedCount == 0);
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -696,19 +736,40 @@ return out;
             ),
           ),
           const SizedBox(height: 8),
-          for (final s in list)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                '${s.skillText} (${s.checkedCount}/${s.totalLearners})',
-                style: const TextStyle(height: 1.3),
+
+          // ✅ CENTERED NO DATA INSIDE BOX
+          if (noData)
+            SizedBox(
+              height: 80, // controls vertical centering space
+              child: const Center(
+                child: Text(
+                  'No data available yet.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: Colors.grey,
+                  ),
+                ),
               ),
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final s in list)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      '- ${s.skillText} (${s.checkedCount}/${s.totalLearners})',
+                      style: const TextStyle(height: 1.3),
+                    ),
+                  ),
+              ],
             ),
         ],
       ),
     );
   }
-
   List<String> _schoolYearOptions() {
     return schoolYearRangeOptions(startYear: 2020, yearsFromNow: 10);
   }
