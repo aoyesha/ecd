@@ -255,7 +255,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     const SizedBox(height: 12),
                     _sectionCard(title: 'Support', child: _supportSection()),
                     const SizedBox(height: 12),
-                    _sectionCard(title: 'Developers', child: _developersGrid()),
+                    _sectionCard(title: 'System Developers', child: _developersList()),
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -646,18 +646,56 @@ class _SettingsPageState extends State<SettingsPage> {
             SizedBox(height: 12),
 
             Text(
-              'FAQs',
+              'Frequently Asked Questions',
               textAlign: TextAlign.left,
               style: TextStyle(fontWeight: FontWeight.w800),
             ),
             SizedBox(height: 4),
             Text(
-              '1. Why is a learner missing in summary?\n'
-              'Only active learners with saved checklists are included.\n\n'
-              '2. Why is my class not in general summary?\n'
-              'Archived classes are excluded from active summaries.\n\n'
-              '3. Why can\'t CSV export proceed?\n'
-              'All required checklist records must be saved first.',
+              'GETTING STARTED\n\n'
+              'Q: What is the ECCD Checklist?\n'
+              'A: This is a standardized Early Childhood Development assessment tool using the SPARKLER framework to evaluate children ages 3-5.11 years across 7 developmental domains.\n\n'
+              'Q: What are the 7 developmental domains?\n'
+              'A: Gross Motor, Fine Motor, Self Help, Receptive Language, Expressive Language, Cognitive, and Social Emotional.\n\n'
+              'ASSESSMENTS\n\n'
+              'Q: What assessment types are available?\n'
+              'A: Pre-Test (baseline), Post-Test (end-of-year), and Conditional Test (mid-year replacement if pre-test perfect).\n\n'
+              'Q: How is age calculated?\n'
+              'A: Age is automatically calculated from birth date. Assessments are scored using age-band lookup tables.\n\n'
+              'Q: What do the score interpretations mean?\n'
+              'A: SSDD (significant delay), SSLDD (slight delay), AD (average), SSAD (slightly advanced), SHAD (highly advanced).\n\n'
+              'DATA MANAGEMENT\n\n'
+              'Q: Why is a learner missing in summary?\n'
+              'A: Only active learners with saved assessments appear. Archived learners and incomplete assessments are excluded.\n\n'
+              'Q: Why is my class not in my summary?\n'
+              'A: Archived classes are excluded from active summaries. Check "My Archive" to view archived classes.\n\n'
+              'Q: Can I edit learner information after creating a profile?\n'
+              'A: Yes. Go to the learner profile page and click edit to update demographics, family information, and school details.\n\n'
+              'EXPORTING & REPORTING\n\n'
+              'Q: What export formats are supported?\n'
+              'A: PDF (individual/class reports), CSV (raw data), and Excel workbooks (domain summaries with color coding).\n\n'
+              'Q: Why can\'t I export data?\n'
+              'A: All assessment records must be saved first. Ensure all checklists are complete and saved before exporting.\n\n'
+              'Q: Can I export individual learner assessments?\n'
+              'A: Yes. Select a learner and use the PDF or CSV export options to generate individual reports.\n\n'
+              'ACCOUNT & SECURITY\n\n'
+              'Q: What password requirements must I follow?\n'
+              'A: Minimum 8 characters with uppercase, lowercase, number, and special character.\n\n'
+              'Q: What should I do if I forget my password?\n'
+              'A: Use the "Forgot Password" option on login to reset via email OTP verification.\n\n'
+              'Q: What is the monthly verification?\n'
+              'A: For security, you may be prompted to verify your account monthly using a code sent to your email.\n\n'
+              'Q: What happens after failed login attempts?\n'
+              'A: Your account locks for 5 minutes after 5 failed attempts for security.\n\n'
+              'TECHNICAL SUPPORT\n\n'
+              'Q: What should I do if data doesn\'t save?\n'
+              'A: Ensure your device has storage space and the app has file write permissions. Try closing and reopening the app.\n\n'
+              'Q: How is my data stored?\n'
+              'A: All assessment data is stored locally on your device. Only intentionally exported files are shared.\n\n'
+              'Q: Can I access my data on multiple devices?\n'
+              'A: Data is device-specific. Use CSV/Excel exports to transfer data between devices.\n\n'
+              'Q: Is there a backup option?\n'
+              'A: Export your data regularly in CSV or Excel format as backup. Consider exporting class/learner data monthly.',
               textAlign: TextAlign.left,
               style: TextStyle(height: 1.4),
             ),
@@ -681,37 +719,57 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // ================= DEVELOPERS GRID =================
-  Widget _developersGrid() {
+  // ================= DEVELOPERS LIST =================
+  Widget _developersList() {
     const devs = [
       ('Jose, Vincent Yuri E.', 'Project Manager'),
       ('Fernandez, Alfred Joaquin', 'System Analyst'),
-      ('Amado, Aoyesha Ayen B.', 'Developer'),
-      ('Tolentino, Liam Nathan S.', 'Developer'),
-      ('Espina, Ericka Joana I.', 'QA Developer'),
-      ('Maglalang, Jaz Mare C.', 'QA Developer'),
+      ('Amado, Aoyesha Ayen B.', 'System Developer'),
+      ('Tolentino, Liam Nathan S.', 'System Developer'),
+      ('Espina, Ericka Joana I.', 'Quality Assurance Developer'),
+      ('Maglalang, Jaz Mare C.', 'Quality Assurance Developer'),
     ];
 
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
+    return Column(
       children: [
-        for (final d in devs)
-          Container(
-            width: 260,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFE6E6E6)),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(d.$1, style: const TextStyle(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 4),
-                Text(d.$2, style: const TextStyle(color: Colors.black54)),
-              ],
-            ),
+        for (int i = 0; i < devs.length; i++)
+          Column(
+            children: [
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 0,
+                  vertical: 4,
+                ),
+                title: Text(
+                  devs[i].$1,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                  ),
+                ),
+                trailing: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFE6E6E6)),
+                  ),
+                  child: Text(
+                    devs[i].$2,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              if (i < devs.length - 1)
+                const Divider(height: 1, color: Color(0xFFE6E6E6)),
+            ],
           ),
       ],
     );

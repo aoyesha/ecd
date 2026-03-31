@@ -253,6 +253,7 @@ class _NotebookCardState extends State<_NotebookCard> {
   late TextEditingController _gradeCtrl;
   late TextEditingController _sectionCtrl;
   bool _isSaving = false;
+  bool _isHovered = false;
 
   @override
   void initState() {
@@ -275,12 +276,19 @@ class _NotebookCardState extends State<_NotebookCard> {
   void _showEditDialog() {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: SizedBox(
-          width: 380,
-          child: Column(
+      builder: (dialogContext) {
+        // Responsive dialog width: 90% on mobile, max 400 on larger screens
+        final screenWidth = MediaQuery.of(dialogContext).size.width;
+        final dialogWidth = screenWidth < 500
+            ? screenWidth * 0.9
+            : 400.0;
+
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          content: SizedBox(
+            width: dialogWidth,
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -378,8 +386,9 @@ class _NotebookCardState extends State<_NotebookCard> {
               ),
             ],
           ),
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -392,6 +401,27 @@ class _NotebookCardState extends State<_NotebookCard> {
         'Section cannot be empty',
         tone: AppFeedbackTone.warning,
       );
+      return;
+    }
+
+    final teacherId = context.read<AuthService>().session!.userId;
+
+    // Check for duplicate section name under the same school year
+    final sectionExists = await _classService.sectionExists(
+      teacherId: teacherId,
+      section: section,
+      schoolYear: widget.schoolYear,
+      excludeClassId: widget.classId,
+    );
+
+    if (sectionExists) {
+      if (!mounted) return;
+      AppFeedback.showSnackBar(
+        context,
+        'A section with this name already exists under this school year',
+        tone: AppFeedbackTone.error,
+      );
+      setState(() => _isSaving = false);
       return;
     }
 
@@ -427,31 +457,60 @@ class _NotebookCardState extends State<_NotebookCard> {
     return SizedBox(
       width: widget.width,
       height: widget.height,
-      child: Stack(
-        children: [
-          Positioned(
-            left: 6,
-            top: 10,
-            bottom: 10,
-            child: Container(
-              width: 24,
-              decoration: const BoxDecoration(
-                color: Color(0xFF1E1E1E),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  bottomLeft: Radius.circular(16),
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        cursor: SystemMouseCursors.click,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: _isHovered
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 12,
+                      offset: const Offset(0, 8),
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+          ),
+          child: GestureDetector(
+            onTap: widget.onOpen,
+            child: Stack(
+              children: [
+                Positioned(
+                  left: 6,
+                  top: 10,
+                  bottom: 10,
+                  child: Container(
+                    width: 24,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF1E1E1E),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        bottomLeft: Radius.circular(16),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                Positioned.fill(
+                  left: 18,
+                  child: Card(
+                    color: widget.color,
+                    child: _buildViewMode(),
+                  ),
+                ),
+              ],
             ),
           ),
-          Positioned.fill(
-            left: 18,
-            child: Card(
-              color: widget.color,
-              child: _buildViewMode(),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -459,44 +518,40 @@ class _NotebookCardState extends State<_NotebookCard> {
   Widget _buildViewMode() {
     return Stack(
       children: [
-        InkWell(
-          onTap: widget.onOpen,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.schoolYear,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black54,
+        Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.schoolYear,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black54,
+                ),
+              ),
+              const Spacer(),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Grade ${widget.grade}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                const Spacer(),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Grade ${widget.grade}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.section,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.section,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
         Positioned(

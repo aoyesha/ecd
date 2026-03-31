@@ -108,8 +108,7 @@ class _LoginPageState extends State<LoginPage> {
     final otpCtrl = TextEditingController();
     var challenge = initialChallenge;
     var errorText = '';
-    var helperText =
-        'A monthly verification code was sent to $email to confirm that this teacher account is still active.';
+    var successText = '';
     var sending = false;
 
     final verified = await showDialog<bool>(
@@ -119,67 +118,199 @@ class _LoginPageState extends State<LoginPage> {
         return StatefulBuilder(
           builder: (dialogContext, setDialogState) {
             return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               title: const Text('Monthly Account Verification'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(helperText),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: otpCtrl,
-                    keyboardType: TextInputType.number,
-                    maxLength: 6,
-                    decoration: InputDecoration(
-                      labelText: 'OTP code',
-                      errorText: errorText.isEmpty ? null : errorText,
+                  Text('A monthly verification code was sent to:'),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      email,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
-                  Text(
-                    'This code expires at ${TimeOfDay.fromDateTime(challenge.expiresAt).format(dialogContext)}.',
-                    style: Theme.of(dialogContext).textTheme.bodySmall,
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Enter OTP Code',
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
-                  TextButton.icon(
-                    onPressed: sending
-                        ? null
-                        : () async {
-                            setDialogState(() {
-                              sending = true;
-                              errorText = '';
-                            });
-                            try {
-                              final nextChallenge = _emailOtpService
-                                  .createChallenge();
-                              await _emailOtpService.sendOtp(
-                                email: email,
-                                challenge: nextChallenge,
-                                purpose:
-                                    EmailOtpPurpose.monthlyLoginVerification,
-                              );
-                              setDialogState(() {
-                                challenge = nextChallenge;
-                                helperText =
-                                    'A new verification code was sent.';
-                              });
-                            } catch (e) {
-                              setDialogState(() {
-                                errorText = kDebugMode
-                                    ? 'Failed to send verification code: ${e.runtimeType}: $e'
-                                    : 'Failed to send verification code. Please try again.';
-                              });
-                            } finally {
-                              setDialogState(() => sending = false);
-                            }
-                          },
-                    icon: sending
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.refresh_rounded),
-                    label: const Text('Resend code'),
+                  TextField(
+                    controller: otpCtrl,
+                    autofocus: true,
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 8,
+                    ),
+                    decoration: InputDecoration(
+                      counterText: '',
+                      hintText: '000000',
+                      hintStyle: const TextStyle(letterSpacing: 8),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFE0E0E0),
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFE0E0E0),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFD32F2F),
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (errorText.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFEBEE),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFFEF9A9A),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: Color(0xFFD32F2F),
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              errorText,
+                              style: const TextStyle(
+                                color: Color(0xFFD32F2F),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else if (successText.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F5E9),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFFC8E6C9),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.check_circle_outline,
+                            color: Color(0xFF2E7D32),
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              successText,
+                              style: const TextStyle(
+                                color: Color(0xFF2E7D32),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Expires: ${TimeOfDay.fromDateTime(challenge.expiresAt).format(dialogContext)}',
+                        style: const TextStyle(
+                          color: Color(0xFF999999),
+                          fontSize: 12,
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: sending
+                            ? null
+                            : () async {
+                                setDialogState(() {
+                                  sending = true;
+                                  errorText = '';
+                                  successText = '';
+                                });
+                                try {
+                                  final nextChallenge = _emailOtpService
+                                      .createChallenge();
+                                  await _emailOtpService.sendOtp(
+                                    email: email,
+                                    challenge: nextChallenge,
+                                    purpose: EmailOtpPurpose
+                                        .monthlyLoginVerification,
+                                  );
+                                  setDialogState(() {
+                                    challenge = nextChallenge;
+                                    successText = 'New code sent.';
+                                  });
+                                } catch (e) {
+                                  setDialogState(() {
+                                    errorText = 'Failed to send code.';
+                                  });
+                                } finally {
+                                  setDialogState(() => sending = false);
+                                }
+                              },
+                        icon: sending
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.refresh_rounded),
+                        label: Text(sending ? 'Sending...' : 'Resend'),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -189,18 +320,26 @@ class _LoginPageState extends State<LoginPage> {
                   child: const Text('Cancel'),
                 ),
                 FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFD32F2F),
+                  ),
                   onPressed: () {
                     final entered = otpCtrl.text.trim();
                     if (challenge.isExpired) {
                       setDialogState(() {
-                        errorText =
-                            'This code has expired. Please request another one.';
+                        errorText = 'Code expired. Request a new one.';
+                      });
+                      return;
+                    }
+                    if (entered.length != 6) {
+                      setDialogState(() {
+                        errorText = 'Please enter all 6 digits.';
                       });
                       return;
                     }
                     if (entered != challenge.code) {
                       setDialogState(() {
-                        errorText = 'The OTP you entered is incorrect.';
+                        errorText = 'Incorrect code. Try again.';
                       });
                       return;
                     }
@@ -240,72 +379,318 @@ class _LoginPageState extends State<LoginPage> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
+        final resetEmailCtrl = TextEditingController(text: resetEmail);
         return StatefulBuilder(
           builder: (dialogContext, setDialogState) {
+            // Responsive dialog width: 90% on mobile, max 400 on larger screens
+            final screenWidth = MediaQuery.of(dialogContext).size.width;
+            final dialogWidth = screenWidth < 500
+                ? screenWidth * 0.9
+                : 400.0;
+
             return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               title: const Text('Reset Password'),
-              content: SingleChildScrollView(
+              content: SizedBox(
+                width: dialogWidth,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(helperText),
-                    if (generalErrorText.isNotEmpty) ...[
+                  if (generalErrorText.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFEBEE),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFFEF9A9A),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: Color(0xFFD32F2F),
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              generalErrorText,
+                              style: const TextStyle(
+                                color: Color(0xFFD32F2F),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: resetEmailCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    onChanged: (value) => resetEmail = value,
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFE0E0E0),
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFE0E0E0),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFD32F2F),
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (challenge != null) ...[
+                    const Text(
+                      'Enter OTP Code',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      onChanged: (value) => otpCode = value,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 8,
+                      ),
+                      decoration: InputDecoration(
+                        counterText: '',
+                        hintText: '000000',
+                        hintStyle: const TextStyle(letterSpacing: 8),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE0E0E0),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE0E0E0),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFD32F2F),
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (otpErrorText.isNotEmpty) ...[
                       const SizedBox(height: 8),
-                      Text(
-                        generalErrorText,
-                        style: TextStyle(
-                          color: Theme.of(dialogContext).colorScheme.error,
-                          fontWeight: FontWeight.w600,
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFEBEE),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: const Color(0xFFEF9A9A),
+                          ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              color: Color(0xFFD32F2F),
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                otpErrorText,
+                                style: const TextStyle(
+                                  color: Color(0xFFD32F2F),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                     const SizedBox(height: 12),
-                    TextFormField(
-                      initialValue: resetEmail,
-                      keyboardType: TextInputType.emailAddress,
-                      onChanged: (value) => resetEmail = value,
-                      decoration: const InputDecoration(labelText: 'Email'),
+                    TextField(
+                      obscureText: true,
+                      onChanged: (value) => newPassword = value,
+                      decoration: InputDecoration(
+                        labelText: 'New Password',
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE0E0E0),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE0E0E0),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFD32F2F),
+                            width: 2,
+                          ),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    if (challenge != null) ...[
-                      TextField(
-                        keyboardType: TextInputType.number,
-                        maxLength: 6,
-                        onChanged: (value) => otpCode = value,
-                        decoration: InputDecoration(
-                          labelText: 'Reset OTP',
-                          errorText: otpErrorText.isEmpty ? null : otpErrorText,
-                        ),
-                      ),
-                      TextField(
-                        obscureText: true,
-                        onChanged: (value) => newPassword = value,
-                        decoration: InputDecoration(
-                          labelText: 'New Password',
-                          errorText: passwordErrorText.isEmpty
-                              ? null
-                              : passwordErrorText,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        obscureText: true,
-                        onChanged: (value) => confirmPassword = value,
-                        decoration: InputDecoration(
-                          labelText: 'Confirm Password',
-                          errorText: confirmPasswordErrorText.isEmpty
-                              ? null
-                              : confirmPasswordErrorText,
-                        ),
-                      ),
+                    if (passwordErrorText.isNotEmpty) ...[
                       const SizedBox(height: 8),
-                      Text(
-                        'Use at least 8 characters with uppercase, lowercase, number, and special character.',
-                        style: Theme.of(dialogContext).textTheme.bodySmall,
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFEBEE),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: const Color(0xFFEF9A9A),
+                          ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              color: Color(0xFFD32F2F),
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                passwordErrorText,
+                                style: const TextStyle(
+                                  color: Color(0xFFD32F2F),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
+                    const SizedBox(height: 12),
+                    TextField(
+                      obscureText: true,
+                      onChanged: (value) => confirmPassword = value,
+                      decoration: InputDecoration(
+                        labelText: 'Confirm Password',
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE0E0E0),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE0E0E0),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFD32F2F),
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (confirmPasswordErrorText.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFEBEE),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: const Color(0xFFEF9A9A),
+                          ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              color: Color(0xFFD32F2F),
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                confirmPasswordErrorText,
+                                style: const TextStyle(
+                                  color: Color(0xFFD32F2F),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    Text(
+                      'Use at least 8 characters with uppercase, lowercase, number, and special character.',
+                      style: Theme.of(dialogContext).textTheme.bodySmall,
+                    ),
                   ],
+                ],
                 ),
               ),
               actions: [

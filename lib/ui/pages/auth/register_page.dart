@@ -169,7 +169,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
       if (!mounted) return;
       _snack('Account verified and created. You can now log in.');
-      await navReplaceNoTransition(context, const LoginPage());
+      // Don't navigate manually - the auth state change will auto-redirect via app.dart's home widget
     } catch (e) {
       if (e is StateError && e.message == 'Email already exists.') {
         _snack('This email is already registered.');
@@ -202,263 +202,218 @@ class _RegisterPageState extends State<RegisterPage> {
     final verified = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (context) {
+      builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: const Color(0xFFFAFAFA),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              title: const Text(
-                'Verify Your Email',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A1A1A),
-                ),
-              ),
-              titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
-              contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'A 6-digit code was sent to:',
-                    style: const TextStyle(
-                      color: Color(0xFF666666),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F5F5),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      email,
-                      style: const TextStyle(
-                        color: Color(0xFF1A1A1A),
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  const Text(
-                    'Enter OTP Code',
-                    style: TextStyle(
-                      color: Color(0xFF424242),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: otpCtrl,
-                    autofocus: true,
-                    textAlign: TextAlign.center,
-                    keyboardType: TextInputType.number,
-                    maxLength: 6,
-                    style: const TextStyle(
-                      color: Color(0xFF1A1A1A),
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 8,
-                    ),
-                    decoration: InputDecoration(
-                      counterText: '',
-                      hintText: '000000',
-                      hintStyle: const TextStyle(
-                        color: Color(0xFFBDBDBD),
-                        letterSpacing: 8,
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 12,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(
-                          color: Color(0xFFE0E0E0),
-                          width: 1.5,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(
-                          color: Color(0xFFE0E0E0),
-                          width: 1.5,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(
-                          color: Color(0xFFD32F2F),
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (errorText.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFEBEE),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: const Color(0xFFEF9A9A),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(
-                            Icons.error_outline,
-                            color: Color(0xFFD32F2F),
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              errorText,
-                              style: const TextStyle(
-                                color: Color(0xFFD32F2F),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ] else if (successText.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE8F5E9),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: const Color(0xFFC8E6C9),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(
-                            Icons.check_circle_outline,
-                            color: Color(0xFF2E7D32),
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              successText,
-                              style: const TextStyle(
-                                color: Color(0xFF2E7D32),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              title: const Text('Verify Your Email'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Expires: ${TimeOfDay.fromDateTime(challenge.expiresAt).format(context)}',
-                        style: const TextStyle(
-                          color: Color(0xFF999999),
-                          fontWeight: FontWeight.w500,
-                          fontSize: 12,
+                      Text('A 6-digit code was sent to:'),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F5F5),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          email,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
-                      TextButton.icon(
-                        onPressed: sending
-                            ? null
-                            : () async {
-                                setDialogState(() {
-                                  sending = true;
-                                  errorText = '';
-                                  successText = '';
-                                });
-
-                                try {
-                                  final nextChallenge = _emailOtpService
-                                      .createChallenge();
-                                  await _emailOtpService.sendOtp(
-                                    email: email,
-                                    challenge: nextChallenge,
-                                  );
-                                  setDialogState(() {
-                                    challenge = nextChallenge;
-                                    successText = 'New code sent.';
-                                  });
-                                } catch (e) {
-                                  setDialogState(() {
-                                    errorText = 'Failed to send code.';
-                                  });
-                                } finally {
-                                  setDialogState(() => sending = false);
-                                }
-                              },
-                        icon: sending
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Color(0xFFD32F2F),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Enter OTP Code',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: otpCtrl,
+                        autofocus: true,
+                        textAlign: TextAlign.center,
+                        keyboardType: TextInputType.number,
+                        maxLength: 6,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 8,
+                        ),
+                        decoration: InputDecoration(
+                          counterText: '',
+                          hintText: '000000',
+                          hintStyle: const TextStyle(letterSpacing: 8),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 12,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE0E0E0),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE0E0E0),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFD32F2F),
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (errorText.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFEBEE),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: const Color(0xFFEF9A9A),
+                            ),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                color: Color(0xFFD32F2F),
+                                size: 18,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  errorText,
+                                  style: const TextStyle(
+                                    color: Color(0xFFD32F2F),
+                                    fontSize: 12,
                                   ),
                                 ),
-                              )
-                            : const Icon(Icons.refresh_rounded),
-                        label: Text(
-                          sending ? 'Sending...' : 'Resend',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 12,
+                              ),
+                            ],
                           ),
                         ),
+                      ] else if (successText.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F5E9),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: const Color(0xFFC8E6C9),
+                            ),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(
+                                Icons.check_circle_outline,
+                                color: Color(0xFF2E7D32),
+                                size: 18,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  successText,
+                                  style: const TextStyle(
+                                    color: Color(0xFF2E7D32),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Expires: ${TimeOfDay.fromDateTime(challenge.expiresAt).format(context)}',
+                            style: const TextStyle(
+                              color: Color(0xFF999999),
+                              fontSize: 12,
+                            ),
+                          ),
+                          TextButton.icon(
+                            onPressed: sending
+                                ? null
+                                : () async {
+                                    setDialogState(() {
+                                      sending = true;
+                                      errorText = '';
+                                      successText = '';
+                                    });
+
+                                    try {
+                                      final nextChallenge = _emailOtpService
+                                          .createChallenge();
+                                      await _emailOtpService.sendOtp(
+                                        email: email,
+                                        challenge: nextChallenge,
+                                      );
+                                      setDialogState(() {
+                                        challenge = nextChallenge;
+                                        successText = 'New code sent.';
+                                      });
+                                    } catch (e) {
+                                      setDialogState(() {
+                                        errorText = 'Failed to send code.';
+                                      });
+                                    } finally {
+                                      setDialogState(() => sending = false);
+                                    }
+                                  },
+                            icon: sending
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.refresh_rounded),
+                            label: Text(sending ? 'Sending...' : 'Resend'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(
-                      color: Color(0xFF757575),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: const Text('Cancel'),
                 ),
                 FilledButton(
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFFD32F2F),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
                   ),
                   onPressed: () {
                     final enteredCode = otpCtrl.text.trim();
@@ -483,15 +438,11 @@ class _RegisterPageState extends State<RegisterPage> {
                       return;
                     }
 
-                    Navigator.of(context).pop(true);
+                    Navigator.of(dialogContext).pop(true);
                   },
-                  child: const Text(
-                    'Verify',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
+                  child: const Text('Verify'),
                 ),
               ],
-              actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
             );
           },
         );
@@ -520,10 +471,16 @@ class _RegisterPageState extends State<RegisterPage> {
     return showDialog<void>(
       context: context,
       builder: (context) {
+        // Responsive dialog width: 90% on mobile, max 600 on larger screens
+        final screenWidth = MediaQuery.of(context).size.width;
+        final dialogWidth = screenWidth < 700
+            ? screenWidth * 0.9
+            : 600.0;
+
         return AlertDialog(
           title: Text(title),
           content: SizedBox(
-            width: 560,
+            width: dialogWidth,
             child: SingleChildScrollView(
               child: Text(content, style: const TextStyle(height: 1.45)),
             ),
@@ -665,7 +622,7 @@ class _RegisterPageState extends State<RegisterPage> {
         TextFormField(
           controller: emailCtrl,
           decoration: AuthFormParts.inputDecoration(
-            'juan.delacruz@deped.gov.ph or juan@ust.edu.ph',
+            'juan.delacruz@deped.gov.ph',
           ),
           keyboardType: TextInputType.emailAddress,
           validator: Validators.accountEmail,
@@ -803,19 +760,22 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget _loginHint() {
     return Center(
-      child: RichText(
-        text: TextSpan(
-          style: TextStyle(color: Colors.white.withOpacity(0.95)),
-          children: [
-            const TextSpan(text: 'Already have an account? '),
-            TextSpan(
-              text: 'Log in',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-              recognizer: TapGestureRecognizer()
-                ..onTap = () =>
-                    navReplaceNoTransition(context, const LoginPage()),
-            ),
-          ],
+      child: GestureDetector(
+        onTap: () => navReplaceNoTransition(context, const LoginPage()),
+        child: RichText(
+          text: TextSpan(
+            style: TextStyle(color: Colors.white.withOpacity(0.95)),
+            children: [
+              const TextSpan(text: 'Already have an account? '),
+              TextSpan(
+                text: 'Log in',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -843,87 +803,148 @@ const String _termsAndConditionsText = '''
 1. Acceptance of Terms
 By creating and using an Early Childhood Development (ECD) account, you agree to these Terms and Conditions.
 
-2. Purpose of Use
-This application is intended for educational assessment and reporting aligned with Early Childhood Development (ECD) implementation.
-You agree to use the system only for authorized school, division, district, and regional workflows.
+2. Email Requirement - IMPORTANT
+ONLY DepEd-issued email addresses ending with @deped.gov.ph are authorized to register and use this system.
+Personal, third-party, or non-DepEd email addresses are strictly prohibited.
+Verification of your @deped.gov.ph email is mandatory for account activation.
+Accounts created with non-authorized email addresses will be deactivated immediately.
 
-3. Account Responsibility
-You are responsible for keeping your login credentials confidential.
-You must ensure that records entered under your account are accurate and updated.
+3. Purpose of Use
+This application is intended exclusively for DepEd educators and administrators conducting Early Childhood Development (ECD) assessments.
+You agree to use the system only for authorized school, division, district, and regional educational workflows in alignment with DepEd policies.
 
-4. Data Entry and Validation
-Required learner and class information must be entered truthfully.
-Optional fields may be blank, but any provided data must still be correct.
+4. Account Responsibility
+You are responsible for keeping your login credentials confidential and secure.
+You must ensure that all records entered under your account are accurate, truthful, and current.
+You may not share your account credentials with other users; each person must maintain an individual @deped.gov.ph account.
 
-5. Assessment Integrity
-Checklist responses, raw scores, scaled scores, and interpretation outputs must follow the official process implemented in the system.
-Users must not intentionally manipulate records to misrepresent learner outcomes.
+5. Data Entry and Validation
+Required learner and class information must be entered truthfully and completely.
+Optional fields may be blank, but any provided data must still be accurate and verifiable.
+False or misleading information entered into assessments constitutes a violation of this agreement.
 
-6. Local Storage and Exports
-Data is stored locally in your deployed Early Childhood Development (ECD) system database.
-CSV and PDF exports are generated only through user action and should be handled securely.
+6. Assessment Integrity
+Checklist responses, raw scores, scaled scores, and interpretation outputs must follow the official SPARKLER process and validation rules implemented in the system.
+Users must not intentionally manipulate, alter, or misrepresent learner assessment outcomes.
+Assessment data must reflect genuine observations and professional judgment by authorized educators.
 
-7. Authorized Sharing
-Exported summaries may be forwarded only through official reporting channels.
-Users are responsible for verifying recipient identity before sharing files.
+7. Local Storage and Exports
+Data is stored locally in your deployed Early Childhood Development (ECD) system database within DepEd facilities.
+CSV and PDF exports are generated only through explicit user action and must be handled securely according to DepEd data protection guidelines.
+Exported files containing learner information are official records requiring secure handling.
 
-8. Prohibited Actions
+8. Authorized Sharing
+Exported assessment summaries may be forwarded only through official DepEd reporting channels.
+Recipients of exported files must be authorized DepEd personnel or designated educational stakeholders.
+Users are responsible for verifying recipient identity and authorization before sharing learner assessment files.
+
+9. Prohibited Actions
 You agree not to:
-- access another user's account without permission;
-- alter system behavior to bypass validations or controls;
-- use learner data for non-educational or unauthorized purposes.
+- access another user's account without explicit permission;
+- alter, bypass, or manipulate system validations or built-in safeguards;
+- use learner data for non-educational, commercial, or unauthorized purposes;
+- register using non-DepEd email addresses or share credentials with others;
+- export assessment data for purposes outside official DepEd workflows.
 
-9. Changes to the System
-Application updates may revise interface, fields, or reporting format to align with approved policy and technical requirements.
+10. Changes to the System
+Application updates may revise interface design, data fields, reporting formats, or validation rules to align with DepEd policy and technical requirements.
+Continued use of the system constitutes acceptance of updates and modifications.
 
-10. Limitation and Support
-The system assists assessment documentation but does not replace professional judgment.
-For operational issues, coordinate with your designated Early Childhood Development (ECD) focal personnel or technical support team.
+11. Limitation and Support
+The system assists in standardized assessment documentation but does not replace the professional judgment of trained educators.
+Users remain responsible for interpreting assessment results in context and consulting with learners' families and support teams.
+For technical issues or policy clarifications, coordinate with your designated Early Childhood Development (ECD) focal person or DepEd technical support.
+
+12. Policy Compliance
+By registering, you confirm that you are a DepEd-authorized educator and that all information provided is accurate.
+Non-compliance with these terms may result in account suspension or deactivation.
 ''';
 
 const String _privacyPolicyText = '''
 1. Scope
-This Privacy Policy explains how learner, class, and user account data are handled within the Early Childhood Development (ECD) system.
+This Privacy Policy explains how learner, class, teacher, and user account data are handled within the Early Childhood Development (ECD) system deployed by the Department of Education (DepEd).
 
-2. Data Collected
-The system may collect:
-- user account details (name, role, school, district, division, region, email);
-- learner profile details (required and optional fields entered by authorized users);
-- checklist responses and computed results;
-- class and summary report data.
+2. DepEd Authorization
+This system is authorized for use by DepEd personnel only.
+Only users with valid @deped.gov.ph email addresses are permitted to create accounts and access the system.
+Non-DepEd email addresses are prohibited and account access will be immediately terminated if detected.
 
-3. Purpose of Processing
-Data is processed to:
-- record learner assessments;
-- compute scores and interpretation summaries;
-- generate class and consolidated reports;
-- support authorized administrative review and planning.
+3. Data Collected
+The system collects:
+- user account details (name, role, school, division, district, region, @deped.gov.ph email);
+- learner profile details (required and optional information entered by authorized DepEd educators);
+- detailed assessment responses and computed results;
+- class rosters, summaries, and consolidated reports;
+- assessment timestamps and user activity records.
 
-4. Storage
-System data is stored in the local application database configured for this deployment.
-No internet upload is performed unless users explicitly export and transmit files through external channels.
+4. Purpose of Processing
+Data is processed exclusively for:
+- standardized learner developmental assessments aligned with DepEd Early Childhood Development standards;
+- generating accurate scores, interpretations, and educational recommendations;
+- producing class and consolidated reports for school, division, district, and regional administrators;
+- supporting authorized DepEd professional development and educational planning;
+- maintaining audit trails for data governance and compliance.
 
-5. Data Sharing
-Sharing happens through user-generated exports (CSV/PDF) in official reporting workflows.
-Users and offices receiving files are responsible for secure handling and storage.
+5. Data Governance and Storage
+System data is stored in the local Early Childhood Development (ECD) database deployed within DepEd-authorized facilities.
+Data remains under DepEd control and ownership.
+No automatic internet uploads occur; data transmission only happens through explicit user export actions via CSV or PDF.
+Exported files are official DepEd educational records.
 
-6. Access Control
-Only authenticated users can access protected areas of the app.
-Role-based access (teacher/admin) is used to limit visibility and operations.
+6. Data Sharing and Access
+Data access is restricted to:
+- the educator who entered the assessment data (@deped.gov.ph account holder);
+- their designated school supervisors and administrators;
+- authorized division and district ECD coordinators;
+- DepEd officials performing authorized reviews or inspections.
 
-7. Retention and Archiving
-Records may be retained for reporting and historical analysis based on institutional requirements.
-Archived classes or data sources may be excluded from active summaries but remain available for authorized review.
+Sharing of assessment data happens only through:
+- secure user-generated exports (CSV/PDF) in official DepEd reporting workflows;
+- internal school, division, or district reporting systems;
+- official DepEd assessment consolidation processes.
 
-8. Data Accuracy
-Users should review and update records promptly when corrections are needed.
-Incorrect entries can affect summaries and interpretations.
+Sharing outside DepEd channels is strictly prohibited.
 
-9. Your Responsibilities
-Do not disclose learner or account data to unauthorized parties.
-Always verify exported files before sharing.
+7. Access Control and Authentication
+Only authenticated users with active @deped.gov.ph email addresses can access the system.
+Role-based access control (teacher/admin) limits visibility and operations based on DepEd authorization level.
+Multi-factor authentication (monthly OTP verification) provides additional security for sensitive accounts.
 
-10. Policy Updates
-This policy may be updated to reflect legal, policy, or system changes.
-Continued use of the system signifies acceptance of the latest policy text displayed in the application.
+8. Retention and Archiving
+Records are retained according to DepEd records management policies and educational standards.
+Historical assessment data is preserved for longitudinal analysis, institutional reporting, and accountability purposes.
+Archived classes or data sources may be excluded from active dashboards but remain accessible for authorized archival review.
+Data is not deleted unless explicitly requested through DepEd records management procedures.
+
+9. Data Security and Protection
+Users must protect their @deped.gov.ph credentials and not share account access with other educators.
+System passwords must meet security standards (minimum 8 characters, mixed case, numbers, special characters).
+Failed login attempts trigger a 5-minute account lockout to prevent unauthorized access.
+All data is encrypted in transit and at rest per DepEd cybersecurity standards.
+
+10. Data Accuracy and Correction
+Users should review and correct assessment records promptly if errors are identified.
+Inaccurate entries can affect learner support decisions, progress reports, and educational planning.
+Teachers and administrators share responsibility for data quality and verification.
+
+11. User Responsibilities
+Users with @deped.gov.ph accounts must:
+- maintain confidentiality of learner information;
+- enter assessment data truthfully and professionally;
+- verify exported files before sharing with colleagues or supervisors;
+- report any data breaches or unauthorized access immediately to their school administration and DepEd technical support;
+- not disclose learner identifiable information to unauthorized parties.
+
+12. Non-Compliance
+Unauthorized access, data misuse, or account sharing will result in:
+- account suspension or permanent deactivation;
+- escalation to school administration and DepEd regional offices;
+- potential disciplinary action under DepEd personnel policies.
+
+13. Policy Updates
+This Privacy Policy may be updated to reflect DepEd policy changes, legal requirements, or system improvements.
+Continued use of the system signifies acceptance of the latest policy displayed in the application.
+
+14. Questions and Concerns
+For privacy concerns, data requests, or policy questions, contact your DepEd school supervisor or division ECD focal person.
 ''';

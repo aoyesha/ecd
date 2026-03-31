@@ -74,6 +74,23 @@ class _TeacherAddClassPageState extends State<TeacherAddClassPage> {
 
     final teacherId = context.read<AuthService>().session!.userId;
 
+    // Check for duplicate section name under the same school year
+    final sectionExists = await _classService.sectionExists(
+      teacherId: teacherId,
+      section: sectionCtrl.text,
+      schoolYear: schoolYear!,
+    );
+
+    if (sectionExists) {
+      if (!mounted) return;
+      AppFeedback.showSnackBar(
+        context,
+        'A section with this name already exists under this school year',
+        tone: AppFeedbackTone.error,
+      );
+      return;
+    }
+
     final classId = await _classService.createClass(
       teacherId: teacherId,
       grade: gradeCtrl.text,

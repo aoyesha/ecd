@@ -2,6 +2,30 @@ import '../db/app_db.dart';
 import '../db/schema.dart';
 
 class ClassService {
+  Future<bool> sectionExists({
+    required int teacherId,
+    required String section,
+    required String schoolYear,
+    int? excludeClassId,
+  }) async {
+    final db = AppDb.instance.db;
+    var query = StringBuffer(
+        '${DbSchema.cClassTeacherId}=? AND ${DbSchema.cClassSection}=? AND ${DbSchema.cClassSchoolYear}=? AND ${DbSchema.cClassStatus}=?');
+    var args = <Object?>[teacherId, section.trim(), schoolYear.trim(), 'active'];
+    
+    if (excludeClassId != null) {
+      query.write(' AND ${DbSchema.cClassId}!=?');
+      args.add(excludeClassId);
+    }
+    
+    final result = await db.query(
+      DbSchema.tClasses,
+      where: query.toString(),
+      whereArgs: args,
+    );
+    return result.isNotEmpty;
+  }
+
   Future<int> createClass({
     required int teacherId,
     required String grade,

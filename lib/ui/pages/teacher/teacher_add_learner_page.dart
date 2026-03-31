@@ -145,7 +145,7 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
       AppFeedback.showSnackBar(
         context,
         'Birthdate is required',
-        tone: AppFeedbackTone.warning,
+        tone: AppFeedbackTone.error,
       );
       return;
     }
@@ -155,7 +155,7 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
       AppFeedback.showSnackBar(
         context,
         'Pupil age must be at least 3 years old',
-        tone: AppFeedbackTone.warning,
+        tone: AppFeedbackTone.error,
       );
       return;
     }
@@ -169,7 +169,7 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
         AppFeedback.showSnackBar(
           context,
           'Birth order cannot exceed total children ($totalChildren)',
-          tone: AppFeedbackTone.warning,
+          tone: AppFeedbackTone.error,
         );
         return;
       }
@@ -187,7 +187,7 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
       AppFeedback.showSnackBar(
         context,
         'This pupil already exists in this class',
-        tone: AppFeedbackTone.warning,
+        tone: AppFeedbackTone.error,
       );
       return;
     }

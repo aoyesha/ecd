@@ -308,66 +308,92 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                           borderRadius: BorderRadius.circular(16),
                           side: const BorderSide(color: Color(0xFFE6E6E6)),
                         ),
-                        child: ListTile(
-                          title: Row(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: Text(
-                                  name,
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  SizedBox(
+                                    width: 300,
+                                    child: _AssessmentProgressBars(
+                                      progress: progress,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Wrap(
+                                      spacing: 6,
+                                      runSpacing: 6,
+                                      children: [
+                                        OutlinedButton(
+                                          style: compactButtonStyle,
+                                          onPressed: () async {
+                                            await navPushNoTransition(
+                                              context,
+                                              TeacherLearnerProfilePage(
+                                                learnerId: id,
+                                              ),
+                                            );
+                                            if (!mounted) return;
+                                            setState(() => _reloadTick++);
+                                          },
+                                          child: const Text('View'),
+                                        ),
+                                        OutlinedButton(
+                                          style: compactButtonStyle,
+                                          onPressed: () async {
+                                            await navPushNoTransition(
+                                              context,
+                                              TeacherChecklistPage(
+                                                classId: widget.classId,
+                                                learnerId: id,
+                                              ),
+                                            );
+                                            if (!mounted) return;
+                                            setState(() => _reloadTick++);
+                                          },
+                                          child: const Text('Checklist'),
+                                        ),
+                                        IconButton(
+                                          tooltip: 'Drop',
+                                          onPressed: () async {
+                                            await _learners.dropLearner(id);
+                                            setState(() {});
+                                          },
+                                          icon: const Icon(Icons.person_off),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 16),
-                              SizedBox(
-                                width: 350,
-                                child: _AssessmentProgressBars(progress: progress),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Gender: $gender - Age: $age',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(color: Colors.grey[700]),
                               ),
                             ],
-                          ),
-                          subtitle: Text('Gender: $gender - Age: $age'),
-                          trailing: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Wrap(
-                              spacing: 6,
-                              runSpacing: 6,
-                              children: [
-                                OutlinedButton(
-                                  style: compactButtonStyle,
-                                  onPressed: () async {
-                                    await navPushNoTransition(
-                                      context,
-                                      TeacherLearnerProfilePage(learnerId: id),
-                                    );
-                                    if (!mounted) return;
-                                    setState(() => _reloadTick++);
-                                  },
-                                  child: const Text('View'),
-                                ),
-                                OutlinedButton(
-                                  style: compactButtonStyle,
-                                  onPressed: () async {
-                                    await navPushNoTransition(
-                                      context,
-                                      TeacherChecklistPage(
-                                        classId: widget.classId,
-                                        learnerId: id,
-                                      ),
-                                    );
-                                    if (!mounted) return;
-                                    setState(() => _reloadTick++);
-                                  },
-                                  child: const Text('Checklist'),
-                                ),
-                                IconButton(
-                                  tooltip: 'Drop',
-                                  onPressed: () async {
-                                    await _learners.dropLearner(id);
-                                    setState(() {});
-                                  },
-                                  icon: const Icon(Icons.person_off),
-                                ),
-                              ],
-                            ),
                           ),
                         ),
                       );
@@ -1663,13 +1689,14 @@ class _ProgressPill extends StatelessWidget {
     final textColor = activeColor;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: borderColor),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             label,
