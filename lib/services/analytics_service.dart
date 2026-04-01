@@ -341,7 +341,8 @@ AND ${DbSchema.cClassStatus}=?
       final remaining = list.where((e) => !most.contains(e)).toList();
 
       remaining.sort((a, b) => a.pct.compareTo(b.pct));
-      final least = remaining.take(3).toList();
+      // Only include least skills that have less than 100% completion
+      final least = remaining.where((e) => e.pct < 1.0).take(3).toList();
 
       out[domain] = {'most': most, 'least': least};
     }
@@ -516,10 +517,11 @@ AND ${DbSchema.cClassStatus}=?
       list.sort((a, b) => b.pct.compareTo(a.pct));
       final most = list.take(3).toList();
 
-      // Least learned
+      // Least learned - exclude items already in "most" and filter out perfect scores
       final remaining = list.where((e) => !most.contains(e)).toList();
       remaining.sort((a, b) => a.pct.compareTo(b.pct));
-      final least = remaining.take(3).toList();
+      // Only include least skills that have less than 100% completion
+      final least = remaining.where((e) => e.pct < 1.0).take(3).toList();
 
       out[domain] = {
         'most': most,
