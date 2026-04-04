@@ -188,13 +188,9 @@ class _TeacherHistoricalPageState extends State<TeacherHistoricalPage> {
                 const Spacer(),
                 DropdownButton<String>(
                   value: selectedYear,
-                  items: [
-                    const DropdownMenuItem(
-                      value: 'all',
-                      child: Text('All Years'),
-                    ),
-                    ...years.map((y) => DropdownMenuItem(value: y, child: Text(y))),
-                  ],
+                  items: years
+                      .map((y) => DropdownMenuItem(value: y, child: Text(y)))
+                      .toList(),
                   onChanged: (v) => setState(() {
                     if (left) {
                       leftYear = v ?? selectedYear;
@@ -249,7 +245,7 @@ class _TeacherHistoricalPageState extends State<TeacherHistoricalPage> {
 
                   return ListView(
                     children: [
-                      _metricRow('School Year', selectedYear == 'all' ? 'All Years Combined' : selectedYear),
+                      _metricRow('School Year', selectedYear),
                       _metricRow('Assessment Type', selectedAssessment == 'pre' ? 'Pre-Test' : 'Post-Test'),
                       _metricRow(
                         'Classes',

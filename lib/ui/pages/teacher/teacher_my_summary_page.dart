@@ -186,72 +186,92 @@ return out;
             LayoutBuilder(
               builder: (context, constraints) {
                 final compact = constraints.maxWidth < 1080;
-                final controls = Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    DropdownButton<String>(
-                      value: assessmentType,
-                      items: const [
-                        DropdownMenuItem(value: 'pre', child: Text('Pre-Test')),
-                        DropdownMenuItem(
-                          value: 'post',
-                          child: Text('Post-Test'),
+                final controls = SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 110,
+                        child: DropdownButton<String>(
+                          value: assessmentType,
+                          isExpanded: true,
+                          items: const [
+                            DropdownMenuItem(value: 'pre', child: Text('Pre-Test')),
+                            DropdownMenuItem(
+                              value: 'post',
+                              child: Text('Post-Test'),
+                            ),
+                          ],
+                          onChanged: (v) =>
+                              setState(() => assessmentType = v ?? 'pre'),
                         ),
-                      ],
-                      onChanged: (v) =>
-                          setState(() => assessmentType = v ?? 'pre'),
-                    ),
-                    DropdownButton<EccdLanguage>(
-                      value: language,
-                      items: const [
-                        DropdownMenuItem(
-                          value: EccdLanguage.english,
-                          child: Text('English'),
+                      ),
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        width: 110,
+                        child: DropdownButton<EccdLanguage>(
+                          value: language,
+                          isExpanded: true,
+                          items: const [
+                            DropdownMenuItem(
+                              value: EccdLanguage.english,
+                              child: Text('English'),
+                            ),
+                            DropdownMenuItem(
+                              value: EccdLanguage.tagalog,
+                              child: Text('Tagalog'),
+                            ),
+                          ],
+                          onChanged: (v) =>
+                              setState(() => language = v ?? EccdLanguage.english),
                         ),
-                        DropdownMenuItem(
-                          value: EccdLanguage.tagalog,
-                          child: Text('Tagalog'),
+                      ),
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        width: 130,
+                        child: DropdownButton<String>(
+                          value: schoolYearFilter,
+                          hint: const Text('School Year'),
+                          isExpanded: true,
+                          items: _schoolYearOptions()
+                              .map(
+                                (sy) =>
+                                    DropdownMenuItem(value: sy, child: Text(sy)),
+                              )
+                              .toList(),
+                          onChanged: (v) {
+                            setState(() {
+                              schoolYearFilter = v;
+                              classIdFilter = null;
+                            });
+                          },
                         ),
-                      ],
-                      onChanged: (v) =>
-                          setState(() => language = v ?? EccdLanguage.english),
-                    ),
-                    DropdownButton<String>(
-                      value: schoolYearFilter,
-                      hint: const Text('School Year'),
-                      items: _schoolYearOptions()
-                          .map(
-                            (sy) =>
-                                DropdownMenuItem(value: sy, child: Text(sy)),
-                          )
-                          .toList(),
-                      onChanged: (v) {
-                        setState(() {
-                          schoolYearFilter = v;
-                          classIdFilter = null;
-                        });
-                      },
-                    ),
-                    DropdownButton<int?>(
-                      value: classIdFilter,
-                      hint: const Text('Class'),
-                      items: [
-                        const DropdownMenuItem<int?>(
-                          value: null,
-                          child: Text('All Active'),
+                      ),
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        width: 140,
+                        child: DropdownButton<int?>(
+                          value: classIdFilter,
+                          hint: const Text('Class'),
+                          isExpanded: true,
+                          items: [
+                            const DropdownMenuItem<int?>(
+                              value: null,
+                              child: Text('All Active'),
+                            ),
+                            ...classes.map(
+                              (c) => DropdownMenuItem<int?>(
+                                value: c['id'] as int,
+                                child: Text('G${c['grade']} ${c['section']}'),
+                              ),
+                            ),
+                          ],
+                          onChanged: (v) => setState(() => classIdFilter = v),
                         ),
-                        ...classes.map(
-                          (c) => DropdownMenuItem<int?>(
-                            value: c['id'] as int,
-                            child: Text('G${c['grade']} ${c['section']}'),
-                          ),
-                        ),
-                      ],
-                      onChanged: (v) => setState(() => classIdFilter = v),
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 );
                 if (!compact) {
                   return Row(

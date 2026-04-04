@@ -164,126 +164,137 @@ class _AdminSummaryTabState extends State<_AdminSummaryTab> {
         LayoutBuilder(
           builder: (context, constraints) {
             final compact = constraints.maxWidth < 980;
-            final controls = Wrap(
-              spacing: 10,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                DropdownButton<String>(
-                  value: assessmentType,
-                  items: const [
-                    DropdownMenuItem(value: 'pre', child: Text('Pre-Test')),
-                    DropdownMenuItem(value: 'post', child: Text('Post-Test')),
-                  ],
-                  onChanged: (v) => setState(() => assessmentType = v ?? 'pre'),
-                ),
-                DropdownButton<String>(
-                  value: schoolYearFilter,
-                  hint: const Text('School Year'),
-                  items: _schoolYearOptions()
-                      .map((sy) => DropdownMenuItem(value: sy, child: Text(sy)))
-                      .toList(),
-                  onChanged: (v) => setState(() => schoolYearFilter = v),
-                ),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.maroon,
-                    foregroundColor: Colors.white,
+            final controls = SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 110,
+                    child: DropdownButton<String>(
+                      value: assessmentType,
+                      isExpanded: true,
+                      items: const [
+                        DropdownMenuItem(value: 'pre', child: Text('Pre-Test')),
+                        DropdownMenuItem(value: 'post', child: Text('Post-Test')),
+                      ],
+                      onChanged: (v) => setState(() => assessmentType = v ?? 'pre'),
+                    ),
                   ),
-                  onPressed: () async {
-                    final level = await AppDialogs.showChoiceDialog<String>(
-                      context,
-                      title: 'Export As',
-                      message:
-                          'Choose the organization level for this exported rollup file.',
-                      options: const [
-                        AppDialogOption(
-                          value: 'school',
-                          title: 'School',
-                          subtitle: 'Create a school-level rollup file.',
-                          icon: Icons.school_rounded,
-                        ),
-                        AppDialogOption(
-                          value: 'district',
-                          title: 'District',
-                          subtitle: 'Export a district aggregation.',
-                          icon: Icons.location_city_rounded,
-                        ),
-                        AppDialogOption(
-                          value: 'division',
-                          title: 'Division',
-                          subtitle: 'Export a division-level datasource.',
-                          icon: Icons.account_balance_rounded,
-                        ),
-                        AppDialogOption(
-                          value: 'regional',
-                          title: 'Regional',
-                          subtitle: 'Generate a region-wide rollup.',
-                          icon: Icons.map_rounded,
-                        ),
-                      ],
-                    );
-                    if (level == null) return;
-                    if (!mounted) return;
-
-                    final fmt = await AppDialogs.showChoiceDialog<String>(
-                      context,
-                      title: 'Export Format',
-                      message:
-                          'Choose the export format for this consolidated summary.',
-                      options: const [
-                        AppDialogOption(
-                          value: 'csv',
-                          title: 'CSV',
-                          subtitle: 'Best for sharing and importing.',
-                          icon: Icons.table_chart_rounded,
-                        ),
-                        AppDialogOption(
-                          value: 'xlsx',
-                          title: 'XLSX',
-                          subtitle:
-                              'Styled spreadsheet for printing or review.',
-                          icon: Icons.grid_on_rounded,
-                        ),
-                      ],
-                    );
-                    if (fmt == null) return;
-                    if (!mounted) return;
-
-                    final exportName = await _csv.buildAdminRollupFilename(
-                      adminId: adminId,
-                      orgLevel: level,
-                      assessmentType: assessmentType,
-                      schoolYear: schoolYearFilter,
-                    );
-
-                    if (fmt == 'xlsx') {
-                      final bytes = await _xlsx.exportAdminAggregatedRollupXlsx(
-                        adminId: adminId,
-                        assessmentType: assessmentType,
-                        schoolYear: schoolYearFilter,
+                  const SizedBox(width: 10),
+                  SizedBox(
+                    width: 130,
+                    child: DropdownButton<String>(
+                      value: schoolYearFilter,
+                      hint: const Text('School Year'),
+                      isExpanded: true,
+                      items: _schoolYearOptions()
+                          .map((sy) => DropdownMenuItem(value: sy, child: Text(sy)))
+                          .toList(),
+                      onChanged: (v) => setState(() => schoolYearFilter = v),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.maroon,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () async {
+                      final level = await AppDialogs.showChoiceDialog<String>(
+                        context,
+                        title: 'Export As',
+                        message:
+                            'Choose the organization level for this exported rollup file.',
+                        options: const [
+                          AppDialogOption(
+                            value: 'school',
+                            title: 'School',
+                            subtitle: 'Create a school-level rollup file.',
+                            icon: Icons.school_rounded,
+                          ),
+                          AppDialogOption(
+                            value: 'district',
+                            title: 'District',
+                            subtitle: 'Export a district aggregation.',
+                            icon: Icons.location_city_rounded,
+                          ),
+                          AppDialogOption(
+                            value: 'division',
+                            title: 'Division',
+                            subtitle: 'Export a division-level datasource.',
+                            icon: Icons.account_balance_rounded,
+                          ),
+                          AppDialogOption(
+                            value: 'regional',
+                            title: 'Regional',
+                            subtitle: 'Generate a region-wide rollup.',
+                            icon: Icons.map_rounded,
+                          ),
+                        ],
                       );
-                      await _file.saveXlsx(
-                        filename: exportName,
-                        xlsxBytes: bytes,
+                      if (level == null) return;
+                      if (!mounted) return;
+
+                      final fmt = await AppDialogs.showChoiceDialog<String>(
+                        context,
+                        title: 'Export Format',
+                        message:
+                            'Choose the export format for this consolidated summary.',
+                        options: const [
+                          AppDialogOption(
+                            value: 'csv',
+                            title: 'CSV',
+                            subtitle: 'Best for sharing and importing.',
+                            icon: Icons.table_chart_rounded,
+                          ),
+                          AppDialogOption(
+                            value: 'xlsx',
+                            title: 'XLSX',
+                            subtitle:
+                                'Styled spreadsheet for printing or review.',
+                            icon: Icons.grid_on_rounded,
+                          ),
+                        ],
                       );
-                    } else {
-                      final csvText = await _csv.exportAdminAggregatedRollupCsv(
+                      if (fmt == null) return;
+                      if (!mounted) return;
+
+                      final exportName = await _csv.buildAdminRollupFilename(
                         adminId: adminId,
                         orgLevel: level,
                         assessmentType: assessmentType,
                         schoolYear: schoolYearFilter,
                       );
-                      await _file.saveCsv(
-                        filename: exportName,
-                        csvText: csvText,
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.download),
-                  label: const Text('Export'),
-                ),
-              ],
+
+                      if (fmt == 'xlsx') {
+                        final bytes = await _xlsx.exportAdminAggregatedRollupXlsx(
+                          adminId: adminId,
+                          assessmentType: assessmentType,
+                          schoolYear: schoolYearFilter,
+                        );
+                        await _file.saveXlsx(
+                          filename: exportName,
+                          xlsxBytes: bytes,
+                        );
+                      } else {
+                        final csvText = await _csv.exportAdminAggregatedRollupCsv(
+                          adminId: adminId,
+                          orgLevel: level,
+                          assessmentType: assessmentType,
+                          schoolYear: schoolYearFilter,
+                        );
+                        await _file.saveCsv(
+                          filename: exportName,
+                          csvText: csvText,
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.download),
+                    label: const Text('Export'),
+                  ),
+                ],
+              ),
             );
             if (!compact) {
               return Row(

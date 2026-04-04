@@ -105,18 +105,32 @@ class AuthLayout extends StatelessWidget {
     return SingleChildScrollView(
       child: ConstrainedBox(
         constraints: BoxConstraints(minHeight: maxHeight),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _hero(desktop: false),
-                const SizedBox(height: 20),
-                _panel(),
-              ],
-            ),
-          ),
+        child: Builder(
+          builder: (context) {
+            // Add padding to account for bottom navigation bar on mobile
+            final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+            final viewPadding = MediaQuery.of(context).padding.bottom;
+            final totalBottomPadding = 32 + bottomInset + (viewPadding > 0 ? viewPadding + 16 : 0);
+            
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 32,
+                bottom: totalBottomPadding,
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _hero(desktop: false),
+                    const SizedBox(height: 20),
+                    _panel(),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );

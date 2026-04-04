@@ -119,6 +119,12 @@ class _LoginPageState extends State<LoginPage> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
+        // Responsive dialog width: 90% on mobile, max 500 on larger screens
+        final screenWidth = MediaQuery.of(context).size.width;
+        final dialogWidth = screenWidth < 700
+            ? screenWidth * 0.9
+            : 500.0;
+
         return StatefulBuilder(
           builder: (dialogContext, setDialogState) {
             return AlertDialog(
@@ -127,7 +133,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               title: const Text('Monthly Account Verification'),
               content: SizedBox(
-                width: double.maxFinite,
+                width: dialogWidth,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -401,6 +407,12 @@ class _LoginPageState extends State<LoginPage> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
+        // Responsive dialog width: 90% on mobile, max 500 on larger screens
+        final screenWidth = MediaQuery.of(context).size.width;
+        final dialogWidth = screenWidth < 700
+            ? screenWidth * 0.9
+            : 500.0;
+
         final resetEmailCtrl = TextEditingController(text: resetEmail);
         return StatefulBuilder(
           builder: (dialogContext, setDialogState) {
@@ -410,7 +422,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               title: const Text('Reset Password'),
               content: SizedBox(
-                width: double.maxFinite,
+                width: dialogWidth,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,

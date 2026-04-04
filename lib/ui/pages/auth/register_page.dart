@@ -11,6 +11,7 @@ import '../../../core/ui_feedback.dart';
 import '../../../core/validators.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/email_otp_service.dart';
+import '../../widgets/app_shell.dart';
 import 'login_page.dart';
 import 'widgets/auth_form_parts.dart';
 import 'widgets/auth_layout.dart';
@@ -170,8 +171,10 @@ class _RegisterPageState extends State<RegisterPage> {
       );
 
       if (!mounted) return;
-      _snack('Account verified and created. You can now log in.');
-      // Don't navigate manually - the auth state change will auto-redirect via app.dart's home widget
+      
+      // Redirect to login page after successful registration
+      _snack('Account created successfully. Please log in.');
+      await navReplaceNoTransition(context, const LoginPage());
     } catch (e) {
       if (e is StateError && e.message == 'Email already exists.') {
         _snack('This email is already registered.');
@@ -214,6 +217,12 @@ class _RegisterPageState extends State<RegisterPage> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
+        // Responsive dialog width: 90% on mobile, max 500 on larger screens
+        final screenWidth = MediaQuery.of(context).size.width;
+        final dialogWidth = screenWidth < 700
+            ? screenWidth * 0.9
+            : 500.0;
+
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
@@ -222,7 +231,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               title: const Text('Verify Your Email'),
               content: SizedBox(
-                width: double.maxFinite,
+                width: dialogWidth,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -508,6 +517,56 @@ class _RegisterPageState extends State<RegisterPage> {
     return 'Failed to send verification email. Please try again.';
   }
 
+  Widget _buildFormattedPolicy(String content) {
+    final sections = content.split(RegExp(r'\n(?=\d+\.)'));
+    final widgets = <Widget>[];
+
+    for (final section in sections) {
+      final lines = section.trim().split('\n');
+      if (lines.isEmpty) continue;
+
+      final headerLine = lines.first;
+      final bodyLines = lines.skip(1).toList();
+
+      // Header with number and title (bold)
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 12, bottom: 6),
+          child: Text(
+            headerLine,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+              height: 1.4,
+            ),
+          ),
+        ),
+      );
+
+      // Body content
+      if (bodyLines.isNotEmpty) {
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              bodyLines.join('\n').trim(),
+              style: const TextStyle(
+                fontSize: 13,
+                height: 1.5,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: widgets,
+    );
+  }
+
   Future<void> _showPolicyDialog({
     required String title,
     required String content,
@@ -526,7 +585,7 @@ class _RegisterPageState extends State<RegisterPage> {
           content: SizedBox(
             width: dialogWidth,
             child: SingleChildScrollView(
-              child: Text(content, style: const TextStyle(height: 1.45)),
+              child: _buildFormattedPolicy(content),
             ),
           ),
           actions: [
@@ -845,42 +904,28 @@ class _RegisterPageState extends State<RegisterPage> {
 
 const String _termsAndConditionsText = '''
 1. Acceptance of Terms
-By creating and using an Early Childhood Development (ECD) account, you agree to these Terms and Conditions.
+By creating and using a Digital ECD Checklist account, you agree to these Terms and Conditions.
 
 2. Email Requirement - IMPORTANT
-ONLY DepEd-issued email addresses ending with @deped.gov.ph are authorized to register and use this system.
-Personal, third-party, or non-DepEd email addresses are strictly prohibited.
-Verification of your @deped.gov.ph email is mandatory for account activation.
-Accounts created with non-authorized email addresses will be deactivated immediately.
+ONLY DepEd-issued email addresses ending with @deped.gov.ph are authorized to register and use this system. Personal, third-party, or non-DepEd email addresses are strictly prohibited. Verification of your @deped.gov.ph email is mandatory for account activation. Accounts created with non-authorized email addresses will be deactivated immediately.
 
 3. Purpose of Use
-This application is intended exclusively for DepEd educators and administrators conducting Early Childhood Development (ECD) assessments.
-You agree to use the system only for authorized school, division, district, and regional educational workflows in alignment with DepEd policies.
+This application is intended exclusively for DepEd educators and administrators conducting early childhood development assessments. You agree to use the system only for authorized school, division, district, and regional educational workflows in alignment with DepEd policies.
 
 4. Account Responsibility
-You are responsible for keeping your login credentials confidential and secure.
-You must ensure that all records entered under your account are accurate, truthful, and current.
-You may not share your account credentials with other users; each person must maintain an individual @deped.gov.ph account.
+You are responsible for keeping your login credentials confidential and secure. You must ensure that all records entered under your account are accurate, truthful, and current. You may not share your account credentials with other users; each person must maintain an individual @deped.gov.ph account.
 
 5. Data Entry and Validation
-Required learner and class information must be entered truthfully and completely.
-Optional fields may be blank, but any provided data must still be accurate and verifiable.
-False or misleading information entered into assessments constitutes a violation of this agreement.
+Required learner and class information must be entered truthfully and completely. Optional fields may be blank, but any provided data must still be accurate and verifiable. False or misleading information entered into assessments constitutes a violation of this agreement.
 
 6. Assessment Integrity
-Checklist responses, raw scores, scaled scores, and interpretation outputs must follow the official SPARKLER process and validation rules implemented in the system.
-Users must not intentionally manipulate, alter, or misrepresent learner assessment outcomes.
-Assessment data must reflect genuine observations and professional judgment by authorized educators.
+Checklist responses, raw scores, scaled scores, and interpretation outputs must follow the official SPARKLER process and validation rules implemented in the system. Users must not intentionally manipulate, alter, or misrepresent learner assessment outcomes. Assessment data must reflect genuine observations and professional judgment by authorized educators.
 
 7. Local Storage and Exports
-Data is stored locally in your deployed Early Childhood Development (ECD) system database within DepEd facilities.
-CSV and PDF exports are generated only through explicit user action and must be handled securely according to DepEd data protection guidelines.
-Exported files containing learner information are official records requiring secure handling.
+Data is stored locally in your deployed Digital ECD Checklist database within DepEd facilities. CSV and PDF exports are generated only through explicit user action and must be handled securely according to DepEd data protection guidelines. Exported files containing learner information are official records requiring secure handling.
 
 8. Authorized Sharing
-Exported assessment summaries may be forwarded only through official DepEd reporting channels.
-Recipients of exported files must be authorized DepEd personnel or designated educational stakeholders.
-Users are responsible for verifying recipient identity and authorization before sharing learner assessment files.
+Exported assessment summaries may be forwarded only through official DepEd reporting channels. Recipients of exported files must be authorized DepEd personnel or designated educational stakeholders. Users are responsible for verifying recipient identity and authorization before sharing learner assessment files.
 
 9. Prohibited Actions
 You agree not to:
@@ -891,27 +936,21 @@ You agree not to:
 - export assessment data for purposes outside official DepEd workflows.
 
 10. Changes to the System
-Application updates may revise interface design, data fields, reporting formats, or validation rules to align with DepEd policy and technical requirements.
-Continued use of the system constitutes acceptance of updates and modifications.
+Application updates may revise interface design, data fields, reporting formats, or validation rules to align with DepEd policy and technical requirements. Continued use of the system constitutes acceptance of updates and modifications.
 
 11. Limitation and Support
-The system assists in standardized assessment documentation but does not replace the professional judgment of trained educators.
-Users remain responsible for interpreting assessment results in context and consulting with learners' families and support teams.
-For technical issues or policy clarifications, coordinate with your designated Early Childhood Development (ECD) focal person or DepEd technical support.
+The system assists in standardized assessment documentation but does not replace the professional judgment of trained educators. Users remain responsible for interpreting assessment results in context and consulting with learners' families and support teams. For technical issues or policy clarifications, coordinate with your designated Digital ECD Checklist focal person or DepEd technical support.
 
 12. Policy Compliance
-By registering, you confirm that you are a DepEd-authorized educator and that all information provided is accurate.
-Non-compliance with these terms may result in account suspension or deactivation.
+By registering, you confirm that you are a DepEd-authorized educator and that all information provided is accurate. Non-compliance with these terms may result in account suspension or deactivation.
 ''';
 
 const String _privacyPolicyText = '''
 1. Scope
-This Privacy Policy explains how learner, class, teacher, and user account data are handled within the Early Childhood Development (ECD) system deployed by the Department of Education (DepEd).
+This Privacy Policy explains how learner, class, teacher, and user account data are handled within the Digital ECD Checklist system deployed by the Department of Education (DepEd).
 
 2. DepEd Authorization
-This system is authorized for use by DepEd personnel only.
-Only users with valid @deped.gov.ph email addresses are permitted to create accounts and access the system.
-Non-DepEd email addresses are prohibited and account access will be immediately terminated if detected.
+This system is authorized for use by DepEd personnel only. Only users with valid @deped.gov.ph email addresses are permitted to create accounts and access the system. Non-DepEd email addresses are prohibited and account access will be immediately terminated if detected.
 
 3. Data Collected
 The system collects:
@@ -923,23 +962,20 @@ The system collects:
 
 4. Purpose of Processing
 Data is processed exclusively for:
-- standardized learner developmental assessments aligned with DepEd Early Childhood Development standards;
+- standardized learner developmental assessments aligned with DepEd standards;
 - generating accurate scores, interpretations, and educational recommendations;
 - producing class and consolidated reports for school, division, district, and regional administrators;
 - supporting authorized DepEd professional development and educational planning;
 - maintaining audit trails for data governance and compliance.
 
 5. Data Governance and Storage
-System data is stored in the local Early Childhood Development (ECD) database deployed within DepEd-authorized facilities.
-Data remains under DepEd control and ownership.
-No automatic internet uploads occur; data transmission only happens through explicit user export actions via CSV or PDF.
-Exported files are official DepEd educational records.
+System data is stored in the local Digital ECD Checklist database deployed within DepEd-authorized facilities. Data remains under DepEd control and ownership. No automatic internet uploads occur; data transmission only happens through explicit user export actions via CSV or PDF. Exported files are official DepEd educational records.
 
 6. Data Sharing and Access
 Data access is restricted to:
 - the educator who entered the assessment data (@deped.gov.ph account holder);
 - their designated school supervisors and administrators;
-- authorized division and district ECD coordinators;
+- authorized division and district coordinators;
 - DepEd officials performing authorized reviews or inspections.
 
 Sharing of assessment data happens only through:
@@ -950,26 +986,16 @@ Sharing of assessment data happens only through:
 Sharing outside DepEd channels is strictly prohibited.
 
 7. Access Control and Authentication
-Only authenticated users with active @deped.gov.ph email addresses can access the system.
-Role-based access control (teacher/admin) limits visibility and operations based on DepEd authorization level.
-Multi-factor authentication (monthly OTP verification) provides additional security for sensitive accounts.
+Only authenticated users with active @deped.gov.ph email addresses can access the system. Role-based access control (teacher/admin) limits visibility and operations based on DepEd authorization level. Multi-factor authentication (monthly OTP verification) provides additional security for sensitive accounts.
 
 8. Retention and Archiving
-Records are retained according to DepEd records management policies and educational standards.
-Historical assessment data is preserved for longitudinal analysis, institutional reporting, and accountability purposes.
-Archived classes or data sources may be excluded from active dashboards but remain accessible for authorized archival review.
-Data is not deleted unless explicitly requested through DepEd records management procedures.
+Records are retained according to DepEd records management policies and educational standards. Historical assessment data is preserved for longitudinal analysis, institutional reporting, and accountability purposes. Archived classes or data sources may be excluded from active dashboards but remain accessible for authorized archival review. Data is not deleted unless explicitly requested through DepEd records management procedures.
 
 9. Data Security and Protection
-Users must protect their @deped.gov.ph credentials and not share account access with other educators.
-System passwords must meet security standards (minimum 8 characters, mixed case, numbers, special characters).
-Failed login attempts trigger a 5-minute account lockout to prevent unauthorized access.
-All data is encrypted in transit and at rest per DepEd cybersecurity standards.
+Users must protect their @deped.gov.ph credentials and not share account access with other educators. System passwords must meet security standards (minimum 8 characters, mixed case, numbers, special characters). Failed login attempts trigger a 5-minute account lockout to prevent unauthorized access. All data is encrypted in transit and at rest per DepEd cybersecurity standards.
 
 10. Data Accuracy and Correction
-Users should review and correct assessment records promptly if errors are identified.
-Inaccurate entries can affect learner support decisions, progress reports, and educational planning.
-Teachers and administrators share responsibility for data quality and verification.
+Users should review and correct assessment records promptly if errors are identified. Inaccurate entries can affect learner support decisions, progress reports, and educational planning. Teachers and administrators share responsibility for data quality and verification.
 
 11. User Responsibilities
 Users with @deped.gov.ph accounts must:
@@ -986,9 +1012,8 @@ Unauthorized access, data misuse, or account sharing will result in:
 - potential disciplinary action under DepEd personnel policies.
 
 13. Policy Updates
-This Privacy Policy may be updated to reflect DepEd policy changes, legal requirements, or system improvements.
-Continued use of the system signifies acceptance of the latest policy displayed in the application.
+This Privacy Policy may be updated to reflect DepEd policy changes, legal requirements, or system improvements. Continued use of the system signifies acceptance of the latest policy displayed in the application.
 
 14. Questions and Concerns
-For privacy concerns, data requests, or policy questions, contact your DepEd school supervisor or division ECD focal person.
+For privacy concerns, data requests, or policy questions, contact your DepEd school supervisor or division focal person.
 ''';

@@ -317,8 +317,40 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                                     ),
                                     const SizedBox(height: 8),
                                     Row(
-                                      mainAxisSize: MainAxisSize.min,
                                       children: [
+                                        // Drop button on the LEFT (dangerous action - red icon)
+                                        IconButton(
+                                          tooltip: 'Drop Learner',
+                                          onPressed: () async {
+                                            final confirm = await showDialog<bool>(
+                                              context: context,
+                                              builder: (context) => AlertDialog(
+                                                title: const Text('Drop Learner?'),
+                                                content: Text('Are you sure you want to drop ${l['first_name']} from this class? This cannot be undone.'),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () => Navigator.pop(context, false),
+                                                    child: const Text('Cancel'),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () => Navigator.pop(context, true),
+                                                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                                    child: const Text('Drop'),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                            if (confirm == true && mounted) {
+                                              await _learners.dropLearner(id);
+                                              if (!mounted) return;
+                                              setState(() {});
+                                            }
+                                          },
+                                          icon: const Icon(Icons.person_off, color: Colors.red),
+                                          iconSize: 20,
+                                        ),
+                                        const Spacer(),
+                                        // Safe action buttons on the RIGHT
                                         IconButton(
                                           tooltip: 'View Learner Profile',
                                           onPressed: () async {
@@ -348,16 +380,6 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                                             setState(() => _reloadTick++);
                                           },
                                           icon: const Icon(Icons.checklist),
-                                          iconSize: 20,
-                                        ),
-                                        IconButton(
-                                          tooltip: 'Drop Learner',
-                                          onPressed: () async {
-                                            await _learners.dropLearner(id);
-                                            if (!mounted) return;
-                                            setState(() {});
-                                          },
-                                          icon: const Icon(Icons.person_off),
                                           iconSize: 20,
                                         ),
                                       ],
@@ -421,9 +443,29 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                                           IconButton(
                                             tooltip: 'Drop',
                                             onPressed: () async {
-                                              await _learners.dropLearner(id);
-                                              if (!mounted) return;
-                                              setState(() {});
+                                              final confirm = await showDialog<bool>(
+                                                context: context,
+                                                builder: (context) => AlertDialog(
+                                                  title: const Text('Drop Learner?'),
+                                                  content: Text('Are you sure you want to drop $name from this class? This cannot be undone.'),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () => Navigator.pop(context, false),
+                                                      child: const Text('Cancel'),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () => Navigator.pop(context, true),
+                                                      style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                                      child: const Text('Drop'),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                              if (confirm == true && mounted) {
+                                                await _learners.dropLearner(id);
+                                                if (!mounted) return;
+                                                setState(() {});
+                                              }
                                             },
                                             icon: const Icon(Icons.person_off),
                                           ),
@@ -868,11 +910,14 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 8),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Container(
-            color: const Color(0xFFF0F0F0),
-            child: Column(
+        Scrollbar(
+          thumbVisibility: true,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Container(
+              color: const Color(0xFFF0F0F0),
+              child: Column(
               children: [
                 Container(
                   color: AppColors.maroon,
@@ -1014,6 +1059,7 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
               ],
             ),
           ),
+        ),
         ),
       ],
     );

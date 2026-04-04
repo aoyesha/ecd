@@ -82,10 +82,14 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
   void _syncGuardianFromParentIfNeeded() {
     if (!guardianSameAsParent) return;
     guardianNameCtrl.text = _derivedParentName();
-    guardianOccupationCtrl.text = motherOccupationCtrl.text.trim().isNotEmpty
-        ? motherOccupationCtrl.text
-        : fatherOccupationCtrl.text;
+    guardianOccupationCtrl.text = _derivedParentOccupation();
     guardianEducationCtrl.text = _derivedParentEducation();
+  }
+
+  void _clearGuardianFields() {
+    guardianNameCtrl.clear();
+    guardianOccupationCtrl.clear();
+    guardianEducationCtrl.clear();
   }
 
   String gender = 'M';
@@ -342,28 +346,27 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                               ),
                               SizedBox(
                                 width: fieldWidth,
-                                child: OutlinedButton(
-                                  style: OutlinedButton.styleFrom(
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: Colors.black87,
                                     side: const BorderSide(
                                       color: Color(0xFFBCA5A5),
                                     ),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                     padding: const EdgeInsets.symmetric(
-                                      vertical: 16,
+                                      vertical: 14,
                                       horizontal: 12,
                                     ),
+                                    minimumSize: const Size(double.infinity, 56),
+                                    elevation: 1,
                                   ),
                                   onPressed: _pickBirthDate,
                                   child: Align(
                                     alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      birthText,
-                                      style: const TextStyle(
-                                        color: Colors.black87,
-                                      ),
-                                    ),
+                                    child: Text(birthText),
                                   ),
                                 ),
                               ),
@@ -821,21 +824,32 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                               group('Guardian Details', [
                                 SizedBox(
                                   width: constraints.maxWidth,
-                                  child: CheckboxListTile(
-                                    value: guardianSameAsParent,
-                                    contentPadding: EdgeInsets.zero,
-                                    controlAffinity:
-                                        ListTileControlAffinity.leading,
-                                    title: const Text('Same as parent details'),
-                                    onChanged: (v) {
-                                      final useSame = v ?? false;
-                                      setState(() {
-                                        guardianSameAsParent = useSame;
-                                        if (useSame) {
-                                          _syncGuardianFromParentIfNeeded();
-                                        }
-                                      });
-                                    },
+                                  child: Row(
+                                    children: [
+                                      Checkbox(
+                                        value: guardianSameAsParent,
+                                        onChanged: (v) {
+                                          final useSame = v ?? false;
+                                          setState(() {
+                                            guardianSameAsParent = useSame;
+                                            if (useSame) {
+                                              _syncGuardianFromParentIfNeeded();
+                                            } else {
+                                              _clearGuardianFields();
+                                            }
+                                            dirty = true;
+                                          });
+                                        },
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        'Same as parent details',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                                 SizedBox(
@@ -1060,6 +1074,11 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
 
   String _derivedParentName() =>
       _joinNonEmpty([motherNameCtrl.text, fatherNameCtrl.text], ' / ');
+
+  String _derivedParentOccupation() => _joinNonEmpty([
+    motherOccupationCtrl.text,
+    fatherOccupationCtrl.text,
+  ], ' / ');
 
   String _derivedParentEducation() => _joinNonEmpty([
     motherEducationCtrl.text,
