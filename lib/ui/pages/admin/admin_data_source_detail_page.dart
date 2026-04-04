@@ -473,9 +473,22 @@ class _AdminDataSourceDetailPageState
                 ),
               );
             }
+
             final map = snapshot.data!;
             if (map.isEmpty) {
-              return const Text('No skill data available for this source.');
+              return const Padding(
+                padding: EdgeInsets.all(20),
+                child: Center(
+                  child: Text(
+                    'No skill data available for this source.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              );
             }
 
             final selectedDomain = map.containsKey(topDomainFilter)

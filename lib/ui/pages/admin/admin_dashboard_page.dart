@@ -619,9 +619,20 @@ class _AdminSummaryTabState extends State<_AdminSummaryTab> {
             }
             final map = snapshot.data!;
             if (map.isEmpty) {
-              return const Text(
-                'Top 3 Most/Least Learned will appear once imported sources include SKILL rows.\n'
-                'Teacher exports in this project already include them.',
+              return const Padding(
+                padding: EdgeInsets.all(20),
+                child: Center(
+                  child: Text(
+                    'No data available yet.\n'
+                        'Top 3 Most/Least Learned will appear once imported sources include SKILL rows.\n'
+                        'Teacher exports in this project already include them.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
               );
             }
 
