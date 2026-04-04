@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:mailer/mailer.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants.dart';
@@ -766,11 +769,22 @@ class _LoginPageState extends State<LoginPage> {
                         }
                       } catch (e) {
                         if (dialogIsOpen) {
-                          setDialogState(() {
-                            generalErrorText = kDebugMode
+                          String errorMsg;
+                          if (e is MailerException) {
+                            errorMsg = _getMailerErrorMessage(e);
+                          } else if (e is SocketException || e.toString().contains('network') || e.toString().contains('Network')) {
+                            errorMsg = 'Network connection error. Check your internet.';
+                          } else {
+                            errorMsg = kDebugMode
                                 ? 'Failed to send reset code: ${e.runtimeType}: $e'
                                 : 'Failed to send reset code.';
+                          }
+                          setDialogState(() {
+                            generalErrorText = errorMsg;
                           });
+                          if (kDebugMode) {
+                            print('Resend error: ${e.runtimeType}: $e');
+                          }
                         }
                       } finally {
                         if (dialogIsOpen) {
@@ -843,11 +857,22 @@ class _LoginPageState extends State<LoginPage> {
                         }
                       } catch (e) {
                         if (dialogIsOpen) {
-                          setDialogState(() {
-                            generalErrorText = kDebugMode
+                          String errorMsg;
+                          if (e is MailerException) {
+                            errorMsg = _getMailerErrorMessage(e);
+                          } else if (e is SocketException || e.toString().contains('network') || e.toString().contains('Network')) {
+                            errorMsg = 'Network connection error. Check your internet.';
+                          } else {
+                            errorMsg = kDebugMode
                                 ? 'Reset OTP failed: ${e.runtimeType}: $e'
                                 : 'Failed to send reset code.';
+                          }
+                          setDialogState(() {
+                            generalErrorText = errorMsg;
                           });
+                          if (kDebugMode) {
+                            print('Send reset code error: ${e.runtimeType}: $e');
+                          }
                         }
                       } finally {
                         if (dialogIsOpen) {
@@ -965,6 +990,26 @@ class _LoginPageState extends State<LoginPage> {
 
   void _snack(String message) {
     AppFeedback.showSnackBar(context, message, tone: AppFeedbackTone.error);
+  }
+
+  String _getMailerErrorMessage(MailerException e) {
+    final errorString = e.toString().toLowerCase();
+    if (errorString.contains('authentication') || errorString.contains('auth')) {
+      return 'Email service authentication failed. Check SMTP configuration.';
+    }
+    if (errorString.contains('tls') || errorString.contains('ssl')) {
+      return 'Email service connection error. Try again with a different network.';
+    }
+    if (errorString.contains('timeout')) {
+      return 'Email service timeout. Your internet connection may be slow.';
+    }
+    if (errorString.contains('connection') || errorString.contains('socket')) {
+      return 'Cannot connect to email service. Check your internet connection.';
+    }
+    if (errorString.contains('gmail') || errorString.contains('app password')) {
+      return 'Email credentials may have expired. Check SMTP settings.';
+    }
+    return 'Failed to send email. Please try again.';
   }
 
   String _lockoutMessage(DateTime? lockUntil) {

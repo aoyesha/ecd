@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:mailer/mailer.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants.dart';
@@ -177,10 +180,18 @@ class _RegisterPageState extends State<RegisterPage> {
         _snack(
           'Email OTP is not configured yet. Add SMTP settings before testing sign up.',
         );
+      } else if (e is MailerException) {
+        final message = _getMailerErrorMessage(e);
+        _snack(message);
+      } else if (e is SocketException || e.toString().contains('network') || e.toString().contains('Network')) {
+        _snack('Network connection error. Please check your internet and try again.');
       } else {
         final debugMessage = kDebugMode
             ? 'Registration failed: ${e.runtimeType}: $e'
             : 'Registration failed. Please try again.';
+        if (kDebugMode) {
+          print('Registration error details: ${e.runtimeType}: $e');
+        }
         _snack(debugMessage);
       }
     } finally {
@@ -474,6 +485,27 @@ class _RegisterPageState extends State<RegisterPage> {
         ? AppFeedbackTone.error
         : AppFeedbackTone.success;
     AppFeedback.showSnackBar(context, message, tone: tone);
+  }
+
+  String _getMailerErrorMessage(MailerException e) {
+    final errorString = e.toString().toLowerCase();
+    if (errorString.contains('authentication') || errorString.contains('auth')) {
+      return 'Email service authentication failed. Check SMTP configuration.';
+    }
+    if (errorString.contains('tls') || errorString.contains('ssl')) {
+      return 'Email service connection error. Try again with a different network.';
+    }
+    if (errorString.contains('timeout')) {
+      return 'Email service timeout. Your internet connection may be slow.';
+    }
+    if (errorString.contains('connection') || errorString.contains('socket')) {
+      return 'Cannot connect to email service. Check your internet connection.';
+    }
+    if (errorString.contains('gmail') || errorString.contains('app password')) {
+      return 'Email credentials may have expired. Check SMTP settings.';
+    }
+    // Default mailer error message
+    return 'Failed to send verification email. Please try again.';
   }
 
   Future<void> _showPolicyDialog({
