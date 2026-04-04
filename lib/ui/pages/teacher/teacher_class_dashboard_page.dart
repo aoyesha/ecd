@@ -283,25 +283,6 @@ class _ViewClassTabState extends State<_ViewClassTab> {
 
                       final bool mobile = !isDesktop(context);
 
-                      final ButtonStyle compactButtonStyle =
-                          OutlinedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: mobile ? 10 : 16,
-                              vertical: mobile ? 4 : 12,
-                            ),
-                            minimumSize: Size(0, mobile ? 30 : 40),
-                            tapTargetSize: mobile
-                                ? MaterialTapTargetSize.shrinkWrap
-                                : MaterialTapTargetSize.padded,
-                            visualDensity: mobile
-                                ? const VisualDensity(
-                                    horizontal: -2,
-                                    vertical: -2,
-                                  )
-                                : null,
-                            textStyle: TextStyle(fontSize: mobile ? 12 : 14),
-                          );
-
                       return Card(
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -317,34 +298,29 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    child: Text(
+                              if (mobile)
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
                                       name,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 15,
                                       ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  SizedBox(
-                                    width: 300,
-                                    child: _AssessmentProgressBars(
+                                    const SizedBox(height: 8),
+                                    _AssessmentProgressBars(
                                       progress: progress,
                                     ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Wrap(
-                                      spacing: 6,
-                                      runSpacing: 6,
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        OutlinedButton(
-                                          style: compactButtonStyle,
+                                        IconButton(
+                                          tooltip: 'View Learner Profile',
                                           onPressed: () async {
                                             await navPushNoTransition(
                                               context,
@@ -355,10 +331,11 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                                             if (!mounted) return;
                                             setState(() => _reloadTick++);
                                           },
-                                          child: const Text('View'),
+                                          icon: const Icon(Icons.visibility),
+                                          iconSize: 20,
                                         ),
-                                        OutlinedButton(
-                                          style: compactButtonStyle,
+                                        IconButton(
+                                          tooltip: 'View Checklist',
                                           onPressed: () async {
                                             await navPushNoTransition(
                                               context,
@@ -370,21 +347,91 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                                             if (!mounted) return;
                                             setState(() => _reloadTick++);
                                           },
-                                          child: const Text('Checklist'),
+                                          icon: const Icon(Icons.checklist),
+                                          iconSize: 20,
                                         ),
                                         IconButton(
-                                          tooltip: 'Drop',
+                                          tooltip: 'Drop Learner',
                                           onPressed: () async {
                                             await _learners.dropLearner(id);
+                                            if (!mounted) return;
                                             setState(() {});
                                           },
                                           icon: const Icon(Icons.person_off),
+                                          iconSize: 20,
                                         ),
                                       ],
                                     ),
-                                  ),
-                                ],
-                              ),
+                                  ],
+                                )
+                              else
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    SizedBox(
+                                      width: 300,
+                                      child: _AssessmentProgressBars(
+                                        progress: progress,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Wrap(
+                                        spacing: 6,
+                                        runSpacing: 6,
+                                        children: [
+                                          OutlinedButton(
+                                            onPressed: () async {
+                                              await navPushNoTransition(
+                                                context,
+                                                TeacherLearnerProfilePage(
+                                                  learnerId: id,
+                                                ),
+                                              );
+                                              if (!mounted) return;
+                                              setState(() => _reloadTick++);
+                                            },
+                                            child: const Text('View'),
+                                          ),
+                                          OutlinedButton(
+                                            onPressed: () async {
+                                              await navPushNoTransition(
+                                                context,
+                                                TeacherChecklistPage(
+                                                  classId: widget.classId,
+                                                  learnerId: id,
+                                                ),
+                                              );
+                                              if (!mounted) return;
+                                              setState(() => _reloadTick++);
+                                            },
+                                            child: const Text('Checklist'),
+                                          ),
+                                          IconButton(
+                                            tooltip: 'Drop',
+                                            onPressed: () async {
+                                              await _learners.dropLearner(id);
+                                              if (!mounted) return;
+                                              setState(() {});
+                                            },
+                                            icon: const Icon(Icons.person_off),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               const SizedBox(height: 4),
                               Text(
                                 'Gender: $gender - Age: $age',

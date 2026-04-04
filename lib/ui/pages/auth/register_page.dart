@@ -197,6 +197,7 @@ class _RegisterPageState extends State<RegisterPage> {
     var successText = '';
     var challenge = initialChallenge;
     var sending = false;
+    var dialogIsOpen = true;
 
     final verified = await showDialog<bool>(
       context: context,
@@ -363,39 +364,46 @@ class _RegisterPageState extends State<RegisterPage> {
                             onPressed: sending
                                 ? null
                                 : () async {
-                                    setDialogState(() {
-                                      sending = true;
-                                      errorText = '';
-                                      successText = '';
-                                    });
+                              if (!dialogIsOpen) return;
+                              setDialogState(() {
+                                sending = true;
+                                errorText = '';
+                                successText = '';
+                              });
 
-                                    try {
-                                      final nextChallenge = _emailOtpService
-                                          .createChallenge();
-                                      await _emailOtpService.sendOtp(
-                                        email: email,
-                                        challenge: nextChallenge,
-                                      );
-                                      setDialogState(() {
-                                        challenge = nextChallenge;
-                                        successText = 'New code sent.';
-                                      });
-                                    } catch (e) {
-                                      setDialogState(() {
-                                        errorText = 'Failed to send code.';
-                                      });
-                                    } finally {
-                                      setDialogState(() => sending = false);
-                                    }
-                                  },
+                              try {
+                                final nextChallenge = _emailOtpService
+                                    .createChallenge();
+                                await _emailOtpService.sendOtp(
+                                  email: email,
+                                  challenge: nextChallenge,
+                                );
+                                if (dialogIsOpen) {
+                                  setDialogState(() {
+                                    challenge = nextChallenge;
+                                    successText = 'New code sent.';
+                                  });
+                                }
+                              } catch (e) {
+                                if (dialogIsOpen) {
+                                  setDialogState(() {
+                                    errorText = 'Failed to send code.';
+                                  });
+                                }
+                              } finally {
+                                if (dialogIsOpen) {
+                                  setDialogState(() => sending = false);
+                                }
+                              }
+                            },
                             icon: sending
                                 ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
+                            )
                                 : const Icon(Icons.refresh_rounded),
                             label: Text(sending ? 'Sending...' : 'Resend'),
                           ),
@@ -407,7 +415,10 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  onPressed: () {
+                    dialogIsOpen = false;
+                    Navigator.of(dialogContext).pop(false);
+                  },
                   child: const Text('Cancel'),
                 ),
                 FilledButton(
@@ -415,6 +426,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     backgroundColor: const Color(0xFFD32F2F),
                   ),
                   onPressed: () {
+                    if (!dialogIsOpen) return;
                     final enteredCode = otpCtrl.text.trim();
                     if (challenge.isExpired) {
                       setDialogState(() {
@@ -437,6 +449,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       return;
                     }
 
+                    dialogIsOpen = false;
                     Navigator.of(dialogContext).pop(true);
                   },
                   child: const Text('Verify'),
@@ -454,10 +467,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _snack(String message) {
     final tone =
-        message.toLowerCase().contains('failed') ||
-            message.toLowerCase().contains('incorrect') ||
-            message.toLowerCase().contains('not configured') ||
-            message.toLowerCase().contains('already registered')
+    message.toLowerCase().contains('failed') ||
+        message.toLowerCase().contains('incorrect') ||
+        message.toLowerCase().contains('not configured') ||
+        message.toLowerCase().contains('already registered')
         ? AppFeedbackTone.error
         : AppFeedbackTone.success;
     AppFeedback.showSnackBar(context, message, tone: tone);

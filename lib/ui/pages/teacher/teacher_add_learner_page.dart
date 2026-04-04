@@ -855,7 +855,7 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                                 readOnly: guardianSameAsParent,
                                                 inputFormatters: [
                                                   FilteringTextInputFormatter.allow(
-                                                    RegExp(r"[A-Za-z\s\-']"),
+                                                    RegExp(r"[A-Za-z\s\-'/]"),
                                                   ),
                                                 ],
                                               ),
@@ -895,15 +895,18 @@ class _TeacherAddLearnerPageState extends State<TeacherAddLearnerPage> {
                                             _field(
                                               guardianNameCtrl,
                                               "Guardian's Name",
-                                              (v) => _parentNameValidator(
-                                                v,
-                                                "Guardian's Name",
-                                              ),
+                                              (v) {
+                                                if (guardianSameAsParent) return null;
+                                                return _parentNameValidator(
+                                                  v,
+                                                  "Guardian's Name",
+                                                );
+                                              },
                                               width: double.infinity,
                                               readOnly: guardianSameAsParent,
                                               inputFormatters: [
                                                 FilteringTextInputFormatter.allow(
-                                                  RegExp(r"[A-Za-z\s\-']"),
+                                                  RegExp(r"[A-Za-z\s\-'/]"),
                                                 ),
                                               ],
                                             ),
