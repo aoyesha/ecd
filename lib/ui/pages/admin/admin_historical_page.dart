@@ -388,6 +388,9 @@ class _AdminHistoricalPageState extends State<AdminHistoricalPage> {
   }
 
   Widget _skillList(String title, List<Map<String, Object?>> list) {
+    final filteredList = list.where((s) => _toInt(s['checked_sum']) > 0).toList();
+    final noData = filteredList.isEmpty;
+    
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(10),
@@ -401,14 +404,23 @@ class _AdminHistoricalPageState extends State<AdminHistoricalPage> {
         children: [
           Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
-          for (final s in list)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Text(
-                '- ${(s['skill_text'] ?? '').toString()} '
-                '(${_toInt(s['checked_sum'])}/${_toInt(s['total_sum'])})',
+          if (noData)
+            const Text(
+              'No data available yet.',
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+                color: Colors.grey,
               ),
-            ),
+            )
+          else
+            for (final s in filteredList)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(
+                  '- ${(s['skill_text'] ?? '').toString()} '
+                  '(${_toInt(s['checked_sum'])}/${_toInt(s['total_sum'])})',
+                ),
+              ),
         ],
       ),
     );

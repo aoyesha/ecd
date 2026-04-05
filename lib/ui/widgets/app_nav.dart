@@ -91,7 +91,11 @@ class AppNav extends StatelessWidget {
                         child: CircleAvatar(
                           radius: 24,
                           backgroundColor: AppColors.offWhite,
-                          backgroundImage: AssetImage(logoAsset),
+                          backgroundImage: ResizeImage(
+                            AssetImage(logoAsset),
+                            width: 96,
+                            height: 96,
+                          ),
                         ),
                       )
                     : Row(
@@ -99,7 +103,11 @@ class AppNav extends StatelessWidget {
                           CircleAvatar(
                             radius: 24,
                             backgroundColor: AppColors.offWhite,
-                            backgroundImage: AssetImage(logoAsset),
+                            backgroundImage: ResizeImage(
+                              AssetImage(logoAsset),
+                              width: 96,
+                              height: 96,
+                            ),
                           ),
                           const SizedBox(width: 10),
                           Expanded(

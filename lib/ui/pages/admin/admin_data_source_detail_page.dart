@@ -586,6 +586,9 @@ class _AdminDataSourceDetailPageState
   }
 
   Widget _skillList(String title, List<Map<String, Object?>> list) {
+    final filteredList = list.where((s) => (s['checked_sum'] as int? ?? 0) > 0).toList();
+    final noData = filteredList.isEmpty;
+    
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -604,13 +607,22 @@ class _AdminDataSourceDetailPageState
             ),
           ),
           const SizedBox(height: 6),
-          for (final s in list)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Text(
-                '${s['skill_text']} (${s['checked_sum']}/${s['total_sum']})',
+          if (noData)
+            const Text(
+              'No data available yet.',
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+                color: Colors.grey,
               ),
-            ),
+            )
+          else
+            for (final s in filteredList)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(
+                  '${s['skill_text']} (${s['checked_sum']}/${s['total_sum']})',
+                ),
+              ),
         ],
       ),
     );

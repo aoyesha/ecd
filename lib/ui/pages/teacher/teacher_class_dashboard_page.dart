@@ -60,7 +60,11 @@ class _TeacherClassDashboardPageState extends State<TeacherClassDashboardPage> {
   @override
   Widget build(BuildContext context) {
     final tabs = [
-      _ViewClassTab(classId: widget.classId),
+      _ViewClassTab(
+        classId: widget.classId,
+        grade: widget.grade,
+        section: widget.section,
+      ),
       _ClassSummaryTab(
         classId: widget.classId,
         grade: widget.grade,
@@ -144,7 +148,13 @@ class _TeacherClassDashboardPageState extends State<TeacherClassDashboardPage> {
 
 class _ViewClassTab extends StatefulWidget {
   final int classId;
-  const _ViewClassTab({required this.classId});
+  final String grade;
+  final String section;
+  const _ViewClassTab({
+    required this.classId,
+    required this.grade,
+    required this.section,
+  });
 
   @override
   State<_ViewClassTab> createState() => _ViewClassTabState();
@@ -321,6 +331,9 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                                         // Drop button on the LEFT (dangerous action - red icon)
                                         IconButton(
                                           tooltip: 'Drop Learner',
+                                          style: IconButton.styleFrom(
+                                            minimumSize: const Size(48, 48),
+                                          ),
                                           onPressed: () async {
                                             final confirm = await showDialog<bool>(
                                               context: context,
@@ -353,6 +366,9 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                                         // Safe action buttons on the RIGHT
                                         IconButton(
                                           tooltip: 'View Learner Profile',
+                                          style: IconButton.styleFrom(
+                                            minimumSize: const Size(48, 48),
+                                          ),
                                           onPressed: () async {
                                             await navPushNoTransition(
                                               context,
@@ -368,12 +384,17 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                                         ),
                                         IconButton(
                                           tooltip: 'View Checklist',
+                                          style: IconButton.styleFrom(
+                                            minimumSize: const Size(48, 48),
+                                          ),
                                           onPressed: () async {
                                             await navPushNoTransition(
                                               context,
                                               TeacherChecklistPage(
                                                 classId: widget.classId,
                                                 learnerId: id,
+                                                grade: widget.grade,
+                                                section: widget.section,
                                               ),
                                             );
                                             if (!mounted) return;
@@ -414,6 +435,9 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                                         runSpacing: 6,
                                         children: [
                                           OutlinedButton(
+                                            style: OutlinedButton.styleFrom(
+                                              minimumSize: const Size(0, 48),
+                                            ),
                                             onPressed: () async {
                                               await navPushNoTransition(
                                                 context,
@@ -427,12 +451,17 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                                             child: const Text('View'),
                                           ),
                                           OutlinedButton(
+                                            style: OutlinedButton.styleFrom(
+                                              minimumSize: const Size(0, 48),
+                                            ),
                                             onPressed: () async {
                                               await navPushNoTransition(
                                                 context,
                                                 TeacherChecklistPage(
                                                   classId: widget.classId,
                                                   learnerId: id,
+                                                  grade: widget.grade,
+                                                  section: widget.section,
                                                 ),
                                               );
                                               if (!mounted) return;
@@ -442,6 +471,9 @@ class _ViewClassTabState extends State<_ViewClassTab> {
                                           ),
                                           IconButton(
                                             tooltip: 'Drop',
+                                            style: IconButton.styleFrom(
+                                              minimumSize: const Size(48, 48),
+                                            ),
                                             onPressed: () async {
                                               final confirm = await showDialog<bool>(
                                                 context: context,
@@ -910,14 +942,12 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 8),
-        Scrollbar(
-          thumbVisibility: true,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Container(
-              color: const Color(0xFFF0F0F0),
-              child: Column(
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Container(
+            color: const Color(0xFFF0F0F0),
+            child: Column(
               children: [
                 Container(
                   color: AppColors.maroon,
@@ -1059,7 +1089,6 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
               ],
             ),
           ),
-        ),
         ),
       ],
     );
@@ -1227,8 +1256,9 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
   }
 
   Widget _topList(String title, List<TopSkill> list) {
-    // Show "No data" if list empty OR all skills have 0 learners
-    final noData = list.isEmpty || list.every((s) => s.totalLearners == 0);
+    // Filter to only show skills with at least 1 checked
+    final filteredList = list.where((s) => s.checkedCount > 0).toList();
+    final noData = filteredList.isEmpty;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -1249,7 +1279,7 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
           ),
           const SizedBox(height: 8),
 
-          // ✅ Show "No data" if no learners
+          // ✅ Show "No data" if no items with checks
           if (noData)
             const Text(
               'No data available yet.',
@@ -1257,11 +1287,9 @@ class _ClassSummaryTabState extends State<_ClassSummaryTab> {
                 fontStyle: FontStyle.italic,
                 color: Colors.grey,
               ),
-            ),
-
-          // ✅ Show skills only if learners exist
-          if (!noData)
-            for (final s in list)
+            )
+          else
+            for (final s in filteredList)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
@@ -1782,7 +1810,8 @@ class _ProgressPill extends StatelessWidget {
     final textColor = activeColor;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(20),
@@ -1790,6 +1819,7 @@ class _ProgressPill extends StatelessWidget {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             label,

@@ -13,7 +13,6 @@ import '../../../core/ui_feedback.dart';
 import '../../../core/validators.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/email_otp_service.dart';
-import '../../widgets/app_shell.dart';
 import 'login_page.dart';
 import 'widgets/auth_form_parts.dart';
 import 'widgets/auth_layout.dart';

@@ -151,7 +151,7 @@ class AppDialogs {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Watch our demo videos to learn how to use this dashboard.',
+                    'Access tutorials, documentation, and sample templates to get started.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.grey[600],
                       height: 1.4,
@@ -176,10 +176,10 @@ class AppDialogs {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.play_circle_filled_rounded, size: 20),
+                        const Icon(Icons.help_outlined, size: 20),
                         const SizedBox(width: 8),
                         Text(
-                          'View Demo Videos',
+                          'View Resources',
                           style: Theme.of(context).textTheme.labelMedium?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,

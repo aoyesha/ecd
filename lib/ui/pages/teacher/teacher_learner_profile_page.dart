@@ -18,6 +18,17 @@ class TeacherLearnerProfilePage extends StatefulWidget {
 }
 
 class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
+  static const educationLevels = [
+    'Elementary',
+    'Junior High School',
+    'Senior High School',
+    'Vocational/Technical',
+    'Associate Degree',
+    "Bachelor's Degree",
+    "Master's Degree",
+    'Doctorate',
+  ];
+
   final _learners = LearnerService();
 
   final formKey = GlobalKey<FormState>();
@@ -692,13 +703,27 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
                                             ),
                                             const SizedBox(width: 10),
                                             Expanded(
-                                              child: _field(
-                                                motherEducationCtrl,
-                                                "Mother's Highest Educational Attainment",
-                                                null,
-                                                width: double.infinity,
-                                                onChanged:
-                                                    _syncGuardianFromParentIfNeeded,
+                                              child: DropdownButtonFormField<String>(
+                                                value: motherEducationCtrl.text.isEmpty
+                                                    ? null
+                                                    : motherEducationCtrl.text,
+                                                items: educationLevels
+                                                    .map((level) =>
+                                                        DropdownMenuItem(
+                                                          value: level,
+                                                          child: Text(level),
+                                                        ))
+                                                    .toList(),
+                                                onChanged: (v) {
+                                                  setState(() {
+                                                    motherEducationCtrl.text =
+                                                        v ?? '';
+                                                    _syncGuardianFromParentIfNeeded();
+                                                  });
+                                                },
+                                                decoration: _inputDecoration(
+                                                  "Mother's Highest Educational Attainment",
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -740,13 +765,27 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
                                                   _syncGuardianFromParentIfNeeded,
                                             ),
                                             const SizedBox(height: 10),
-                                            _field(
-                                              motherEducationCtrl,
-                                              "Mother's Highest Educational Attainment",
-                                              null,
-                                              width: double.infinity,
-                                              onChanged:
-                                                  _syncGuardianFromParentIfNeeded,
+                                            DropdownButtonFormField<String>(
+                                              value: motherEducationCtrl.text.isEmpty
+                                                  ? null
+                                                  : motherEducationCtrl.text,
+                                              items: educationLevels
+                                                  .map((level) =>
+                                                      DropdownMenuItem(
+                                                        value: level,
+                                                        child: Text(level),
+                                                      ))
+                                                  .toList(),
+                                              onChanged: (v) {
+                                                setState(() {
+                                                  motherEducationCtrl.text =
+                                                      v ?? '';
+                                                  _syncGuardianFromParentIfNeeded();
+                                                });
+                                              },
+                                              decoration: _inputDecoration(
+                                                "Mother's Highest Educational Attainment",
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -809,13 +848,27 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
                                             ),
                                             const SizedBox(width: 10),
                                             Expanded(
-                                              child: _field(
-                                                fatherEducationCtrl,
-                                                "Father's Highest Educational Attainment",
-                                                null,
-                                                width: double.infinity,
-                                                onChanged:
-                                                    _syncGuardianFromParentIfNeeded,
+                                              child: DropdownButtonFormField<String>(
+                                                value: fatherEducationCtrl.text.isEmpty
+                                                    ? null
+                                                    : fatherEducationCtrl.text,
+                                                items: educationLevels
+                                                    .map((level) =>
+                                                        DropdownMenuItem(
+                                                          value: level,
+                                                          child: Text(level),
+                                                        ))
+                                                    .toList(),
+                                                onChanged: (v) {
+                                                  setState(() {
+                                                    fatherEducationCtrl.text =
+                                                        v ?? '';
+                                                    _syncGuardianFromParentIfNeeded();
+                                                  });
+                                                },
+                                                decoration: _inputDecoration(
+                                                  "Father's Highest Educational Attainment",
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -857,13 +910,27 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
                                                   _syncGuardianFromParentIfNeeded,
                                             ),
                                             const SizedBox(height: 10),
-                                            _field(
-                                              fatherEducationCtrl,
-                                              "Father's Highest Educational Attainment",
-                                              null,
-                                              width: double.infinity,
-                                              onChanged:
-                                                  _syncGuardianFromParentIfNeeded,
+                                            DropdownButtonFormField<String>(
+                                              value: fatherEducationCtrl.text.isEmpty
+                                                  ? null
+                                                  : fatherEducationCtrl.text,
+                                              items: educationLevels
+                                                  .map((level) =>
+                                                      DropdownMenuItem(
+                                                        value: level,
+                                                        child: Text(level),
+                                                      ))
+                                                  .toList(),
+                                              onChanged: (v) {
+                                                setState(() {
+                                                  fatherEducationCtrl.text =
+                                                      v ?? '';
+                                                  _syncGuardianFromParentIfNeeded();
+                                                });
+                                              },
+                                              decoration: _inputDecoration(
+                                                "Father's Highest Educational Attainment",
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -940,13 +1007,39 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
                                             ),
                                             const SizedBox(width: 10),
                                             Expanded(
-                                              child: _field(
-                                                guardianEducationCtrl,
-                                                "Guardian's Highest Educational Attainment",
-                                                null,
-                                                width: double.infinity,
-                                                readOnly: guardianSameAsParent,
-                                              ),
+                                              child: guardianSameAsParent
+                                                  ? _field(
+                                                      guardianEducationCtrl,
+                                                      "Guardian's Highest Educational Attainment",
+                                                      null,
+                                                      width: double.infinity,
+                                                      readOnly: true,
+                                                    )
+                                                  : DropdownButtonFormField<String>(
+                                                      value: guardianEducationCtrl
+                                                              .text.isEmpty
+                                                          ? null
+                                                          : guardianEducationCtrl
+                                                              .text,
+                                                      items: educationLevels
+                                                          .map((level) =>
+                                                              DropdownMenuItem(
+                                                                value: level,
+                                                                child:
+                                                                    Text(level),
+                                                              ))
+                                                          .toList(),
+                                                      onChanged: (v) {
+                                                        setState(() {
+                                                          guardianEducationCtrl
+                                                              .text = v ?? '';
+                                                        });
+                                                      },
+                                                      decoration:
+                                                          _inputDecoration(
+                                                        "Guardian's Highest Educational Attainment",
+                                                      ),
+                                                    ),
                                             ),
                                           ],
                                         )
@@ -984,13 +1077,39 @@ class _TeacherLearnerProfilePageState extends State<TeacherLearnerProfilePage> {
                                               ],
                                             ),
                                             const SizedBox(height: 10),
-                                            _field(
-                                              guardianEducationCtrl,
-                                              "Guardian's Highest Educational Attainment",
-                                              null,
-                                              width: double.infinity,
-                                              readOnly: guardianSameAsParent,
-                                            ),
+                                            guardianSameAsParent
+                                                ? _field(
+                                                    guardianEducationCtrl,
+                                                    "Guardian's Highest Educational Attainment",
+                                                    null,
+                                                    width: double.infinity,
+                                                    readOnly: true,
+                                                  )
+                                                : DropdownButtonFormField<String>(
+                                                    value: guardianEducationCtrl
+                                                            .text.isEmpty
+                                                        ? null
+                                                        : guardianEducationCtrl
+                                                            .text,
+                                                    items: educationLevels
+                                                        .map((level) =>
+                                                            DropdownMenuItem(
+                                                              value: level,
+                                                              child:
+                                                                  Text(level),
+                                                            ))
+                                                        .toList(),
+                                                    onChanged: (v) {
+                                                      setState(() {
+                                                        guardianEducationCtrl
+                                                            .text = v ?? '';
+                                                      });
+                                                    },
+                                                    decoration:
+                                                        _inputDecoration(
+                                                      "Guardian's Highest Educational Attainment",
+                                                    ),
+                                                  ),
                                           ],
                                         ),
                                 ),

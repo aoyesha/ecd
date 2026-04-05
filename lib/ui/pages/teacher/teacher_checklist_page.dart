@@ -19,11 +19,15 @@ import '../../widgets/subpage_shell.dart';
 class TeacherChecklistPage extends StatefulWidget {
   final int classId;
   final int learnerId;
+  final String grade;
+  final String section;
 
   const TeacherChecklistPage({
     super.key,
     required this.classId,
     required this.learnerId,
+    required this.grade,
+    required this.section,
   });
 
   @override
@@ -284,7 +288,13 @@ class _TeacherChecklistPageState extends State<TeacherChecklistPage> {
       hasUnsavedChanges: dirty,
       child: SubpageShell(
         title: 'Checklist',
-        directorySegments: const ['Dashboard', 'My Classes', 'Checklist'],
+        directorySegments: [
+          'Dashboard',
+          'My Classes',
+          'G ${widget.grade} ${widget.section}',
+          'View Class',
+          'Checklist',
+        ],
         navIndex: 0,
         body: Column(
           children: [

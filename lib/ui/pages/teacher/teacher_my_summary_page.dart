@@ -106,9 +106,11 @@ class _TeacherMySummaryPageState extends State<TeacherMySummaryPage> {
   Future<Map<String, Map<String, List<TopSkill>>>> _top3(
     List<Map<String, Object?>> active,
   ) async {
-    final sum = <String, Map<String, TopSkill>>{};
+    final sumMost = <String, Map<String, TopSkill>>{};
+    final sumLeast = <String, Map<String, TopSkill>>{};
     for (final d in _domains) {
-      sum[d] = {};
+      sumMost[d] = {};
+      sumLeast[d] = {};
     }
 
     final classIds = classIdFilter == null
@@ -122,12 +124,13 @@ class _TeacherMySummaryPageState extends State<TeacherMySummaryPage> {
         language: language,
       );
       for (final d in _domains) {
-        final all = map[d]!['most']!;
-        for (final s in all) {
+        // Aggregate 'most' learned
+        final most = map[d]!['most']!;
+        for (final s in most) {
           final key = '${s.skillIndex}|${s.skillText}';
-          final prev = sum[d]![key];
+          final prev = sumMost[d]![key];
           if (prev == null) {
-            sum[d]![key] = TopSkill(
+            sumMost[d]![key] = TopSkill(
               domain: d,
               skillIndex: s.skillIndex,
               skillText: s.skillText,
@@ -135,7 +138,31 @@ class _TeacherMySummaryPageState extends State<TeacherMySummaryPage> {
               totalLearners: s.totalLearners,
             );
           } else {
-            sum[d]![key] = TopSkill(
+            sumMost[d]![key] = TopSkill(
+              domain: d,
+              skillIndex: s.skillIndex,
+              skillText: s.skillText,
+              checkedCount: prev.checkedCount + s.checkedCount,
+              totalLearners: prev.totalLearners + s.totalLearners,
+            );
+          }
+        }
+
+        // Aggregate 'least' learned
+        final least = map[d]!['least']!;
+        for (final s in least) {
+          final key = '${s.skillIndex}|${s.skillText}';
+          final prev = sumLeast[d]![key];
+          if (prev == null) {
+            sumLeast[d]![key] = TopSkill(
+              domain: d,
+              skillIndex: s.skillIndex,
+              skillText: s.skillText,
+              checkedCount: s.checkedCount,
+              totalLearners: s.totalLearners,
+            );
+          } else {
+            sumLeast[d]![key] = TopSkill(
               domain: d,
               skillIndex: s.skillIndex,
               skillText: s.skillText,
@@ -150,19 +177,16 @@ class _TeacherMySummaryPageState extends State<TeacherMySummaryPage> {
     final out = <String, Map<String, List<TopSkill>>>{};
 
 for (final d in _domains) {
-  final list = sum[d]!.values.toList();
+  // Process 'most' learned skills
+  final mostList = sumMost[d]!.values.toList();
+  mostList.sort((a, b) => b.pct.compareTo(a.pct));
+  final most = mostList.take(3).toList();
 
-  list.sort((a, b) => b.pct.compareTo(a.pct));
-  final most = list.take(3).toList();
+  // Process 'least' learned skills
+  final leastList = sumLeast[d]!.values.toList();
+  leastList.sort((a, b) => a.pct.compareTo(b.pct));
+  final least = leastList.where((e) => e.pct < 1.0).take(3).toList();
 
-  final mostIndexes = most.map((e) => e.skillIndex).toSet();
-
-  final remaining = list
-      .where((e) => !mostIndexes.contains(e.skillIndex))
-      .toList();
-
-  remaining.sort((a, b) => a.pct.compareTo(b.pct));
-  final least = remaining.take(3).toList();
   out[d] = {
     'most': most,
     'least': least,
@@ -735,8 +759,9 @@ return out;
   }
 
   Widget _topList(String title, List<TopSkill> list) {
-    final noData = list.isEmpty ||
-        list.every((s) => s.totalLearners == 0 && s.checkedCount == 0);
+    // Filter to only show skills with at least 1 checked
+    final filteredList = list.where((s) => s.checkedCount > 0).toList();
+    final noData = filteredList.isEmpty;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -776,7 +801,7 @@ return out;
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (final s in list)
+                for (final s in filteredList)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Text(

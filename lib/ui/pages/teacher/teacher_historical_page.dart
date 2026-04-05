@@ -438,6 +438,9 @@ class _TeacherHistoricalPageState extends State<TeacherHistoricalPage> {
   }
 
   Widget _skillList(String title, List<TopSkill> list) {
+    final filteredList = list.where((s) => s.checkedCount > 0).toList();
+    final noData = filteredList.isEmpty;
+    
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(10),
@@ -451,13 +454,22 @@ class _TeacherHistoricalPageState extends State<TeacherHistoricalPage> {
         children: [
           Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
-          for (final s in list)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Text(
-                '• ${s.skillText} (${s.checkedCount}/${s.totalLearners})',
+          if (noData)
+            const Text(
+              'No data available yet.',
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+                color: Colors.grey,
               ),
-            ),
+            )
+          else
+            for (final s in filteredList)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(
+                  '• ${s.skillText} (${s.checkedCount}/${s.totalLearners})',
+                ),
+              ),
         ],
       ),
     );
