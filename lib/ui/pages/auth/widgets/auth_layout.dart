@@ -39,7 +39,14 @@ class AuthLayout extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Image.asset('assets/kids.png', width: desktop ? 360 : 220),
+        Image(
+          image: ResizeImage(
+            AssetImage('assets/kids.png'),
+            width: desktop ? 600 : 360,
+            height: desktop ? 400 : 280,
+          ),
+          width: desktop ? 500 : 320,
+        ),
         const SizedBox(height: 24),
         const Text(
           _title,
