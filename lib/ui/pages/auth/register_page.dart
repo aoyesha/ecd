@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mailer/mailer.dart';
 import 'package:provider/provider.dart';
+
 
 import '../../../core/constants.dart';
 import '../../../core/nav_no_transition.dart';
@@ -15,6 +17,7 @@ import '../../widgets/app_shell.dart';
 import 'login_page.dart';
 import 'widgets/auth_form_parts.dart';
 import 'widgets/auth_layout.dart';
+import 'package:eccd/ui/widgets/otp_countdown.dart';
 
 const Map<String, Map<String, List<String>>> _regionHierarchy = {
   'MIMAROPA': {
@@ -213,11 +216,12 @@ class _RegisterPageState extends State<RegisterPage> {
     var sending = false;
     var dialogIsOpen = true;
 
+    Timer? countdownTimer;
+
     final verified = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
-        // Responsive dialog width: 90% on mobile, max 500 on larger screens
         final screenWidth = MediaQuery.of(context).size.width;
         final dialogWidth = screenWidth < 700
             ? screenWidth * 0.9
@@ -225,6 +229,17 @@ class _RegisterPageState extends State<RegisterPage> {
 
         return StatefulBuilder(
           builder: (context, setDialogState) {
+
+            // Keep rebuild ticking (optional but fine)
+            countdownTimer ??= Timer.periodic(
+              const Duration(seconds: 1),
+                  (_) {
+                if (dialogIsOpen) {
+                  setDialogState(() {});
+                }
+              },
+            );
+
             return AlertDialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -237,8 +252,9 @@ class _RegisterPageState extends State<RegisterPage> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('A 6-digit code was sent to:'),
+                      const Text('A 6-digit code was sent to:'),
                       const SizedBox(height: 6),
+
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -256,12 +272,16 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 18),
+
                       const Text(
                         'Enter OTP Code',
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
+
                       const SizedBox(height: 8),
+
                       TextField(
                         controller: otpCtrl,
                         autofocus: true,
@@ -304,6 +324,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ),
                       ),
+
                       if (errorText.isNotEmpty) ...[
                         const SizedBox(height: 8),
                         Container(
@@ -316,7 +337,6 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                           ),
                           child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Icon(
                                 Icons.error_outline,
@@ -348,7 +368,6 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                           ),
                           child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Icon(
                                 Icons.check_circle_outline,
@@ -369,22 +388,24 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ),
                       ],
+
                       const SizedBox(height: 12),
+
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Expires: ${TimeOfDay.fromDateTime(challenge.expiresAt).format(context)}',
-                            style: const TextStyle(
-                              color: Color(0xFF999999),
-                              fontSize: 12,
-                            ),
+                          // ✅ FIXED COUNTDOWN
+                          OtpCountdown(
+                            key: ValueKey(challenge.expiresAt),
+                            expiresAt: challenge.expiresAt,
                           ),
+
                           TextButton.icon(
                             onPressed: sending
                                 ? null
                                 : () async {
                               if (!dialogIsOpen) return;
+
                               setDialogState(() {
                                 sending = true;
                                 errorText = '';
@@ -392,12 +413,14 @@ class _RegisterPageState extends State<RegisterPage> {
                               });
 
                               try {
-                                final nextChallenge = _emailOtpService
-                                    .createChallenge();
+                                final nextChallenge =
+                                _emailOtpService.createChallenge();
+
                                 await _emailOtpService.sendOtp(
                                   email: email,
                                   challenge: nextChallenge,
                                 );
+
                                 if (dialogIsOpen) {
                                   setDialogState(() {
                                     challenge = nextChallenge;
@@ -437,6 +460,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 TextButton(
                   onPressed: () {
                     dialogIsOpen = false;
+                    countdownTimer?.cancel();
                     Navigator.of(dialogContext).pop(false);
                   },
                   child: const Text('Cancel'),
@@ -447,7 +471,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   onPressed: () {
                     if (!dialogIsOpen) return;
+
                     final enteredCode = otpCtrl.text.trim();
+
                     if (challenge.isExpired) {
                       setDialogState(() {
                         errorText = 'Code expired. Request a new one.';
@@ -470,6 +496,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     }
 
                     dialogIsOpen = false;
+                    countdownTimer?.cancel();
                     Navigator.of(dialogContext).pop(true);
                   },
                   child: const Text('Verify'),
@@ -482,6 +509,7 @@ class _RegisterPageState extends State<RegisterPage> {
     );
 
     otpCtrl.dispose();
+    countdownTimer?.cancel();
     return verified ?? false;
   }
 

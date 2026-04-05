@@ -63,9 +63,15 @@ class _TeacherClassesPageState extends State<TeacherClassesPage> {
             final dropdown = DropdownButton<String>(
               value: schoolYearFilter,
               hint: const Text('School Year'),
-              items: _schoolYearOptions()
-                  .map((sy) => DropdownMenuItem(value: sy, child: Text(sy)))
-                  .toList(),
+              items: [
+                const DropdownMenuItem(
+                  value: null,
+                  child: Text('All'),
+                ),
+                ..._schoolYearOptions()
+                    .map((sy) => DropdownMenuItem(value: sy, child: Text(sy)))
+                    .toList(),
+              ],
               onChanged: (v) => setState(() => schoolYearFilter = v),
             );
             if (!compact) {
@@ -277,115 +283,117 @@ class _NotebookCardState extends State<_NotebookCard> {
     showDialog(
       context: context,
       builder: (dialogContext) {
-        // Responsive dialog width: 90% on mobile, max 400 on larger screens
         final screenWidth = MediaQuery.of(dialogContext).size.width;
-        final dialogWidth = screenWidth < 500
-            ? screenWidth * 0.9
-            : 400.0;
+        final dialogWidth =
+        screenWidth < 500 ? screenWidth * 0.9 : 400.0;
 
         return AlertDialog(
           backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16)),
           content: SizedBox(
             width: dialogWidth,
             child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Edit Class Details',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 18,
-                  color: Color(0xFF272727),
-                ),
-              ),
-              const SizedBox(height: 24),
-              TextFormField(
-                controller: _gradeCtrl,
-                enabled: false,
-                decoration: InputDecoration(
-                  labelText: 'Grade',
-                  prefixIcon: const Icon(Icons.school),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  filled: true,
-                  fillColor: const Color(0xFFF5F5F5),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Edit Class Details',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
+                    color: Color(0xFF272727),
                   ),
                 ),
-              ),
-              const SizedBox(height: 14),
-              TextFormField(
-                controller: _sectionCtrl,
-                enabled: !_isSaving,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  labelText: 'Section',
-                  prefixIcon: const Icon(Icons.group),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _isSaving ? null : () => _saveEdit(dialogContext),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.maroon,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                const SizedBox(height: 24),
+                TextFormField(
+                  controller: _gradeCtrl,
+                  enabled: false,
+                  decoration: InputDecoration(
+                    labelText: 'Grade',
+                    prefixIcon: const Icon(Icons.school),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF5F5F5),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
                   ),
                 ),
-                child: _isSaving
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : const Text(
-                        'Save Changes',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                        ),
-                      ),
-              ),
-              const SizedBox(height: 10),
-              OutlinedButton(
-                onPressed: _isSaving ? null : () => Navigator.pop(dialogContext),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.maroon,
-                  side: const BorderSide(color: AppColors.maroon),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: _sectionCtrl,
+                  enabled: !_isSaving,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    labelText: 'Section',
+                    prefixIcon: const Icon(Icons.group),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
                   ),
                 ),
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed:
+                  _isSaving ? null : () => _saveEdit(dialogContext),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.maroon,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: _isSaving
+                      ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          Colors.white),
+                    ),
+                  )
+                      : const Text(
+                    'Save Changes',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(height: 10),
+                OutlinedButton(
+                  onPressed: _isSaving
+                      ? null
+                      : () => Navigator.pop(dialogContext),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.maroon,
+                    side: const BorderSide(color: AppColors.maroon),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -406,7 +414,6 @@ class _NotebookCardState extends State<_NotebookCard> {
 
     final teacherId = context.read<AuthService>().session!.userId;
 
-    // Check for duplicate section name under the same school year
     final sectionExists = await _classService.sectionExists(
       teacherId: teacherId,
       section: section,
@@ -467,19 +474,19 @@ class _NotebookCardState extends State<_NotebookCard> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: _isHovered
                 ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
-                      blurRadius: 12,
-                      offset: const Offset(0, 8),
-                    ),
-                  ]
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 12,
+                offset: const Offset(0, 8),
+              ),
+            ]
                 : [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: GestureDetector(
             onTap: widget.onOpen,

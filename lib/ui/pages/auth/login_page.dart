@@ -16,6 +16,7 @@ import '../../widgets/app_shell.dart';
 import 'register_page.dart';
 import 'widgets/auth_form_parts.dart';
 import 'widgets/auth_layout.dart';
+import 'package:eccd/ui/widgets/otp_countdown.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -275,12 +276,9 @@ class _LoginPageState extends State<LoginPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Expires: ${TimeOfDay.fromDateTime(challenge.expiresAt).format(dialogContext)}',
-                            style: const TextStyle(
-                              color: Color(0xFF999999),
-                              fontSize: 12,
-                            ),
+                          OtpCountdown(
+                            key: ValueKey(challenge.expiresAt), // ✅ important for reset on resend
+                            expiresAt: challenge.expiresAt,
                           ),
                           TextButton.icon(
                             onPressed: sending

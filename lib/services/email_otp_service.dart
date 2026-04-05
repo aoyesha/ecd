@@ -13,9 +13,19 @@ class EmailOtpChallenge {
   final String code;
   final DateTime expiresAt;
 
-  const EmailOtpChallenge({required this.code, required this.expiresAt});
+  const EmailOtpChallenge({
+    required this.code,
+    required this.expiresAt,
+  });
 
+  /// ✅ Check if OTP is expired (backend security)
   bool get isExpired => DateTime.now().isAfter(expiresAt);
+
+  /// ✅ Remaining time (used by countdown UI)
+  Duration get remaining {
+    final diff = expiresAt.difference(DateTime.now());
+    return diff.isNegative ? Duration.zero : diff;
+  }
 }
 
 class EmailOtpService {
@@ -53,15 +63,14 @@ class EmailOtpService {
     'SMTP_FROM_NAME',
     defaultValue: _defaultFromName,
   );
-  static const _subject =
-      'Early Childhood Development (ECD) verification code';
 
   const EmailOtpService();
 
+  /// ✅ Create OTP valid for 10 minutes
   EmailOtpChallenge createChallenge() {
     return EmailOtpChallenge(
       code: _generateCode(),
-      expiresAt: DateTime.now().add(const Duration(minutes: 10)),
+      expiresAt: DateTime.now().add(const Duration(minutes: 10, seconds: 4)),
     );
   }
 
@@ -99,6 +108,7 @@ class EmailOtpService {
     return challenge;
   }
 
+  /// ✅ Generate 6-digit OTP
   String _generateCode() {
     final value = Random.secure().nextInt(900000) + 100000;
     return value.toString();
@@ -115,29 +125,29 @@ class EmailOtpService {
   String _subjectFor(EmailOtpPurpose purpose) {
     switch (purpose) {
       case EmailOtpPurpose.accountVerification:
-        return _subject;
+        return 'Early Childhood Development (ECD) verification code';
       case EmailOtpPurpose.monthlyLoginVerification:
-        return 'Early Childhood Development (ECD) monthly teacher verification code';
+        return 'ECD monthly teacher verification code';
       case EmailOtpPurpose.passwordReset:
-        return 'Early Childhood Development (ECD) password reset code';
+        return 'ECD password reset code';
     }
   }
 
   String _bodyFor(EmailOtpPurpose purpose, EmailOtpChallenge challenge) {
     final actionLine = switch (purpose) {
       EmailOtpPurpose.accountVerification =>
-        'Use this code to verify your Early Childhood Development (ECD) account.',
+      'Use this code to verify your account.',
       EmailOtpPurpose.monthlyLoginVerification =>
-        'Use this code to verify that your teacher account is still active for this month.',
+      'Use this code to verify your teacher account.',
       EmailOtpPurpose.passwordReset =>
-        'Use this code to reset your Early Childhood Development (ECD) password.',
+      'Use this code to reset your password.',
     };
 
     return [
-      'Your Early Childhood Development (ECD) verification code is ${challenge.code}.',
+      'Your verification code is ${challenge.code}.',
       actionLine,
-      'This code expires in 10 minutes.',
-      'If you did not request this code, you can ignore this email.',
+      'This code is valid for 10 minutes.',
+      'If you did not request this, ignore this email.',
     ].join('\n\n');
   }
 }

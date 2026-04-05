@@ -263,7 +263,7 @@ return out;
                             ...classes.map(
                               (c) => DropdownMenuItem<int?>(
                                 value: c['id'] as int,
-                                child: Text('G${c['grade']} ${c['section']}'),
+                                child: Text('G ${c['grade']} ${c['section']}'),
                               ),
                             ),
                           ],

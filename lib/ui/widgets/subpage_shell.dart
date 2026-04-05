@@ -158,6 +158,11 @@ class _SubpageShellState extends State<SubpageShell> {
                   PageDirectoryLine(
                     segments: widget.directorySegments,
                     padding: const EdgeInsets.fromLTRB(18, 0, 18, 10),
+                    onSegmentTap: (segment) {
+                      if (segment == 'My Classes') {
+                        _goToShellIndex(0);
+                      }
+                    },
                   ),
                   Expanded(child: widget.body),
                 ],
